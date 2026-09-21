@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cam Post Solutions – Project Dashboard Alpha v4</title>
+<style>
+:root{--bg:#f5f7fa;--panel:#fff;--text:#172033;--muted:#687386;--border:#dfe4ea;--accent:#0d63c8;--accent2:#084b99;--soft:#edf5ff;--danger:#a63d40;--ok:#19724b;--warn:#9a650e;--shadow:0 12px 30px rgba(15,35,65,.08)}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}.shell{max-width:1250px;margin:auto;padding:28px 18px 60px}
+.mast{background:#fff;border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px}.brand{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:16px 26px;border-top:4px solid #5c8b2f}.brand img{width:140px;height:auto;clip-path:inset(0 0 5px 0);margin-bottom:-5px}.brand span{font-weight:600;color:#445064}.hero{background:linear-gradient(115deg,#0b315f,#0d63c8);color:#fff;padding:22px 28px}.hero h1{margin:0 0 5px}.hero p{margin:0;color:#e5f0ff}
+.card{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:20px 22px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat{border:1px solid var(--border);border-radius:12px;padding:14px}.stat strong{display:block;font-size:28px}.muted{color:var(--muted)}input,select{width:100%;padding:11px 12px;border:1px solid #cfd7e3;border-radius:10px;font:inherit}button,a.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}button.primary,a.primary{background:var(--accent);color:#fff}button.ghost,a.ghost{background:#fff;border:1px solid var(--border);color:var(--text)}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.space{justify-content:space-between}.login{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}.message{font-size:13px;color:var(--muted);margin-top:8px}.message.error{color:var(--danger);font-weight:700}
+table{width:100%;border-collapse:collapse}th,td{padding:11px 9px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.status{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:700;background:#eef3f8;margin:1px 2px}.status.ok{background:#e9f8ef;color:var(--ok)}.status.warn{background:#fff6e9;color:var(--warn)}.status.bad{background:#fff0f0;color:var(--danger)}.actions{display:flex;gap:6px;flex-wrap:wrap}.details{display:none;background:#f8fafc}.details.show{display:table-row}.details-box{padding:14px}.pill{display:inline-block;background:#eef3f8;border-radius:999px;padding:5px 9px;font-size:12px;margin:2px} 
+@media(max-width:900px){.grid{grid-template-columns:1fr 1fr}table{font-size:13px}}@media(max-width:650px){.brand{flex-direction:column;align-items:flex-start}.grid{grid-template-columns:1fr}.login{grid-template-columns:1fr}.tablewrap{overflow:auto}}
+
+  .cps-help-fab{
+    position:fixed;right:22px;bottom:22px;z-index:950;
+    border:0;border-radius:999px;padding:11px 16px;
+    background:#0d63c8;color:#fff;font-weight:800;cursor:pointer;
+    box-shadow:0 8px 24px rgba(13,99,200,.26)
+  }
+  .cps-help-overlay{
+    display:none;position:fixed;inset:0;z-index:1000;background:rgba(10,25,45,.48);
+    padding:24px;overflow:auto
+  }
+  .cps-help-overlay.show{display:block}
+  .cps-help-modal{
+    max-width:760px;margin:5vh auto;background:#fff;border-radius:18px;
+    box-shadow:0 25px 70px rgba(0,0,0,.22);overflow:hidden
+  }
+  .cps-help-head{
+    display:flex;justify-content:space-between;gap:14px;align-items:center;
+    padding:18px 22px;background:linear-gradient(115deg,#0b315f,#0d63c8);color:#fff
+  }
+  .cps-help-head h2{margin:0;font-size:23px}
+  .cps-help-close{background:transparent!important;color:#fff!important;border:1px solid rgba(255,255,255,.5)!important;padding:7px 10px!important}
+  .cps-help-body{padding:20px 22px}
+  .cps-help-body h3{margin:15px 0 6px}
+  .cps-help-body p,.cps-help-body li{line-height:1.5}
+  .cps-help-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+  .cps-help-actions a{display:inline-block;text-decoration:none;border-radius:9px;padding:9px 12px;font-weight:700}
+  .cps-help-primary{background:#0d63c8;color:#fff}
+  .cps-help-secondary{border:1px solid #dfe4ea;color:#172033;background:#fff}
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+</head>
+<body><div class="shell">
+<div class="mast"><div class="brand"><img src="data:image/png;base64,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"><span>CNC post processors · machine simulation · CAM solutions</span></div><div class="hero"><h1>CPS Project Dashboard</h1><p>Internal view of customer questionnaires, commissioning and sign-off progress.</p></div></div>
+
+<div class="card" id="authCard">
+ <div id="signedOut"><h2>Staff sign-in</h2><div class="login"><label>Email address<input id="email" type="email" value="support@campostsolutions.co.uk"></label><button class="primary" onclick="sendCode()">Send sign-in email</button></div><div id="otp" style="display:none;margin-top:12px" class="login"><label>Sign-in code<input id="code" maxlength="10" inputmode="numeric"></label><button class="primary" onclick="verifyCode()">Verify code</button></div><div id="authMsg" class="message"></div></div>
+ <div id="signedIn" style="display:none"><div class="row space"><div><strong>Signed in: <span id="who"></span></strong><div id="msg" class="message"></div></div><div class="row"><button class="ghost" onclick="loadProjects()">Refresh</button><button class="ghost" onclick="signOut()">Sign out</button></div></div></div>
+</div>
+
+<div id="app" style="display:none">
+ <div class="grid" id="stats"></div>
+ <div class="card"><div class="row space"><div><h2 style="margin:0">Projects</h2><div class="muted">Use “Enable commissioning” after you have reviewed Stage 1 and are happy for machine testing to start.</div></div><div style="min-width:260px"><input id="filter" placeholder="Search customer, machine or reference…" oninput="renderProjects()"></div></div></div>
+ <div class="card tablewrap"><table><thead><tr><th>Project</th><th>Customer / machine</th><th>Stage 1</th><th>Stage 2</th><th>Stage 3</th><th>Updated</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div>
+</div>
+</div>
+<script>
+const SUPABASE_URL="https://hfxghrzhthvmcvzxletp.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_TTAEax5Jgl-gcYKdixdxiA_Imyz7hHg";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let user=null,projects=[];
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+function authMsg(t,e=false){const x=document.getElementById('authMsg');x.textContent=t||'';x.classList.toggle('error',e)}
+function msg(t,e=false){const x=document.getElementById('msg');x.textContent=t||'';x.classList.toggle('error',e)}
+async function sendCode(){const email=document.getElementById('email').value.trim();if(!email)return authMsg('Enter your CPS email.',true);const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:false}});if(error)return authMsg(error.message,true);document.getElementById('otp').style.display='grid';authMsg('Sign-in code sent.');}
+async function verifyCode(){const email=document.getElementById('email').value.trim(),token=document.getElementById('code').value.replace(/\D/g,'');const {error}=await sb.auth.verifyOtp({email,token,type:'email'});if(error)authMsg(error.message,true);}
+async function signOut(){await sb.auth.signOut();location.reload();}
+async function handleSession(session){
+ if(!session?.user){document.getElementById('signedOut').style.display='block';document.getElementById('signedIn').style.display='none';document.getElementById('app').style.display='none';return;}
+ user=session.user;
+ const {data,error}=await sb.from('cps_staff').select('user_id,email').eq('user_id',user.id).maybeSingle();
+ if(error||!data){await sb.auth.signOut();authMsg('This login is not authorised for the CPS internal dashboard.',true);return;}
+ document.getElementById('signedOut').style.display='none';document.getElementById('signedIn').style.display='block';document.getElementById('app').style.display='block';document.getElementById('who').textContent=user.email;await loadProjects();
+}
+async function loadProjects(){
+ msg('Loading…');
+ const {data,error}=await sb.from('projects').select('*').order('updated_at',{ascending:false});
+ if(error)return msg('Could not load projects: '+error.message,true);
+ projects=data||[];renderStats();renderProjects();msg(`${projects.length} project${projects.length===1?'':'s'} loaded.`);
+}
+function badge(value){
+ const v=value||'—';let cls='';if(/completed|accepted|reviewed|submitted/.test(v))cls='ok';else if(/retest|blocked|not_accepted/.test(v))cls='bad';else if(/draft|not_started/.test(v))cls='warn';
+ return `<span class="status ${cls}">${esc(v.replaceAll('_',' '))}</span>`;
+}
+function renderStats(){
+ const count=f=>projects.filter(f).length;
+ document.getElementById('stats').innerHTML=[
+  ['Total projects',projects.length],
+  ['Stage 1 submitted/reviewed',count(p=>['submitted','reviewed'].includes(p.stage1_status))],
+  ['Commissioning active',count(p=>['draft','retest_required'].includes(p.stage2_status))],
+  ['Ready / accepted',count(p=>p.stage2_status==='completed'||['accepted','accepted_with_limitations'].includes(p.stage3_status))]
+ ].map(([l,n])=>`<div class="stat"><span class="muted">${l}</span><strong>${n}</strong></div>`).join('');
+}
+function projectActions(p){
+  const buttons=[`<a class="btn ghost" href="index.html?project=${encodeURIComponent(p.id)}">Project home</a>`,`<button class="ghost" onclick="toggleDetails('${p.id}')">Details</button>`];
+
+  if(p.stage2_status==='not_started'){
+    buttons.push(`<button class="primary" onclick="enableCommissioning('${p.id}')">Enable commissioning</button>`);
+  } else {
+    const s2Label=p.stage2_status==='completed'?'View Stage 2':'Open Stage 2';
+    buttons.push(`<a class="btn ghost" href="./commissioning.html?project=${encodeURIComponent(p.id)}">${s2Label}</a>`);
+  }
+
+  if(p.stage3_status!=='not_started'){
+    const s3Label=['accepted','accepted_with_limitations'].includes(p.stage3_status)
+      ? 'View sign-off'
+      : (p.stage3_status==='not_accepted'?'View rejected sign-off':'Open Stage 3');
+    buttons.push(`<a class="btn primary" href="./signoff.html?project=${encodeURIComponent(p.id)}">${s3Label}</a>`);
+  }
+
+  return buttons.join('');
+}
+function renderProjects(){
+ const q=document.getElementById('filter').value.trim().toLowerCase();
+ const rows=projects.filter(p=>!q||[p.reference,p.customer_company,p.machine_manufacturer,p.machine_model,p.control_manufacturer,p.cam_system].join(' ').toLowerCase().includes(q));
+ document.getElementById('rows').innerHTML=rows.map(p=>{
+  const stage1=p.stage1_data||{},caps=Array.isArray(stage1.capabilities)?stage1.capabilities:(stage1.capabilities?[stage1.capabilities]:[]);
+  const s3=p.stage3_data||{};
+  return `<tr><td><strong>${esc(p.reference)}</strong><div class="muted">${esc(p.cam_system||'')}</div></td><td><strong>${esc(p.customer_company||'—')}</strong><br>${esc([p.machine_manufacturer,p.machine_model].filter(Boolean).join(' ')||'—')}<div class="muted">${esc([p.control_manufacturer,p.control_model].filter(Boolean).join(' '))}</div></td><td>${badge(p.stage1_status)}</td><td>${badge(p.stage2_status)}</td><td>${badge(p.stage3_status)}</td><td>${new Date(p.updated_at).toLocaleString()}</td><td><div class="actions">${projectActions(p)}</div></td></tr>
+  <tr id="details-${p.id}" class="details"><td colspan="7"><div class="details-box"><strong>Stage 1 scope</strong><div>${esc(stage1.project_scope||p.deliverable||'—')}</div><div style="margin-top:8px">${caps.map(c=>`<span class="pill">${esc(c)}</span>`).join('')}</div><div style="margin-top:10px"><strong>Contact:</strong> ${esc(p.customer_contact||'—')} · ${esc(p.customer_email||'—')}</div>${s3.acceptance?`<div style="margin-top:10px"><strong>Acceptance:</strong> ${esc(s3.acceptance)}${s3.customer_representative?` · ${esc(s3.customer_representative)}`:''}</div>`:''}</div></td></tr>`;
+ }).join('');
+}
+function toggleDetails(id){document.getElementById('details-'+id).classList.toggle('show')}
+async function enableCommissioning(id){
+ if(!confirm('Mark Stage 1 as reviewed and enable Stage 2 commissioning for this project?'))return;
+ const {error}=await sb.from('projects').update({stage1_status:'reviewed',stage2_status:'draft'}).eq('id',id);
+ if(error)return msg('Could not enable commissioning: '+error.message,true);
+ msg('Commissioning enabled.');await loadProjects();
+}
+sb.auth.onAuthStateChange((_e,s)=>setTimeout(()=>handleSession(s),0));
+(async()=>{const {data:{session}}=await sb.auth.getSession();await handleSession(session);})();
+</script>
+<button class="cps-help-fab" type="button" onclick="openCpsHelp()">? Help</button>
+<div id="cpsHelpOverlay" class="cps-help-overlay" onclick="if(event.target===this)closeCpsHelp()">
+  <div class="cps-help-modal" role="dialog" aria-modal="true" aria-labelledby="cpsHelpTitle">
+    <div class="cps-help-head">
+      <h2 id="cpsHelpTitle">CPS Portal Help</h2>
+      <button type="button" class="cps-help-close" onclick="closeCpsHelp()">Close</button>
+    </div>
+    <div class="cps-help-body">
+      
+          <h3>CPS internal dashboard</h3>
+          <ul>
+            <li><strong>Draft:</strong> customer is still completing Stage 1.</li>
+            <li><strong>Submitted:</strong> Stage 1 is ready for CPS review.</li>
+            <li><strong>Enable commissioning:</strong> marks Stage 1 reviewed and opens Stage 2.</li>
+            <li><strong>Retest required:</strong> further post/simulation work or machine testing is needed.</li>
+            <li><strong>Completed:</strong> Stage 2 baseline is locked and Stage 3 can proceed.</li>
+            <li><strong>Accepted:</strong> final release baseline is locked.</li>
+          </ul>
+          <p>Use the dashboard controls rather than manually changing project statuses in Supabase.</p>
+        
+      <div class="cps-help-actions">
+        <a class="cps-help-primary" href="./help.html#staff" target="_blank">Open full guide</a>
+        <a class="cps-help-secondary" href="./help.html" target="_blank">Customer & staff guides</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function openCpsHelp(){document.getElementById('cpsHelpOverlay').classList.add('show');}
+function closeCpsHelp(){document.getElementById('cpsHelpOverlay').classList.remove('show');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCpsHelp();});
+</script>
+
+</body></html>
