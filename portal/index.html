@@ -52,7 +52,7 @@
 
  <div class="card">
   <div class="section-title"><div><h2>Test releases</h2><div class="muted small">Files made available by Cam Post Solutions for machine testing.</div></div></div>
-  <div id="releaseList"><p class="muted">No releases available yet.</p></div>
+  <div id="releaseNotice" class="callout hidden"></div><div id="releaseList"><p class="muted">No releases available yet.</p></div>
 
   <div id="staffReleaseBox" class="staff-box hidden">
    <h3>CPS staff · Create test release</h3>
@@ -163,11 +163,15 @@ async function loadReleases(){
  const box=document.getElementById('releaseList');if(!releases.length){box.innerHTML='<p class="muted">No releases available yet.</p>';return}
  box.innerHTML=releases.map(r=>{
   const rf=files.filter(f=>f.release_id===r.id);const staffButtons=isStaff&&r.status==='draft'?`<button class="primary" onclick="releaseToCustomer('${r.id}')">Release to customer</button>`:'';
-  return `<div class="release ${r.status}"><div class="row space"><div><strong>${esc(r.revision)}</strong> ${r.title?'· '+esc(r.title):''}<div>${badge(human(r.status),r.status==='released'?'ok':'warn')}</div></div><div>${staffButtons}</div></div>${r.release_notes?`<p>${esc(r.release_notes).replaceAll('\n','<br>')}</p>`:''}<div class="files">${rf.length?rf.map(f=>`<div class="file"><span>📄 ${esc(f.filename)}</span><button class="ghost" onclick="downloadReleaseFile('${esc(f.storage_path)}')">Download</button></div>`).join(''):'<span class="muted small">No files uploaded.</span>'}</div></div>`;
+  return `<div class="release ${r.status}"><div class="row space"><div><strong>${esc(r.revision)}</strong> ${r.title?'· '+esc(r.title):''}<div>${badge(human(r.status),r.status==='released'?'ok':'warn')}</div></div><div>${staffButtons}</div></div>${r.release_notes?`<p>${esc(r.release_notes).replaceAll('\n','<br>')}</p>`:''}<div class="files">${rf.length?rf.map(f=>`<div class="file"><span>📄 ${esc(f.filename)}</span><button class="ghost" onclick="downloadReleaseFile('${esc(f.storage_path)}','${esc(f.filename)}')">Download</button></div>`).join(''):'<span class="muted small">No files uploaded.</span>'}</div></div>`;
  }).join('');
 }
-async function downloadReleaseFile(path){
- const {data,error}=await sb.storage.from('cps-project-files').createSignedUrl(path,300);if(error)return setMsg('Could not create download link: '+error.message,true);window.open(data.signedUrl,'_blank','noopener');
+async function downloadReleaseFile(path,filename){
+ const {data,error}=await sb.storage.from('cps-project-files').createSignedUrl(path,300,{download:true});
+ if(error)return setMsg('Could not create download link: '+error.message,true);
+ const u=new URL(data.signedUrl);
+ u.searchParams.set('download',filename||'download');
+ window.open(u.toString(),'_blank','noopener');
 }
 async function requestChanges(){
  const note=prompt('What information should the customer update in Stage 1?');if(!note?.trim())return;
@@ -200,13 +204,26 @@ async function createDraftRelease(){
 }
 async function releaseToCustomer(releaseId){
  if(!confirm('Make this release visible to the customer and open commissioning?'))return;
+ const notice=document.getElementById('releaseNotice');
+ notice.classList.remove('hidden','warn');
+ notice.innerHTML='<strong>Publishing release…</strong> Files are being made available and the customer notification is being attempted.';
  let nextS2=currentProject.stage2_status==='not_started'?'draft':currentProject.stage2_status;
- const {error:rerr}=await sb.from('project_releases').update({status:'released',released_at:new Date().toISOString()}).eq('id',releaseId);if(rerr)return setMsg(rerr.message,true);
- const {error:perr}=await sb.from('projects').update({development_status:'ready_for_testing',stage2_status:nextS2}).eq('id',currentProjectId);if(perr)return setMsg(perr.message,true);
+ const {error:rerr}=await sb.from('project_releases').update({status:'released',released_at:new Date().toISOString()}).eq('id',releaseId);
+ if(rerr){notice.classList.add('warn');notice.innerHTML='<strong>Release failed.</strong> '+esc(rerr.message);return setMsg(rerr.message,true);}
+ const {error:perr}=await sb.from('projects').update({development_status:'ready_for_testing',stage2_status:nextS2}).eq('id',currentProjectId);
+ if(perr){notice.classList.add('warn');notice.innerHTML='<strong>Release files published, but project status could not be updated.</strong> '+esc(perr.message);return setMsg(perr.message,true);}
  const n=await notify('release_ready',releaseId);
  await loadProject(currentProjectId);
- if(n.ok)setMsg('Release published and customer notification sent.');
- else setMsg('Release published. Email notification could not be sent: '+(n.error||'unknown error'),true);
+ const newNotice=document.getElementById('releaseNotice');
+ newNotice.classList.remove('hidden','warn');
+ if(n.ok){
+   newNotice.innerHTML='<strong>Release published.</strong> The customer has been notified by email and can now download the files and begin commissioning.';
+   setMsg('Release published and customer notification sent.');
+ }else{
+   newNotice.classList.add('warn');
+   newNotice.innerHTML='<strong>Release published, but the notification email was not sent.</strong> '+esc(n.error||'Unknown email error')+'. The files are still available in the customer portal.';
+   setMsg('Release published. Email notification could not be sent: '+(n.error||'unknown error'),true);
+ }
 }
 async function notify(action,releaseId=null){
  try{const {data,error}=await sb.functions.invoke('notify-project',{body:{action,project_id:currentProjectId,release_id:releaseId}});if(error)return {ok:false,error:error.message};if(data?.error)return {ok:false,error:data.error};return {ok:true,data}}catch(e){return {ok:false,error:e.message||String(e)}}
