@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cam Post Solutions – Portal Help</title>
+<style>
+:root{
+  --bg:#f5f7fa;--panel:#fff;--text:#172033;--muted:#687386;--border:#dfe4ea;
+  --accent:#0d63c8;--accent2:#084b99;--green:#5c8b2f;--soft:#edf5ff;
+  --ok:#19724b;--warn:#9a650e;--danger:#a63d40;--shadow:0 12px 30px rgba(15,35,65,.08)
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.55}
+.shell{max-width:1100px;margin:auto;padding:28px 18px 70px}
+.mast{background:#fff;border:1px solid var(--border);border-radius:22px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:20px}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:22px;padding:16px 26px;border-top:4px solid var(--green)}
+.brand strong{font-size:22px}.brand span{color:#445064}
+.hero{background:linear-gradient(115deg,#0b315f,#0d63c8);color:#fff;padding:24px 30px}
+.hero h1{margin:0 0 6px;font-size:34px}.hero p{margin:0;color:#e5f0ff}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+.tabs button{border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+.tabs button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.card{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:22px 24px;margin-bottom:18px}
+.card h2{margin:0 0 8px}.card h3{margin:18px 0 7px}.muted{color:var(--muted)}
+.guide{display:none}.guide.active{display:block}
+.step{display:grid;grid-template-columns:52px 1fr;gap:14px;margin:14px 0}
+.num{width:42px;height:42px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-weight:800;color:var(--accent2)}
+.callout{border-left:4px solid var(--accent);background:#f7fbff;border-radius:10px;padding:12px 15px;margin:14px 0}
+.warn{border-left-color:var(--warn);background:#fff9ef}.danger{border-left-color:var(--danger);background:#fff3f3}.ok{border-left-color:var(--ok);background:#f3fbf7}
+.status-table{width:100%;border-collapse:collapse;margin-top:10px}.status-table th,.status-table td{padding:9px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}.status-table th{background:#f5f8fb}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff}.ghost{background:#fff;color:var(--text);border:1px solid var(--border)}
+ul{margin-top:7px}
+@media(max-width:650px){.brand{flex-direction:column;align-items:flex-start}.hero h1{font-size:28px}.step{grid-template-columns:42px 1fr}}
+@media print{body{background:#fff}.shell{max-width:none;padding:0}.mast,.tabs,.toolbar{display:none!important}.guide{display:block!important}.card{box-shadow:none;border:0;padding:0;margin:0 0 20px}.guide+.guide{page-break-before:always}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="mast">
+    <div class="brand"><strong>CAM POST SOLUTIONS LTD</strong><span>CNC post processors · machine simulation · CAM solutions</span></div>
+    <div class="hero"><h1>CPS Portal Help</h1><p>How to use the machine questionnaire, commissioning workflow and customer sign-off.</p></div>
+  </div>
+
+  <div class="tabs">
+    <button id="customerTab" class="active" onclick="showGuide('customer')">Customer guide</button>
+    <button id="staffTab" onclick="showGuide('staff')">CPS staff guide</button>
+    <button class="ghost" onclick="window.print()">Print / save PDF</button>
+  </div>
+
+  <div id="customerGuide" class="guide active">
+    <div class="card">
+      <h2>Customer guide</h2>
+      <p class="muted">The portal keeps the machine specification, machine testing and final acceptance together under one CPS project reference. You do not need to download or manage JSON files.</p>
+
+      <div class="step"><div class="num">1</div><div><h3>Sign in</h3><p>Enter your email address and request a sign-in email. Enter the code from the email into the portal. No password is required.</p><p>The same email address can have more than one machine/project. Use the project selector to choose the correct CPS reference.</p></div></div>
+
+      <div class="step"><div class="num">2</div><div><h3>Stage 1 – Machine information</h3><p>Complete the questionnaire for the machine, control, CAM system, machine capabilities, safe positions and required post functions.</p><ul><li>Progress is saved automatically.</li><li>You can use <strong>Save now</strong>, sign out and return later.</li><li>If you require machine simulation, a machine CAD model is mandatory.</li><li>Please upload supporting manuals, proven NC code, machine-at-home photographs and rotary-zero photographs where requested.</li></ul></div></div>
+
+      <div class="callout warn"><strong>Offline / shop-floor use:</strong> where internet access is not available, download the offline Word questionnaire, complete it locally, then return the completed form and supporting files to Cam Post Solutions when internet access is available.</div>
+
+      <div class="step"><div class="num">3</div><div><h3>Submit Stage 1</h3><p>When the machine information is complete, submit the questionnaire. Cam Post Solutions will review the information before machine commissioning is enabled.</p></div></div>
+
+      <div class="callout"><strong>Do not begin machine testing simply because Stage 1 has been submitted.</strong> Stage 2 becomes available when Cam Post Solutions has reviewed the information and enabled commissioning.</div>
+
+      <div class="step"><div class="num">4</div><div><h3>Stage 2 – Commissioning</h3><p>Open the same CPS project when commissioning has been enabled. The portal builds the test checklist from the machine configuration supplied in Stage 1.</p><ul><li>Record each test as Pass, Fail, Not tested or N/A.</li><li>Add notes for observed machine behaviour or changes made at the control.</li><li>Use controlled machine-testing practices and proven machine/manual information.</li><li>Upload the actual tested NC/results and the CAM test project. These are mandatory before commissioning can be completed.</li><li>Photos, video and diagnostic/control files can also be uploaded where useful.</li></ul></div></div>
+
+      <div class="step"><div class="num">5</div><div><h3>Commissioning outcome</h3><p>Select the outcome that reflects the test:</p><ul><li><strong>Ready for sign-off</strong> – the agreed functions are proven and there are no blocking issues.</li><li><strong>Retest required</strong> – changes are required before acceptance.</li><li><strong>Blocked</strong> – more machine information, supplier input or another dependency is required.</li></ul></div></div>
+
+      <div class="step"><div class="num">6</div><div><h3>Stage 3 – Customer acceptance</h3><p>Once commissioning is complete, review the machine-test record and identify the exact post/simulation revision being accepted.</p><p>Choose <strong>Accepted</strong>, <strong>Accepted with limitations</strong> or <strong>Not accepted</strong>. A Not accepted result returns the project to commissioning for further work/retest.</p></div></div>
+
+      <div class="callout ok"><strong>Accepted records become the project baseline.</strong> Later post or simulation changes should use a new revision and, where appropriate, another commissioning/sign-off cycle.</div>
+
+      <h3>If something goes wrong</h3>
+      <ul>
+        <li>If the sign-in code does not arrive, check junk/spam and make sure the email address is correct.</li>
+        <li>If a field or machine option looks wrong, stop and tell Cam Post Solutions rather than guessing safety-critical information.</li>
+        <li>If you cannot access Stage 2, it has probably not yet been enabled by CPS.</li>
+        <li>If a large machine model/CAM file cannot be uploaded, contact CPS for an alternative secure transfer method.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="staffGuide" class="guide">
+    <div class="card">
+      <h2>CPS internal staff guide</h2>
+      <p class="muted">The internal dashboard controls the progression of projects from customer specification through machine verification to acceptance.</p>
+
+      <div class="step"><div class="num">1</div><div><h3>Open the CPS Project Dashboard</h3><p>Sign in using an authorised CPS staff email. The dashboard shows all projects, not just projects owned by that email account.</p></div></div>
+
+      <h3>Project status meanings</h3>
+      <table class="status-table">
+        <tr><th>Stage</th><th>Status</th><th>Meaning</th></tr>
+        <tr><td>Stage 1</td><td>Draft</td><td>Customer is still completing the questionnaire.</td></tr>
+        <tr><td>Stage 1</td><td>Submitted</td><td>Customer has finished Stage 1; CPS review required.</td></tr>
+        <tr><td>Stage 1</td><td>Reviewed</td><td>CPS has reviewed the machine information and enabled commissioning.</td></tr>
+        <tr><td>Stage 2</td><td>Not started</td><td>Commissioning is locked.</td></tr>
+        <tr><td>Stage 2</td><td>Draft</td><td>Commissioning is enabled/in progress.</td></tr>
+        <tr><td>Stage 2</td><td>Retest required</td><td>Changes or another machine test are required.</td></tr>
+        <tr><td>Stage 2</td><td>Completed</td><td>Commissioning is complete; the Stage 2 baseline is locked and Stage 3 can proceed.</td></tr>
+        <tr><td>Stage 3</td><td>Draft</td><td>Waiting for final customer acceptance.</td></tr>
+        <tr><td>Stage 3</td><td>Accepted / accepted with limitations</td><td>Final baseline recorded and locked.</td></tr>
+        <tr><td>Stage 3</td><td>Not accepted</td><td>Project returns to Stage 2 for further work/retest.</td></tr>
+      </table>
+
+      <div class="step"><div class="num">2</div><div><h3>Review Stage 1</h3><p>Before selecting <strong>Enable commissioning</strong>, check the questionnaire and evidence against the agreed project scope.</p><ul><li>Machine / control / CAM details.</li><li>Kinematics, rotary directions/limits and machine configuration.</li><li>Safe retracts, tool-change positions and other safety-critical movement.</li><li>Relevant control features.</li><li>Required post functions.</li><li>Programming manuals and proven NC examples.</li><li>Machine CAD model where simulation is included.</li><li>Home/reference and rotary-zero photographs where relevant.</li></ul></div></div>
+
+      <div class="callout danger"><strong>Do not enable commissioning if safety-critical information is still assumed or contradictory.</strong> Obtain confirmation from manuals, proven NC or the machine/customer first.</div>
+
+      <div class="step"><div class="num">3</div><div><h3>Enable Stage 2</h3><p>Use <strong>Enable commissioning</strong> on the dashboard or in the Stage 2 CPS staff controls. This marks Stage 1 as Reviewed and opens the commissioning record.</p></div></div>
+
+      <div class="step"><div class="num">4</div><div><h3>Commission the machine</h3><p>The Stage 2 checklist is generated from Stage 1. Record observed behaviour rather than only whether the NC is syntactically valid.</p><ul><li>Use Pass/Fail/Not tested/N/A consistently.</li><li>Record machine edits and post changes.</li><li>Flag safety-critical failures clearly.</li><li>Mandatory evidence is tested NC/results plus the actual CAM test project.</li><li>Keep limitations and anything not tested explicit.</li></ul></div></div>
+
+      <div class="step"><div class="num">5</div><div><h3>Decide the Stage 2 outcome</h3><p>Only use <strong>Ready for sign-off</strong> when the agreed scope has been adequately tested and blocking issues are resolved. A completed Stage 2 record is locked as the commissioning baseline.</p></div></div>
+
+      <div class="step"><div class="num">6</div><div><h3>Stage 3 acceptance</h3><p>Stage 3 identifies the exact final post/simulation revision, known limitations, customer representative and acceptance result.</p><p><strong>Accepted</strong> and <strong>Accepted with limitations</strong> lock the release baseline. <strong>Not accepted</strong> returns the project to Stage 2 as Retest required.</p></div></div>
+
+      <div class="step"><div class="num">7</div><div><h3>After acceptance</h3><p>Use the accepted record as the baseline for future support. If the post, simulation, machine configuration or project scope changes materially, create a new revision and decide whether further commissioning/sign-off is required.</p></div></div>
+
+      <div class="callout"><strong>Storage:</strong> customer/project records and uploads are stored in the private CPS Supabase project store. GitHub should contain the portal/web code only, not customer machine data.</div>
+
+      <h3>Internal good practice</h3>
+      <ul>
+        <li>Use the portal/dashboard to change stage status rather than manually editing database rows.</li>
+        <li>Do not overwrite an accepted baseline to represent a later revision.</li>
+        <li>Keep customer actions separate from CPS actions in commissioning notes.</li>
+        <li>Do not mark untested functionality as proven.</li>
+        <li>Where a machine condition cannot be verified safely, record it as Not tested / Blocked and obtain the required evidence.</li>
+      </ul>
+
+      <h3>Testing / support note</h3>
+      <p>Use the CPS project home page as the normal entry point. If a page does not behave as expected, record the CPS project reference and contact CPS Support.</p>
+    </div>
+  </div>
+</div>
+<script>
+function showGuide(which){
+  const staff=which==='staff';
+  document.getElementById('customerGuide').classList.toggle('active',!staff);
+  document.getElementById('staffGuide').classList.toggle('active',staff);
+  document.getElementById('customerTab').classList.toggle('active',!staff);
+  document.getElementById('staffTab').classList.toggle('active',staff);
+  history.replaceState(null,'','#'+which);
+}
+const hash=location.hash.replace('#','');
+if(hash==='staff')showGuide('staff');
+</script>
+</body>
+</html>
