@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cam Post Solutions – Connected Sign-off Portal</title>
+<style>
+  :root{
+    --bg:#f5f7fa;
+    --panel:#ffffff;
+    --text:#172033;
+    --muted:#687386;
+    --border:#dfe4ea;
+    --accent:#0d63c8;
+    --accent2:#084b99;
+    --soft:#edf5ff;
+    --danger:#a63d40;
+    --ok:#19724b;
+    --shadow:0 12px 30px rgba(15,35,65,.08);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.5;
+  }
+  .shell{max-width:1080px;margin:0 auto;padding:28px 18px 60px}
+  .masthead{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:22px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    margin-bottom:20px;
+  }
+  .brand-strip{
+    display:flex;align-items:center;justify-content:space-between;gap:24px;
+    padding:16px 26px 14px;background:#fff;
+    border-top:4px solid #5c8b2f;
+  }
+  .brand-strip img{display:block;width:140px;height:auto;object-fit:contain;flex:0 0 auto;clip-path:inset(0 0 5px 0);margin-bottom:-5px}
+  .brand-tagline{
+    color:#445064;font-size:14px;font-weight:600;letter-spacing:.01em;text-align:right;white-space:nowrap;
+  }
+  .hero{
+    background:linear-gradient(115deg,#0b315f,#0d63c8);
+    color:white;padding:24px 28px 26px;
+    border-radius:0;box-shadow:none;margin:0;
+  }
+  .hero h1{margin:0 0 7px;font-size:clamp(27px,3.5vw,38px);line-height:1.12;letter-spacing:-.02em}
+  .hero p{margin:0;max-width:830px;color:#e5f0ff;font-size:15px}
+  .topbar{
+    display:flex;gap:14px;align-items:center;justify-content:space-between;
+    margin:18px 0;
+    flex-wrap:wrap;
+  }
+  .progress-wrap{flex:1;min-width:240px}
+  .progress-label{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .progress{height:10px;background:#e3e8ef;border-radius:999px;overflow:hidden}
+  .progress > div{height:100%;background:var(--accent);width:0;transition:.25s}
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .step{display:none;padding:28px}
+  .step.active{display:block}
+  .step h2{margin:0 0 6px;font-size:26px}
+  .step .intro{margin:0 0 24px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+  .full{grid-column:1 / -1}
+  label.field{display:block}
+  label.field span.lbl{display:block;font-weight:700;margin-bottom:7px}
+  label.field span.help{display:block;color:var(--muted);font-size:13px;margin-top:5px}
+  input,select,textarea{
+    width:100%;
+    border:1px solid #cfd7e3;
+    background:white;
+    color:var(--text);
+    padding:12px 13px;
+    border-radius:10px;
+    font:inherit;
+    outline:none;
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(13,99,200,.12)}
+  textarea{min-height:110px;resize:vertical}
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:12px;
+  }
+  .choice{
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+    cursor:pointer;
+    transition:.15s;
+    background:#fff;
+  }
+  .choice:hover{border-color:#9bbce3;transform:translateY(-1px)}
+  .choice input{width:auto;margin-right:8px}
+  .choice strong{display:block;margin-bottom:4px}
+  .choice small{color:var(--muted)}
+  .section{
+    margin-top:24px;
+    padding-top:22px;
+    border-top:1px solid var(--border);
+  }
+  .section h3{margin:0 0 4px}
+  .section p{margin:0 0 16px;color:var(--muted)}
+  .checkgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .check{
+    display:flex;gap:8px;align-items:flex-start;
+    border:1px solid var(--border);
+    border-radius:10px;padding:10px 12px;background:#fff
+  }
+  .check input{width:auto;margin-top:3px}
+  .notice{
+    border-left:4px solid var(--accent);
+    background:var(--soft);
+    padding:14px 16px;
+    border-radius:10px;
+    margin:18px 0;
+  }
+  .notice.warning{border-left-color:#c57a16;background:#fff6e9}
+  .notice.critical{border-left-color:var(--danger);background:#fff0f0}
+  .nav{
+    display:flex;justify-content:space-between;gap:10px;
+    padding:20px 28px;border-top:1px solid var(--border);background:#fbfcfe
+  }
+  button{
+    border:0;border-radius:10px;padding:12px 18px;font-weight:700;font-size:15px;cursor:pointer
+  }
+  button.primary{background:var(--accent);color:white}
+  button.primary:hover{background:var(--accent2)}
+  button.secondary{background:#e8edf3;color:var(--text)}
+  button.ghost{background:white;border:1px solid var(--border);color:var(--text)}
+  .commission-link{display:inline-block;background:var(--accent);color:white;text-decoration:none;padding:12px 18px;border-radius:10px;font-weight:700}
+  .commission-link:hover{background:var(--accent2)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+  .conditional{display:none}
+  .conditional.show{display:block}
+  .summary{
+    background:#f8fafc;border:1px solid var(--border);padding:18px;border-radius:12px
+  }
+  .summary h3{margin-top:0}
+  .summary dl{display:grid;grid-template-columns:220px 1fr;gap:8px 14px}
+  .summary dt{font-weight:700}
+  .summary dd{margin:0;color:#364055}
+  .pill{
+    display:inline-block;background:#eef3f8;border-radius:999px;padding:5px 10px;font-size:12px;margin:3px 4px 3px 0
+  }
+  .req{color:var(--danger)}
+  .upload{
+    border:2px dashed #bdc9d8;border-radius:12px;padding:20px;text-align:center;background:#fafcff
+  }
+  .small{font-size:13px;color:var(--muted)}
+  footer{color:var(--muted);text-align:center;margin-top:18px;font-size:13px}
+
+
+    .file-hint{display:flex;gap:10px;align-items:flex-start;background:#f1f7ff;border:1px solid #cfe2fb;border-radius:11px;padding:12px 14px;margin:12px 0;color:#24405f}
+  .file-hint strong{color:#0b315f}
+  .turret-card{border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:14px;background:#fbfcfe}
+  .turret-card h4{margin:0 0 12px;font-size:17px}
+  .offline-link{display:inline-flex;align-items:center;gap:7px;text-decoration:none;border:1px solid var(--border);background:#fff;color:var(--text);border-radius:10px;padding:11px 14px;font-weight:700}
+  .offline-link:hover{border-color:#9bbce3;background:#f8fbff}
+  .feature-conditional{display:none}
+  .feature-conditional.show{display:flex}
+  .machine-table{table-layout:fixed}
+  .machine-table th:first-child{width:14%}
+  .machine-table td input,.machine-table td select{width:100%;min-width:0}
+  .machine-table tr.conditional{display:none}
+  .machine-table tr.conditional.show{display:table-row}
+
+  .stage-ribbon{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 18px;
+  }
+  .stage-card{
+    border:1px solid var(--border);background:#fff;border-radius:14px;padding:14px 16px;
+  }
+  .stage-card.active{border-color:var(--accent);background:var(--soft)}
+  .stage-card strong{display:block}
+  .stage-card small{color:var(--muted)}
+  .machine-table{width:100%;border-collapse:collapse;margin-top:10px}
+  .machine-table th,.machine-table td{border:1px solid var(--border);padding:8px;text-align:left;vertical-align:top}
+  .machine-table th{background:#f3f6f9}
+  .machine-table input,.machine-table select{min-width:90px}
+  .status-list{display:grid;gap:8px;margin-top:10px}
+  .status-row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);padding:7px 0}
+  .status-ok{color:var(--ok);font-weight:700}
+  .status-warn{color:#9a650e;font-weight:700}
+
+  @media (max-width:800px){
+    .brand-strip{align-items:flex-start;flex-direction:column;gap:10px;padding:14px 18px}
+    .brand-tagline{text-align:left;font-size:13px;white-space:normal}
+    .hero{padding:21px 20px 23px}
+
+    .grid,.grid-3,.cards,.checkgrid,.stage-ribbon{grid-template-columns:1fr}
+    .step{padding:20px}
+    .nav{padding:16px 20px}
+    .summary dl{grid-template-columns:1fr}
+  }
+
+  /* Table rows must retain table-row display when conditionally shown. */
+  tr.conditional.show{display:table-row!important}
+  label.conditional.show,div.conditional.show{display:block}
+
+  .test-table{width:100%;border-collapse:collapse;margin-top:14px}.test-table th,.test-table td{border:1px solid var(--border);padding:10px;vertical-align:top}.test-table th{background:#f3f6f9;text-align:left}.test-table select{min-width:120px}.badge{display:inline-block;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:700;background:#eef3f8}.badge.critical{background:#fff0f0;color:#9b3034}.group-title{display:flex;justify-content:space-between;gap:12px;align-items:center}.file-drop{border:2px dashed #bdc9d8;border-radius:12px;padding:18px;background:#fafcff}.file-drop.required{border-color:#d49a9d;background:#fffafa}.file-drop.loaded{border-color:#7db596;background:#f4fbf7}.file-drop input[type=file]{margin-top:10px}.file-state{font-size:13px;margin-top:8px;color:var(--muted)}.file-state.ok{color:var(--ok);font-weight:700}.import-summary{display:none;margin-top:15px}.import-summary.show{display:block}.issue-row{display:grid;grid-template-columns:1fr 150px 1fr;gap:10px;margin-bottom:10px}.outcome-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.outcome-card{border:1px solid var(--border);border-radius:12px;padding:14px}.outcome-card input{width:auto}.hidden{display:none!important}.evidence-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.accept-row{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border);border-radius:11px;padding:12px;background:#fff}.accept-row input{width:auto;margin-top:3px}.result-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.result-box{border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}.result-box strong{display:block;font-size:24px}.result-box.fail{background:#fff5f5}.result-box.pass{background:#f4fbf7}.result-box.warn{background:#fff8ee}.release-table{width:100%;border-collapse:collapse}.release-table th,.release-table td{border:1px solid var(--border);padding:9px;vertical-align:top}.release-table th{background:#f3f6f9;text-align:left;width:32%}
+  @media(max-width:800px){.issue-row,.outcome-grid,.evidence-grid,.result-summary{grid-template-columns:1fr}.test-table{font-size:13px}}
+
+  .portal-card{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:20px 24px;margin:0 0 18px}
+  .login-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end}
+  .account-row{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap}
+  .account-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .save-state{font-size:13px;color:var(--muted);font-weight:700}
+  .save-state.saved{color:var(--ok)}
+  .save-state.saving{color:#9a650e}
+  .message{font-size:13px;color:var(--muted);margin-top:8px}
+  .message.error{color:var(--danger);font-weight:700}
+  .project-banner{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:18px}
+  .project-banner strong{font-size:18px}
+  .project-status{display:inline-block;margin-left:8px;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:700;background:#eef3f8}
+  .project-status.enabled{background:#e9f8ef;color:var(--ok)}
+  .project-status.bad{background:#fff0f0;color:var(--danger)}
+  .locked-banner{border-left:4px solid var(--ok);background:#f4fbf7;padding:14px 16px;border-radius:10px;margin:14px 0}
+  .staff-badge{display:inline-block;background:#edf5ff;color:#084b99;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:700;margin-left:8px}
+  .release-scope{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+  .scope-box{border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:#fbfcfe}
+  .scope-box strong{display:block}
+  @media(max-width:800px){.login-row,.release-scope{grid-template-columns:1fr}.account-row{align-items:flex-start;flex-direction:column}}
+  @media print{
+    .portal-card,.topbar,.nav,.stage-ribbon,.account-actions{display:none!important}
+    body{background:#fff}.shell{max-width:none;padding:0}.panel{box-shadow:none;border:0}.step{display:block!important;page-break-inside:avoid}
+  }
+
+  .cps-help-fab{
+    position:fixed;right:22px;bottom:22px;z-index:950;
+    border:0;border-radius:999px;padding:11px 16px;
+    background:#0d63c8;color:#fff;font-weight:800;cursor:pointer;
+    box-shadow:0 8px 24px rgba(13,99,200,.26)
+  }
+  .cps-help-overlay{
+    display:none;position:fixed;inset:0;z-index:1000;background:rgba(10,25,45,.48);
+    padding:24px;overflow:auto
+  }
+  .cps-help-overlay.show{display:block}
+  .cps-help-modal{
+    max-width:760px;margin:5vh auto;background:#fff;border-radius:18px;
+    box-shadow:0 25px 70px rgba(0,0,0,.22);overflow:hidden
+  }
+  .cps-help-head{
+    display:flex;justify-content:space-between;gap:14px;align-items:center;
+    padding:18px 22px;background:linear-gradient(115deg,#0b315f,#0d63c8);color:#fff
+  }
+  .cps-help-head h2{margin:0;font-size:23px}
+  .cps-help-close{background:transparent!important;color:#fff!important;border:1px solid rgba(255,255,255,.5)!important;padding:7px 10px!important}
+  .cps-help-body{padding:20px 22px}
+  .cps-help-body h3{margin:15px 0 6px}
+  .cps-help-body p,.cps-help-body li{line-height:1.5}
+  .cps-help-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+  .cps-help-actions a{display:inline-block;text-decoration:none;border-radius:9px;padding:9px 12px;font-weight:700}
+  .cps-help-primary{background:#0d63c8;color:#fff}
+  .cps-help-secondary{border:1px solid #dfe4ea;color:#172033;background:#fff}
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+</head>
+<body><div class="shell">
+<div class="masthead">
+    <div class="brand-strip">
+      <img src="data:image/png;base64,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" alt="Cam Post Solutions Ltd">
+      <div class="brand-tagline">CNC post processors · machine simulation · CAM solutions</div>
+    </div>
+
+<div id="authCard" class="portal-card">
+  <div id="signedOutPanel">
+    <h2>Customer acceptance & sign-off</h2>
+    <p class="intro">Sign in with the email address associated with the CPS project.</p>
+    <div class="login-row">
+      <label class="field"><span class="lbl">Email address</span><input id="loginEmail" type="email" autocomplete="email"></label>
+      <button class="primary" type="button" onclick="sendSignInEmail()">Send sign-in email</button>
+    </div>
+    <div id="otpPanel" style="display:none;margin-top:14px">
+      <div class="login-row">
+        <label class="field"><span class="lbl">Sign-in code</span><input id="loginOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Enter the code from your email"></label>
+        <button class="primary" type="button" onclick="verifyOtpCode()">Verify code</button>
+      </div>
+    </div>
+    <div id="authMessage" class="message"></div>
+  </div>
+
+  <div id="signedInPanel" style="display:none">
+    <div class="account-row">
+      <div>
+        <strong>Signed in as <span id="signedInEmail"></span></strong><span id="staffBadge" class="staff-badge" style="display:none">CPS staff</span>
+        <div id="accountMessage" class="message"></div>
+      </div>
+      <div class="account-actions">
+        <span id="saveStatus" class="save-state">Select a project</span>
+        <a class="ghost" style="text-decoration:none" href="index.html">Project home</a><a class="ghost" id="dashboardLink" style="display:none;text-decoration:none" href="dashboard.html">CPS dashboard</a>
+        <button class="ghost" type="button" onclick="saveSignoff(false)">Save now</button>
+        <button class="ghost" type="button" onclick="window.print()">Print / save PDF</button>
+        <button class="ghost" type="button" onclick="signOutPortal()">Sign out</button>
+      </div>
+    </div>
+    <div class="grid" style="margin-top:14px">
+      <label class="field full">
+        <span class="lbl">Sign-off project</span>
+        <select id="projectPicker" onchange="switchProject(this.value)"><option value="">Select project…</option></select>
+        <span class="help">Only projects that have reached Stage 3 can be accepted.</span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<div id="portalApp" style="display:none">
+  <div class="stage-ribbon">
+    <div class="stage-card"><strong>Stage 1 · Machine information</strong><small>Stored questionnaire and supporting evidence</small></div>
+    <div class="stage-card"><strong>Stage 2 · Commissioning</strong><small>Completed machine test and evidence record</small></div>
+    <div class="stage-card active"><strong>Stage 3 · Sign-off</strong><small>Customer acceptance and release baseline</small></div>
+  </div>
+
+  <div class="topbar">
+    <div class="progress-wrap">
+      <div class="progress-label"><span id="progressText">Step 1 of 5</span><span id="progressPct">20%</span></div>
+      <div class="progress"><div id="progressBar"></div></div>
+    </div>
+    <div class="toolbar">
+      <a class="offline-link" href="./signoff-offline.docx">Offline sign-off form</a>
+    </div>
+  </div>
+
+  <form id="signoff" class="panel">
+    
+<section class="step active" data-step="1">
+  <h2>1. Select project</h2>
+  <p class="intro">Choose the CPS project being accepted. Stage 3 reads the approved machine questionnaire and completed commissioning record directly from the project.</p>
+
+  <div class="project-banner">
+    <strong id="projectReference">No project selected</strong>
+    <span id="projectStageStatus" class="project-status">Stage 3 not available</span>
+    <div id="projectGateMessage" class="small" style="margin-top:7px">Select a project above.</div>
+  </div>
+
+  <div id="projectSummary" class="summary import-summary"></div>
+  <div id="notReadyNotice" class="notice critical hidden">
+    <strong>Not ready for acceptance:</strong> commissioning must be completed and Stage 3 enabled before this release can be signed off.
+  </div>
+  <div id="lockedNotice" class="locked-banner hidden">
+    <strong>This acceptance record is complete and locked.</strong>
+    <div class="small">Any later post/simulation revision should create a new commissioning/sign-off cycle rather than altering this accepted baseline.</div>
+  </div>
+</section>
+
+    
+<section class="step" data-step="2">
+  <h2>2. Commissioning result</h2>
+  <p class="intro">Review the machine-test record and outstanding items before accepting the release.</p>
+  <div id="resultBoxes" class="result-summary"></div>
+  <div id="failedTests" class="section"></div>
+  <div class="section">
+    <h3>Commissioning summary</h3>
+    <div id="commissionSummary" class="summary"></div>
+  </div>
+</section>
+
+    
+<section class="step" data-step="3">
+  <h2>3. Release package</h2>
+  <p class="intro">Identify exactly what is being released and record any agreed limitations.</p>
+
+  <div id="releaseScope" class="release-scope"></div>
+
+  <div class="grid">
+    <label class="field conditional" id="postFileField"><span class="lbl">Final post filename <span class="req">*</span></span><input name="final_post_file"></label>
+    <label class="field conditional" id="postVersionField"><span class="lbl">Post version / revision <span class="req">*</span></span><input name="final_post_version"></label>
+
+    <label class="field conditional" id="simulationReleaseField"><span class="lbl">Machine simulation filename / version <span class="req">*</span></span><input name="simulation_release"></label>
+    <label class="field"><span class="lbl">CAM version used for final test</span><input name="final_cam_version"></label>
+
+    <label class="field full"><span class="lbl">Known limitations / exclusions / items not tested</span><textarea name="release_limitations"></textarea></label>
+    <label class="field full"><span class="lbl">Release notes / customer-specific setup instructions</span><textarea name="release_notes"></textarea></label>
+  </div>
+
+  <div class="notice">
+    The acceptance record applies only to the stated post/simulation revision and the functionality verified during commissioning.
+    Later changes should create a new revision and, where relevant, a new commissioning/sign-off record.
+  </div>
+</section>
+
+    
+<section class="step" data-step="4">
+  <h2>4. Customer acceptance</h2>
+  <p class="intro">Confirm what has been reviewed and choose the project acceptance state.</p>
+
+  <div class="section">
+    <label class="accept-row"><input type="checkbox" name="ack_tests" value="Yes"><span>I have reviewed the commissioning outcome and the functions recorded as tested.</span></label>
+    <label class="accept-row" style="margin-top:10px"><input type="checkbox" name="ack_limits" value="Yes"><span>Any known limitations, exclusions or items not tested are recorded in this release record.</span></label>
+    <label class="accept-row" style="margin-top:10px"><input type="checkbox" name="ack_release" value="Yes"><span>The post processor and/or simulation revision being accepted is identified in this record.</span></label>
+  </div>
+
+  <div class="section">
+    <h3>Acceptance outcome</h3>
+    <div class="outcome-grid">
+      <label class="outcome-card"><input type="radio" name="acceptance" value="Accepted"> <strong>Accepted</strong><br><span class="small">Release accepted for the verified scope.</span></label>
+      <label class="outcome-card"><input type="radio" name="acceptance" value="Accepted with limitations"> <strong>Accepted with limitations</strong><br><span class="small">Accepted subject to the limitations recorded above.</span></label>
+      <label class="outcome-card"><input type="radio" name="acceptance" value="Not accepted"> <strong>Not accepted</strong><br><span class="small">Further work / machine testing is required.</span></label>
+    </div>
+  </div>
+</section>
+
+    
+<section class="step" data-step="5">
+  <h2>5. Sign-off record</h2>
+  <p class="intro">Record the people and date associated with this acceptance.</p>
+
+  <div class="grid">
+    <label class="field"><span class="lbl">Customer representative <span class="req">*</span></span><input name="customer_representative"></label>
+    <label class="field"><span class="lbl">Position / role</span><input name="customer_position"></label>
+    <label class="field"><span class="lbl">Customer company</span><input name="customer_company" id="customerCompany"></label>
+    <label class="field"><span class="lbl">Acceptance date <span class="req">*</span></span><input name="acceptance_date" type="date"></label>
+    <label class="field"><span class="lbl">Cam Post Solutions representative</span><input name="cps_representative"></label>
+    <label class="field"><span class="lbl">CPS project/reference</span><input name="project_reference" id="projectReferenceInput" readonly></label>
+    <label class="field"><span class="lbl">Signed-in email</span><input name="signed_in_email" id="signedInEmailRecord" readonly></label>
+    <label class="field full"><span class="lbl">Final comments</span><textarea name="final_comments"></textarea></label>
+  </div>
+
+  <div class="notice">
+    Completing this stage stores the acceptance record against the CPS project. Accepted records are then locked as the release baseline.
+  </div>
+</section>
+
+    <div class="nav">
+      <button type="button" id="prevBtn" class="secondary" onclick="changeStep(-1)">Back</button>
+      <button type="button" id="nextBtn" class="primary" onclick="changeStep(1)">Next</button>
+      <button type="button" id="finishBtn" class="primary" style="display:none" onclick="completeSignoff()">Complete sign-off</button>
+    </div>
+  </form>
+  <footer>Cam Post Solutions Ltd · Connected Stage 3 sign-off portal alpha v2</footer>
+</div>
+</div>
+
+<script>
+const SUPABASE_URL="https://hfxghrzhthvmcvzxletp.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_TTAEax5Jgl-gcYKdixdxiA_Imyz7hHg";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+
+let currentStep=1,totalSteps=5,currentUser=null,currentProjectId=null,currentProjectRow=null;
+let stage1={},commission={},isCpsStaff=false,isHydrating=false,saveTimer=null,formLocked=false;
+
+function arr(v){return Array.isArray(v)?v:(v?[v]:[]);}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+function setAuthMessage(m,error=false){const e=document.getElementById('authMessage');e.textContent=m||'';e.classList.toggle('error',!!error);}
+function setAccountMessage(m,error=false){const e=document.getElementById('accountMessage');e.textContent=m||'';e.classList.toggle('error',!!error);}
+function setSaveStatus(t,state=''){const e=document.getElementById('saveStatus');e.textContent=t;e.className='save-state'+(state?' '+state:'');}
+
+async function sendSignInEmail(){
+  const email=document.getElementById('loginEmail').value.trim();
+  if(!email){setAuthMessage('Enter your email address first.',true);return;}
+  setAuthMessage('Sending sign-in email…');
+  const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
+  if(error){setAuthMessage(error.message,true);return;}
+  document.getElementById('otpPanel').style.display='block';
+  setAuthMessage('Email sent. Enter the sign-in code from your email below.');
+}
+async function verifyOtpCode(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const token=document.getElementById('loginOtp').value.replace(/\D/g,'');
+  if(!email||!token){setAuthMessage('Enter the email address and sign-in code.',true);return;}
+  const {error}=await sb.auth.verifyOtp({email,token,type:'email'});
+  if(error){setAuthMessage(error.message,true);return;}
+  setAuthMessage('');
+}
+async function signOutPortal(){
+  await sb.auth.signOut();location.reload();
+}
+async function handleSession(session){
+  if(!session?.user){
+    document.getElementById('portalApp').style.display='none';
+    document.getElementById('signedInPanel').style.display='none';
+    document.getElementById('signedOutPanel').style.display='block';
+    return;
+  }
+  currentUser=session.user;
+  const {data:staffRow}=await sb.from('cps_staff').select('user_id').eq('user_id',currentUser.id).maybeSingle();
+  isCpsStaff=!!staffRow;
+  document.getElementById('signedOutPanel').style.display='none';
+  document.getElementById('signedInPanel').style.display='block';
+  document.getElementById('portalApp').style.display='block';
+  document.getElementById('signedInEmail').textContent=currentUser.email||'';
+  document.getElementById('signedInEmailRecord').value=currentUser.email||'';
+  document.getElementById('staffBadge').style.display=isCpsStaff?'inline-block':'none';
+  document.getElementById('dashboardLink').style.display=isCpsStaff?'inline-block':'none';
+  await refreshProjectPicker();
+}
+
+async function refreshProjectPicker(){
+  const {data,error}=await sb.from('projects')
+    .select('id,reference,customer_company,machine_manufacturer,machine_model,stage2_status,stage3_status,updated_at')
+    .order('updated_at',{ascending:false});
+  if(error){setAccountMessage('Could not load projects: '+error.message,true);return;}
+  const picker=document.getElementById('projectPicker');
+  picker.innerHTML='<option value="">Select project…</option>';
+  for(const p of (data||[])){
+    const label=[p.reference,p.customer_company,[p.machine_manufacturer,p.machine_model].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
+    const opt=document.createElement('option');opt.value=p.id;
+    opt.textContent=label+` · Stage 3: ${p.stage3_status}`;
+    picker.appendChild(opt);
+  }
+  const requested=new URLSearchParams(location.search).get('project');
+  if(requested&&(data||[]).some(p=>p.id===requested)){picker.value=requested;await loadProject(requested);return;}
+  const ready=(data||[]).filter(p=>p.stage3_status!=='not_started');
+  if(ready.length===1){picker.value=ready[0].id;await loadProject(ready[0].id);}
+  else setAccountMessage('Choose the project to review and sign off.');
+}
+async function switchProject(id){if(!id){resetProject();return;}await loadProject(id);}
+
+function resetProject(){
+  isHydrating=true;document.getElementById('signoff').reset();
+  currentProjectId=null;currentProjectRow=null;stage1={};commission={};formLocked=false;
+  document.getElementById('projectReference').textContent='No project selected';
+  document.getElementById('projectStageStatus').textContent='Stage 3 not available';
+  document.getElementById('projectStageStatus').className='project-status';
+  document.getElementById('projectGateMessage').textContent='Select a project above.';
+  document.getElementById('projectSummary').classList.remove('show');
+  document.getElementById('notReadyNotice').classList.add('hidden');
+  document.getElementById('lockedNotice').classList.add('hidden');
+  document.getElementById('resultBoxes').innerHTML='';
+  document.getElementById('failedTests').innerHTML='';
+  document.getElementById('commissionSummary').innerHTML='';
+  currentStep=1;document.querySelectorAll('.step').forEach(x=>x.classList.remove('active'));
+  document.querySelector('.step[data-step="1"]').classList.add('active');updateNav();
+  isHydrating=false;setSaveStatus('Select a project');
+}
+
+function stage3Available(){
+  return !!currentProjectRow && currentProjectRow.stage2_status==='completed' &&
+    ['draft','accepted','accepted_with_limitations'].includes(currentProjectRow.stage3_status);
+}
+
+async function loadProject(id){
+  setSaveStatus('Loading…','saving');
+  const {data,error}=await sb.from('projects').select('*').eq('id',id).single();
+  if(error){setAccountMessage('Could not load project: '+error.message,true);setSaveStatus('Load failed');return;}
+  currentProjectRow=data;currentProjectId=data.id;stage1=data.stage1_data||{};commission=data.stage2_data||{};
+  populateProject();
+  if(data.stage3_data&&Object.keys(data.stage3_data).length)hydrateSignoff(data.stage3_data);
+  setFormLock(['accepted','accepted_with_limitations','not_accepted'].includes(data.stage3_status));
+
+  const available=stage3Available()||['accepted','accepted_with_limitations'].includes(data.stage3_status);
+  document.getElementById('notReadyNotice').classList.toggle('hidden',available);
+  document.getElementById('lockedNotice').classList.toggle('hidden',!['accepted','accepted_with_limitations'].includes(data.stage3_status));
+
+  let statusClass='project-status';
+  if(['accepted','accepted_with_limitations'].includes(data.stage3_status))statusClass+=' enabled';
+  else if(data.stage3_status==='not_accepted')statusClass+=' bad';
+  else if(data.stage3_status==='draft')statusClass+=' enabled';
+  document.getElementById('projectStageStatus').className=statusClass;
+  document.getElementById('projectStageStatus').textContent='Stage 3: '+data.stage3_status.replaceAll('_',' ');
+
+  if(data.stage3_status==='draft'&&data.stage2_status==='completed'){
+    document.getElementById('projectGateMessage').textContent='Commissioning is complete. This project is ready for customer acceptance.';
+    setSaveStatus('Saved','saved');
+  }else if(['accepted','accepted_with_limitations'].includes(data.stage3_status)){
+    document.getElementById('projectGateMessage').textContent='This release has been accepted and is stored as the project baseline.';
+    setSaveStatus('Accepted','saved');
+  }else if(data.stage3_status==='not_accepted'){
+    document.getElementById('projectGateMessage').textContent='This release was not accepted. Stage 2 must be retested before Stage 3 can reopen.';
+    setSaveStatus('Retest required');
+  }else{
+    document.getElementById('projectGateMessage').textContent='Complete Stage 2 commissioning before customer acceptance.';
+    setSaveStatus('Waiting for Stage 2');
+  }
+  setAccountMessage('Project loaded.');
+}
+
+function scopeFlags(){
+  const scope=stage1.project_scope||currentProjectRow?.deliverable||'Post only';
+  return {
+    scope,
+    post:scope!=='Simulation only',
+    simulation:scope==='Post + simulation'||scope==='Simulation only'
+  };
+}
+
+function showField(id,visible){
+  const e=document.getElementById(id);if(!e)return;
+  e.classList.toggle('show',!!visible);e.style.display=visible?'block':'none';
+  e.querySelectorAll('input,select,textarea').forEach(x=>x.disabled=!visible);
+}
+
+function populateProject(){
+  const flags=scopeFlags(),tests=arr(commission.tests),issues=arr(commission.issues);
+  const company=currentProjectRow?.customer_company||stage1.company||commission.company||'';
+  document.getElementById('customerCompany').value=company;
+  document.getElementById('projectReferenceInput').value=currentProjectRow?.reference||'';
+  document.getElementById('projectReference').textContent=currentProjectRow?.reference||'Project';
+  document.querySelector('[name="final_cam_version"]').value=stage1.cam_version||'';
+
+  showField('postFileField',flags.post);showField('postVersionField',flags.post);showField('simulationReleaseField',flags.simulation);
+
+  document.getElementById('releaseScope').innerHTML=`
+    <div class="scope-box"><span class="small">Project scope</span><strong>${esc(flags.scope)}</strong></div>
+    <div class="scope-box"><span class="small">Post processor</span><strong>${flags.post?'Included':'Not in scope'}</strong></div>
+    <div class="scope-box"><span class="small">Machine simulation</span><strong>${flags.simulation?'Included':'Not in scope'}</strong></div>`;
+
+  const sum=document.getElementById('projectSummary');sum.classList.add('show');
+  sum.innerHTML=`<h3>Project</h3><dl>
+    <dt>Customer</dt><dd>${esc(company||'—')}</dd>
+    <dt>Machine</dt><dd>${esc([currentProjectRow?.machine_manufacturer,currentProjectRow?.machine_model].filter(Boolean).join(' ')||'—')}</dd>
+    <dt>Control</dt><dd>${esc([currentProjectRow?.control_manufacturer,currentProjectRow?.control_model].filter(Boolean).join(' ')||'—')}</dd>
+    <dt>CAM</dt><dd>${esc([currentProjectRow?.cam_system,stage1.cam_version].filter(Boolean).join(' ')||'—')}</dd>
+    <dt>Commissioning outcome</dt><dd><strong>${esc(commission.outcome||currentProjectRow?.stage2_status||'—')}</strong></dd>
+    <dt>Commissioning date</dt><dd>${esc(commission.test_date||'—')}</dd>
+  </dl>`;
+
+  const counts={Pass:0,Fail:0,'Not tested':0,'N/A':0};
+  tests.forEach(t=>counts[t.status]=(counts[t.status]||0)+1);
+  document.getElementById('resultBoxes').innerHTML=`
+    <div class="result-box pass"><strong>${counts.Pass||0}</strong>Pass</div>
+    <div class="result-box fail"><strong>${counts.Fail||0}</strong>Fail</div>
+    <div class="result-box warn"><strong>${counts['Not tested']||0}</strong>Not tested</div>
+    <div class="result-box"><strong>${counts['N/A']||0}</strong>N/A</div>`;
+
+  const bad=tests.filter(t=>t.status==='Fail'||t.status==='Not tested');
+  document.getElementById('failedTests').innerHTML=bad.length
+    ? `<h3>Failed / not-tested items</h3><table class="test-table"><thead><tr><th>Group</th><th>Verification</th><th>Status</th><th>Notes</th></tr></thead><tbody>${
+       bad.map(t=>`<tr><td>${esc(t.group)}</td><td>${esc(t.test)}</td><td>${esc(t.status)}</td><td>${esc(t.note||'')}</td></tr>`).join('')
+      }</tbody></table>`
+    : '<div class="notice">No failed or untested checks are recorded in commissioning.</div>';
+
+  const evidence=arr(commission.evidence_files);
+  const ncCount=evidence.filter(f=>f.category==='tested_nc_results').length;
+  const camCount=evidence.filter(f=>f.category==='cam_test_project').length;
+  document.getElementById('commissionSummary').innerHTML=`<dl>
+    <dt>Summary</dt><dd>${esc(commission.commissioning_summary||'—')}</dd>
+    <dt>Limitations / not tested</dt><dd>${esc(commission.limitations||'—')}</dd>
+    <dt>Recorded issues</dt><dd>${issues.length?issues.map(i=>esc(i.description)).join('; '):'None recorded'}</dd>
+    <dt>Mandatory evidence</dt><dd>${ncCount} tested-NC/result file(s); ${camCount} CAM project file(s)</dd>
+  </dl>`;
+
+  if(flags.post && commission.post_version){
+    const versionText=commission.post_version.trim();
+    if(versionText.includes('.'))document.querySelector('[name="final_post_file"]').value=versionText;
+  }
+}
+
+function collect(){
+  const fd=new FormData(document.getElementById('signoff')),o={};
+  for(const [k,v] of fd.entries())o[k]=v;
+  o.project_reference=currentProjectRow?.reference||o.project_reference||'';
+  o.signed_in_email=currentUser?.email||'';
+  o.stage2_snapshot={
+    completed_at:currentProjectRow?.stage2_completed_at||null,
+    outcome:commission.outcome||null,
+    test_date:commission.test_date||null,
+    post_version:commission.post_version||null
+  };
+  o._meta={generated:new Date().toISOString(),form_version:'CPS Connected Sign-off Portal alpha v2'};
+  return o;
+}
+
+function hydrateSignoff(d){
+  isHydrating=true;
+  for(const [k,v] of Object.entries(d||{})){
+    if(['stage2_snapshot','_meta'].includes(k))continue;
+    const es=[...document.querySelectorAll(`[name="${CSS.escape(k)}"]`)];
+    if(!es.length)continue;
+    if(es[0].type==='checkbox')es[0].checked=v==='Yes'||v===true;
+    else if(es[0].type==='radio')es.forEach(e=>e.checked=e.value===v);
+    else es[0].value=v??'';
+  }
+  isHydrating=false;
+}
+
+function setFormLock(locked){
+  formLocked=locked;
+  document.querySelectorAll('#signoff input,#signoff select,#signoff textarea').forEach(e=>{
+    if(e.id==='projectReferenceInput'||e.id==='signedInEmailRecord')return;
+    e.disabled=locked;
+  });
+  document.getElementById('finishBtn').disabled=locked;
+}
+
+function validateStep(){
+  if(currentStep===1&&!currentProjectId){alert('Please select a CPS project first.');return false;}
+  if(currentStep===1&&!stage3Available()){
+    alert(currentProjectRow?.stage3_status==='not_accepted'
+      ? 'This release was not accepted. Complete the required Stage 2 retest before reopening Stage 3.'
+      : 'This project is not ready for sign-off. Complete Stage 2 commissioning first.');
+    return false;
+  }
+  if(currentStep===3){
+    const flags=scopeFlags();
+    if(flags.post&&(!document.querySelector('[name="final_post_file"]').value.trim()||!document.querySelector('[name="final_post_version"]').value.trim())){
+      alert('Please identify the final post filename and revision.');return false;
+    }
+    if(flags.simulation&&!document.querySelector('[name="simulation_release"]').value.trim()){
+      alert('Please identify the final machine simulation filename/version.');return false;
+    }
+  }
+  if(currentStep===4){
+    const a=['ack_tests','ack_limits','ack_release'].every(n=>document.querySelector(`[name="${n}"]`).checked);
+    if(!a){alert('Please confirm the three acceptance acknowledgements.');return false;}
+    if(!document.querySelector('input[name="acceptance"]:checked')){alert('Please select an acceptance outcome.');return false;}
+  }
+  return true;
+}
+
+function changeStep(d){
+  if(d>0&&!validateStep())return;
+  const n=currentStep+d;if(n<1||n>totalSteps)return;
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+  currentStep=n;document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+  updateNav();window.scrollTo({top:0,behavior:'smooth'});
+}
+function updateNav(){
+  document.getElementById('prevBtn').disabled=currentStep===1;
+  document.getElementById('nextBtn').style.display=currentStep===totalSteps?'none':'inline-block';
+  document.getElementById('finishBtn').style.display=currentStep===totalSteps?'inline-block':'none';
+  const p=Math.round(currentStep/totalSteps*100);
+  document.getElementById('progressBar').style.width=p+'%';
+  document.getElementById('progressText').textContent=`Step ${currentStep} of ${totalSteps}`;
+  document.getElementById('progressPct').textContent=p+'%';
+}
+
+function scheduleAutosave(){
+  if(isHydrating||formLocked||!currentProjectId||currentProjectRow?.stage3_status!=='draft')return;
+  clearTimeout(saveTimer);setSaveStatus('Unsaved changes');
+  saveTimer=setTimeout(()=>saveSignoff(true),1200);
+}
+async function saveSignoff(silent=false){
+  if(!currentProjectId){if(!silent)setAccountMessage('Select a project first.',true);return false;}
+  if(formLocked){if(!silent)setAccountMessage('This acceptance record is locked.');return false;}
+  if(currentProjectRow.stage3_status!=='draft'){if(!silent)setAccountMessage('Stage 3 is not open for this project.',true);return false;}
+  try{
+    setSaveStatus('Saving…','saving');
+    const {error}=await sb.from('projects').update({stage3_data:collect()}).eq('id',currentProjectId);
+    if(error)throw error;
+    setSaveStatus('Saved just now','saved');
+    if(!silent)setAccountMessage('Sign-off draft saved securely.');
+    return true;
+  }catch(e){setSaveStatus('Save failed');setAccountMessage('Could not save: '+(e.message||e),true);return false;}
+}
+
+async function completeSignoff(){
+  if(formLocked)return;
+  if(!validateStep())return;
+  const rep=document.querySelector('[name="customer_representative"]').value.trim();
+  const dt=document.querySelector('[name="acceptance_date"]').value;
+  if(!rep||!dt){alert('Please enter the customer representative and acceptance date.');return;}
+  const acceptance=document.querySelector('input[name="acceptance"]:checked')?.value;
+  const statusMap={
+    'Accepted':'accepted',
+    'Accepted with limitations':'accepted_with_limitations',
+    'Not accepted':'not_accepted'
+  };
+  const newStatus=statusMap[acceptance];
+  if(!newStatus)return;
+
+  const payload={
+    stage3_data:collect(),
+    stage3_status:newStatus,
+    stage3_completed_at:new Date().toISOString()
+  };
+  if(newStatus==='not_accepted')payload.stage2_status='retest_required';
+
+  try{
+    setSaveStatus('Completing…','saving');
+    const {error}=await sb.from('projects').update(payload).eq('id',currentProjectId);
+    if(error)throw error;
+    currentProjectRow.stage3_status=newStatus;
+    if(newStatus==='not_accepted')currentProjectRow.stage2_status='retest_required';
+    setSaveStatus(newStatus==='not_accepted'?'Not accepted':'Accepted','saved');
+    setFormLock(true);
+    document.getElementById('projectStageStatus').textContent='Stage 3: '+newStatus.replaceAll('_',' ');
+    document.getElementById('projectStageStatus').className='project-status '+(newStatus==='not_accepted'?'bad':'enabled');
+    document.getElementById('lockedNotice').classList.toggle('hidden',newStatus==='not_accepted');
+    document.getElementById('projectGateMessage').textContent=newStatus==='not_accepted'
+      ? 'Release not accepted. The project has returned to Stage 2 for further work / retest.'
+      : 'Release accepted. This Stage 3 record is now the project baseline.';
+    setAccountMessage(newStatus==='not_accepted'
+      ? 'Sign-off saved as Not accepted. Stage 2 has been returned to retest required.'
+      : 'Customer acceptance saved. The release baseline is now locked.');
+    alert(newStatus==='not_accepted'
+      ? 'Sign-off recorded as Not accepted. The project has returned to Stage 2 for retest.'
+      : 'Customer acceptance recorded successfully.');
+  }catch(e){setSaveStatus('Completion failed');setAccountMessage('Could not complete sign-off: '+(e.message||e),true);}
+}
+
+document.getElementById('signoff').addEventListener('input',scheduleAutosave);
+document.getElementById('signoff').addEventListener('change',scheduleAutosave);
+sb.auth.onAuthStateChange((_event,session)=>setTimeout(()=>handleSession(session),0));
+(async()=>{const {data:{session}}=await sb.auth.getSession();await handleSession(session);updateNav();})();
+</script>
+
+<button class="cps-help-fab" type="button" onclick="openCpsHelp()">? Help</button>
+<div id="cpsHelpOverlay" class="cps-help-overlay" onclick="if(event.target===this)closeCpsHelp()">
+  <div class="cps-help-modal" role="dialog" aria-modal="true" aria-labelledby="cpsHelpTitle">
+    <div class="cps-help-head">
+      <h2 id="cpsHelpTitle">CPS Portal Help</h2>
+      <button type="button" class="cps-help-close" onclick="closeCpsHelp()">Close</button>
+    </div>
+    <div class="cps-help-body">
+      
+          <h3>Stage 3 – Customer acceptance</h3>
+          <ul>
+            <li>Review the completed commissioning result first.</li>
+            <li>Identify the exact post and/or simulation revision being accepted.</li>
+            <li>Record limitations, exclusions and anything not tested.</li>
+            <li>Select Accepted, Accepted with limitations, or Not accepted.</li>
+            <li>Not accepted returns the project to Stage 2 for further work/retest.</li>
+          </ul>
+          <p>Accepted records are locked as the release baseline and can be printed/saved as PDF.</p>
+        
+      <div class="cps-help-actions">
+        <a class="cps-help-primary" href="./help.html#customer" target="_blank">Open full guide</a>
+        <a class="cps-help-secondary" href="./help.html" target="_blank">Customer & staff guides</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function openCpsHelp(){document.getElementById('cpsHelpOverlay').classList.add('show');}
+function closeCpsHelp(){document.getElementById('cpsHelpOverlay').classList.remove('show');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCpsHelp();});
+</script>
+
+</body></html>
