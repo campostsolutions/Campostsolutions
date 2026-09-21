@@ -505,44 +505,17 @@ function renderStaffControls(){
   }
 
   if(currentProjectRow.stage2_status==='not_started'){
-    text.textContent='This project has not been released for machine commissioning yet. Review Stage 1, then enable Stage 2 when you are ready.';
-    btn.style.display='inline-block';
-    btn.textContent='Enable commissioning';
-    btn.disabled=false;
+    text.innerHTML='This project has not been released for machine testing yet. Create and publish a test release from <a href="index.html?project='+encodeURIComponent(currentProjectId)+'">Project Home</a>.';
+    btn.style.display='none';
   } else {
-    text.textContent='Commissioning is already enabled for this project.';
+    text.textContent='Commissioning is enabled for this project.';
     btn.style.display='none';
   }
-  if(help) help.textContent='CPS staff can enable Stage 2 directly here after reviewing the Stage 1 questionnaire.';
+  if(help) help.textContent='Stage 2 opens when CPS publishes a test release from Project Home.';
 }
 
 async function enableCommissioningHere(){
-  if(!isCpsStaff || !currentProjectId || !currentProjectRow) return;
-  if(currentProjectRow.stage2_status!=='not_started') return;
-  const ok=confirm('Mark Stage 1 as reviewed and enable Stage 2 commissioning for '+(currentProjectRow.reference||'this project')+'?');
-  if(!ok) return;
-
-  setSaveStatus('Enabling…','saving');
-  const {error}=await sb.from('projects').update({
-    stage1_status:'reviewed',
-    stage2_status:'draft'
-  }).eq('id',currentProjectId);
-
-  if(error){
-    setSaveStatus('Enable failed');
-    setAccountMessage('Could not enable commissioning: '+error.message,true);
-    return;
-  }
-
-  currentProjectRow.stage1_status='reviewed';
-  currentProjectRow.stage2_status='draft';
-  document.getElementById('projectStageStatus').textContent='Stage 2: draft';
-  document.getElementById('projectStageStatus').className='project-status enabled';
-  document.getElementById('projectGateMessage').textContent='Commissioning is enabled for this project. Changes are saved securely against the CPS project.';
-  setSaveStatus('Saved','saved');
-  setAccountMessage('Commissioning enabled. You can continue with the test plan now.');
-  renderStaffControls();
-  await refreshProjectPickerPreserveSelection();
+  if(currentProjectId) location.href='index.html?project='+encodeURIComponent(currentProjectId);
 }
 
 async function refreshProjectPickerPreserveSelection(){
@@ -818,7 +791,7 @@ function validateEvidence(showAlert=true){
 }
 function changeStep(d){
   if(d>0&&currentStep===1&&!currentProjectId){alert('Please select a CPS project first.');return;}
-  if(d>0&&currentStep===1&&!projectStageEnabled()){alert(isCpsStaff?'Use the “Enable commissioning” button above after reviewing Stage 1.':'Commissioning has not yet been enabled for this project by Cam Post Solutions.');return;}
+  if(d>0&&currentStep===1&&!projectStageEnabled()){alert(isCpsStaff?'Publish a test release from Project Home before starting commissioning.':'Commissioning has not yet been enabled for this project by Cam Post Solutions.');return;}
   if(d>0&&currentStep===5&&!validateEvidence())return;
   const n=currentStep+d;if(n<1||n>totalSteps)return;
   document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
