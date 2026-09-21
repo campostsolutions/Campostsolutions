@@ -53,7 +53,7 @@ table{width:100%;border-collapse:collapse}th,td{padding:11px 9px;border-bottom:1
 
 <div id="app" style="display:none">
  <div class="grid" id="stats"></div>
- <div class="card"><div class="row space"><div><h2 style="margin:0">Projects</h2><div class="muted">Use “Enable commissioning” after you have reviewed Stage 1 and are happy for machine testing to start.</div></div><div style="min-width:260px"><input id="filter" placeholder="Search customer, machine or reference…" oninput="renderProjects()"></div></div></div>
+ <div class="card"><div class="row space"><div><h2 style="margin:0">Projects</h2><div class="muted">Open the Project Home to request Stage 1 changes, lock the specification, track development and release test files.</div></div><div style="min-width:260px"><input id="filter" placeholder="Search customer, machine or reference…" oninput="renderProjects()"></div></div></div>
  <div class="card tablewrap"><table><thead><tr><th>Project</th><th>Customer / machine</th><th>Stage 1</th><th>Stage 2</th><th>Stage 3</th><th>Updated</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div>
 </div>
 </div>
@@ -97,7 +97,7 @@ function projectActions(p){
   const buttons=[`<a class="btn ghost" href="index.html?project=${encodeURIComponent(p.id)}">Project home</a>`,`<button class="ghost" onclick="toggleDetails('${p.id}')">Details</button>`];
 
   if(p.stage2_status==='not_started'){
-    buttons.push(`<button class="primary" onclick="enableCommissioning('${p.id}')">Enable commissioning</button>`);
+    buttons.push(`<a class="btn primary" href="index.html?project=${encodeURIComponent(p.id)}">Manage project</a>`);
   } else {
     const s2Label=p.stage2_status==='completed'?'View Stage 2':'Open Stage 2';
     buttons.push(`<a class="btn ghost" href="./commissioning.html?project=${encodeURIComponent(p.id)}">${s2Label}</a>`);
