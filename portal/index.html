@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cam Post Solutions – Customer Portal</title>
+<style>
+:root{--bg:#f5f7fa;--panel:#fff;--text:#172033;--muted:#687386;--border:#dfe4ea;--accent:#0d63c8;--accent2:#084b99;--green:#5c8b2f;--ok:#19724b;--warn:#9a650e;--danger:#a63d40;--shadow:0 12px 30px rgba(15,35,65,.08)}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}.shell{max-width:1200px;margin:auto;padding:28px 18px 60px}
+.mast{background:#fff;border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px}.brand{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:16px 26px;border-top:4px solid var(--green)}.brand img{width:180px;height:auto}.brand span{font-weight:600;color:#445064}.hero{background:linear-gradient(115deg,#0b315f,#0d63c8);color:#fff;padding:22px 28px}.hero h1{margin:0 0 6px;font-size:34px}.hero p{margin:0;color:#e5f0ff}
+.card{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:20px 22px;margin-bottom:18px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.space{justify-content:space-between}.login{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}label{font-weight:700}input,select,textarea{width:100%;padding:11px 12px;border:1px solid #cfd7e3;border-radius:10px;font:inherit;background:#fff}textarea{min-height:90px}button,a.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}button.primary,a.primary{background:var(--accent);color:#fff}button.ghost,a.ghost{background:#fff;border:1px solid var(--border);color:var(--text)}button.danger{background:#fff0f0;color:var(--danger);border:1px solid #f1c4c4}button:disabled{opacity:.5;cursor:not-allowed}.message{font-size:13px;color:var(--muted);margin-top:7px}.error{color:var(--danger)!important;font-weight:700}.muted{color:var(--muted)}.small{font-size:13px}
+.project-head{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start}.ref{font-size:26px;font-weight:800}.status{display:inline-block;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:800;background:#eef3f8;margin:2px}.status.ok{background:#e9f8ef;color:var(--ok)}.status.warn{background:#fff6e9;color:var(--warn)}.status.bad{background:#fff0f0;color:var(--danger)}
+.timeline{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.stage{border:1px solid var(--border);border-radius:14px;padding:14px;background:#fbfcfe;min-height:130px}.stage.active{border-color:#0d63c8;background:#eef6ff}.stage.done{border-color:#b9dec9;background:#f5fbf7}.stage h3{margin:0 0 6px;font-size:16px}.stage p{margin:0 0 10px;font-size:13px;color:var(--muted)}.stage a{font-size:13px}
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.section-title h2{margin:0}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.release{border:1px solid var(--border);border-radius:14px;padding:15px;margin:10px 0;background:#fbfcfe}.release.released{border-left:4px solid var(--ok)}.release.draft{border-left:4px solid var(--warn)}.files{display:grid;gap:7px;margin-top:10px}.file{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--border);border-radius:9px;padding:8px 10px;background:#fff}.file span{overflow-wrap:anywhere}.staff-box{border:1px solid #bfd7f1;background:#f5f9ff;border-radius:14px;padding:16px;margin-top:14px}.staff-box h3{margin:0 0 10px}.callout{border-left:4px solid var(--accent);background:#f7fbff;border-radius:10px;padding:12px 15px;margin:12px 0}.callout.warn{border-left-color:var(--warn);background:#fff9ef}.hidden{display:none!important}.upload-list{font-size:13px;color:var(--muted);margin-top:6px}.cps-help{position:fixed;right:22px;bottom:22px;z-index:900;background:#0d63c8;color:#fff;border:0;border-radius:999px;padding:11px 16px;font-weight:800;box-shadow:0 8px 24px rgba(13,99,200,.25)}
+@media(max-width:850px){.timeline{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.project-head{grid-template-columns:1fr}}@media(max-width:560px){.timeline{grid-template-columns:1fr}.brand{flex-direction:column;align-items:flex-start}.login{grid-template-columns:1fr}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+</head>
+<body><div class="shell">
+<div class="mast"><div class="brand"><img src="../logo.jpg" alt="Cam Post Solutions"><span>CNC post processors · machine simulation · CAM solutions</span></div><div class="hero"><h1>Customer Project Portal</h1><p>Machine specification, development releases, commissioning and final acceptance in one place.</p></div></div>
+
+<div class="card">
+ <div id="signedOut">
+  <h2 style="margin-top:0">Sign in</h2><p class="muted">Use the email address associated with your CPS project.</p>
+  <div class="login"><label>Email address<input id="loginEmail" type="email" autocomplete="email"></label><button class="primary" onclick="sendCode()">Send sign-in email</button></div>
+  <div id="otpRow" class="login hidden" style="margin-top:12px"><label>Sign-in code<input id="loginCode" inputmode="numeric" maxlength="10" autocomplete="one-time-code"></label><button class="primary" onclick="verifyCode()">Verify code</button></div>
+  <div id="authMsg" class="message"></div>
+ </div>
+ <div id="signedIn" class="hidden">
+  <div class="row space"><div><strong>Signed in as <span id="who"></span></strong><span id="staffBadge" class="status hidden">CPS staff</span><div id="msg" class="message"></div></div><div class="row"><a id="staffDash" class="btn ghost hidden" href="dashboard.html">CPS dashboard</a><button class="ghost" onclick="signOut()">Sign out</button></div></div>
+  <label style="display:block;margin-top:14px">Project<select id="projectPicker" onchange="loadProject(this.value)"><option value="">Select project…</option></select></label>
+ </div>
+</div>
+
+<div id="app" class="hidden">
+ <div class="card project-head">
+   <div><div class="ref" id="ref">Project</div><div id="machine" class="muted"></div><div id="projectStatus" style="margin-top:7px"></div></div>
+   <div class="row"><a id="stage1Top" class="btn ghost" href="#">Stage 1</a><button class="ghost" onclick="loadProject(currentProjectId)">Refresh</button></div>
+ </div>
+
+ <div class="card">
+  <div class="section-title"><h2>Project progress</h2></div>
+  <div class="timeline">
+    <div id="tl1" class="stage"><h3>1 · Machine information</h3><p id="tl1text"></p><a id="tl1link" class="btn ghost" href="questionnaire.html">Open Stage 1</a></div>
+    <div id="tldev" class="stage"><h3>2 · CPS development</h3><p id="tldevtext"></p></div>
+    <div id="tlrel" class="stage"><h3>3 · Test release</h3><p id="tlreltext"></p></div>
+    <div id="tl2" class="stage"><h3>4 · Commissioning</h3><p id="tl2text"></p><a id="tl2link" class="btn ghost hidden">Open commissioning</a></div>
+    <div id="tl3" class="stage"><h3>5 · Sign-off</h3><p id="tl3text"></p><a id="tl3link" class="btn ghost hidden">Open sign-off</a></div>
+  </div>
+ </div>
+
+ <div id="changeRequestBox" class="card hidden"><h2>Information requested by CPS</h2><div id="changeRequestText" class="callout warn"></div><a id="changeRequestLink" class="btn primary">Update Stage 1</a></div>
+
+ <div class="card">
+  <div class="section-title"><div><h2>Test releases</h2><div class="muted small">Files made available by Cam Post Solutions for machine testing.</div></div></div>
+  <div id="releaseList"><p class="muted">No releases available yet.</p></div>
+
+  <div id="staffReleaseBox" class="staff-box hidden">
+   <h3>CPS staff · Create test release</h3>
+   <div class="grid2">
+    <label>Revision<input id="releaseRevision" placeholder="e.g. v1.0"></label>
+    <label>Title<input id="releaseTitle" placeholder="e.g. Initial machine test"></label>
+    <label style="grid-column:1/-1">Release notes<textarea id="releaseNotes" placeholder="What changed / what should be tested"></textarea></label>
+    <label style="grid-column:1/-1">Release files<input id="releaseFiles" type="file" multiple></label>
+   </div>
+   <div id="releaseFileState" class="upload-list"></div>
+   <div class="row" style="margin-top:12px"><button class="primary" onclick="createDraftRelease()">Create draft release</button></div>
+  </div>
+ </div>
+
+ <div id="staffWorkflow" class="card hidden">
+  <div class="section-title"><div><h2>CPS workflow controls</h2><div class="muted small">Use these controls to progress the project; customers do not see them.</div></div></div>
+  <div class="row">
+    <button id="requestChangesBtn" class="ghost" onclick="requestChanges()">Request Stage 1 changes</button>
+    <button id="lockSpecBtn" class="ghost" onclick="lockSpecification()">Lock specification</button>
+    <button id="startDevBtn" class="primary" onclick="startDevelopment()">Commercial agreed · Start development</button>
+  </div>
+  <div class="message">Stage 2 opens automatically when a release is made available for testing.</div>
+ </div>
+</div>
+
+<a class="btn cps-help" href="help.html" target="_blank">? Help</a>
+</div>
+<script>
+const SUPABASE_URL="https://hfxghrzhthvmcvzxletp.supabase.co", SUPABASE_PUBLISHABLE_KEY="sb_publishable_TTAEax5Jgl-gcYKdixdxiA_Imyz7hHg";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let currentUser=null,currentProjectId=null,currentProject=null,isStaff=false,releases=[];
+
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+function setMsg(t,e=false){const x=document.getElementById('msg');x.textContent=t||'';x.classList.toggle('error',e)}
+function setAuth(t,e=false){const x=document.getElementById('authMsg');x.textContent=t||'';x.classList.toggle('error',e)}
+function badge(text,kind=''){return `<span class="status ${kind}">${esc(text)}</span>`}
+function human(s){return String(s||'').replaceAll('_',' ')}
+function safeName(n){return n.replace(/[^a-zA-Z0-9._-]+/g,'_').slice(0,160)}
+
+async function sendCode(){
+ const email=document.getElementById('loginEmail').value.trim(); if(!email)return setAuth('Enter your email address.',true);
+ const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
+ if(error)return setAuth(error.message,true);
+ document.getElementById('otpRow').classList.remove('hidden');setAuth('Sign-in code sent.');
+}
+async function verifyCode(){
+ const email=document.getElementById('loginEmail').value.trim(),token=document.getElementById('loginCode').value.replace(/\D/g,'');
+ const {error}=await sb.auth.verifyOtp({email,token,type:'email'});if(error)setAuth(error.message,true);
+}
+async function signOut(){await sb.auth.signOut();location.reload();}
+async function handleSession(session){
+ if(!session?.user){document.getElementById('signedOut').classList.remove('hidden');document.getElementById('signedIn').classList.add('hidden');document.getElementById('app').classList.add('hidden');return;}
+ currentUser=session.user;
+ const {data:staff}=await sb.from('cps_staff').select('user_id').eq('user_id',currentUser.id).maybeSingle();isStaff=!!staff;
+ document.getElementById('signedOut').classList.add('hidden');document.getElementById('signedIn').classList.remove('hidden');document.getElementById('who').textContent=currentUser.email||'';
+ document.getElementById('staffBadge').classList.toggle('hidden',!isStaff);document.getElementById('staffDash').classList.toggle('hidden',!isStaff);
+ await loadProjects();
+}
+async function loadProjects(){
+ const {data,error}=await sb.from('projects').select('id,reference,customer_company,machine_manufacturer,machine_model,stage1_status,stage2_status,stage3_status,development_status,updated_at').order('updated_at',{ascending:false});
+ if(error)return setMsg('Could not load projects: '+error.message,true);
+ const p=document.getElementById('projectPicker');p.innerHTML='<option value="">Select project…</option>';
+ for(const x of data||[]){const o=document.createElement('option');o.value=x.id;o.textContent=[x.reference,x.customer_company,[x.machine_manufacturer,x.machine_model].filter(Boolean).join(' ')].filter(Boolean).join(' · ');p.appendChild(o)}
+ const req=new URLSearchParams(location.search).get('project');
+ if(req&&(data||[]).some(x=>x.id===req)){p.value=req;await loadProject(req)}
+ else if(data?.length===1){p.value=data[0].id;await loadProject(data[0].id)}
+ else setMsg('Choose a project.');
+}
+async function loadProject(id){
+ if(!id){document.getElementById('app').classList.add('hidden');return}
+ currentProjectId=id;setMsg('Loading…');
+ const {data,error}=await sb.from('projects').select('*').eq('id',id).single();if(error)return setMsg(error.message,true);
+ currentProject=data;document.getElementById('app').classList.remove('hidden');renderProject();
+ await loadReleases();setMsg('Project loaded.');
+}
+function renderProject(){
+ const p=currentProject, q=p.stage1_data||{};
+ document.getElementById('ref').textContent=p.reference;
+ document.getElementById('machine').textContent=[p.customer_company,[p.machine_manufacturer,p.machine_model].filter(Boolean).join(' '),[p.control_manufacturer,p.control_model].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
+ document.getElementById('projectStatus').innerHTML=badge('Stage 1: '+human(p.stage1_status),p.stage1_status==='reviewed'?'ok':p.stage1_status==='changes_requested'?'warn':'')+badge('Development: '+human(p.development_status),p.development_status==='ready_for_testing'?'ok':'')+badge('Stage 2: '+human(p.stage2_status),p.stage2_status==='completed'?'ok':'')+badge('Stage 3: '+human(p.stage3_status),['accepted','accepted_with_limitations'].includes(p.stage3_status)?'ok':'');
+ const qurl='questionnaire.html?project='+encodeURIComponent(p.id), c2='commissioning.html?project='+encodeURIComponent(p.id), c3='signoff.html?project='+encodeURIComponent(p.id);
+ document.getElementById('stage1Top').href=qurl;document.getElementById('tl1link').href=qurl;
+ document.getElementById('tl2link').href=c2;document.getElementById('tl3link').href=c3;
+ document.getElementById('tl1text').textContent={draft:'Questionnaire in progress.',submitted:'Submitted to CPS for review.',changes_requested:'CPS has requested additional information.',reviewed:'Specification locked as the development baseline.'}[p.stage1_status]||human(p.stage1_status);
+ document.getElementById('tldevtext').textContent={not_started:'Not started.',awaiting_commercial:'Specification agreed; commercial agreement pending.',in_development:'Post/simulation development in progress.',ready_for_testing:'A release is ready for machine testing.',commissioning:'Machine testing in progress.',signoff:'Awaiting final acceptance.',completed:'Project accepted.',on_hold:'Project on hold.'}[p.development_status]||human(p.development_status);
+ document.getElementById('tlreltext').textContent='See releases below.';
+ document.getElementById('tl2text').textContent=p.stage2_status==='not_started'?'Not available until CPS releases files for testing.':p.stage2_status==='completed'?'Commissioning completed.':'Commissioning available / in progress.';
+ document.getElementById('tl3text').textContent=p.stage3_status==='not_started'?'Available after commissioning is completed.':human(p.stage3_status);
+ document.getElementById('tl2link').classList.toggle('hidden',p.stage2_status==='not_started');document.getElementById('tl3link').classList.toggle('hidden',p.stage3_status==='not_started');
+ ['tl1','tldev','tlrel','tl2','tl3'].forEach(id=>document.getElementById(id).classList.remove('active','done'));
+ if(p.stage1_status==='reviewed')document.getElementById('tl1').classList.add('done'); else document.getElementById('tl1').classList.add('active');
+ if(['in_development','ready_for_testing','commissioning','signoff','completed'].includes(p.development_status))document.getElementById('tldev').classList.add(p.development_status==='in_development'?'active':'done');
+ if(p.development_status==='ready_for_testing')document.getElementById('tlrel').classList.add('active');
+ if(p.stage2_status!=='not_started')document.getElementById('tl2').classList.add(p.stage2_status==='completed'?'done':'active');
+ if(p.stage3_status!=='not_started')document.getElementById('tl3').classList.add(['accepted','accepted_with_limitations'].includes(p.stage3_status)?'done':'active');
+ const change=p.stage1_status==='changes_requested'&&p.stage1_change_request;
+ document.getElementById('changeRequestBox').classList.toggle('hidden',!change);if(change){document.getElementById('changeRequestText').textContent=p.stage1_change_request;document.getElementById('changeRequestLink').href=qurl}
+ document.getElementById('staffWorkflow').classList.toggle('hidden',!isStaff);document.getElementById('staffReleaseBox').classList.toggle('hidden',!isStaff);
+ document.getElementById('requestChangesBtn').disabled=!['submitted','reviewed'].includes(p.stage1_status);
+ document.getElementById('lockSpecBtn').disabled=p.stage1_status!=='submitted';
+ document.getElementById('startDevBtn').disabled=p.stage1_status!=='reviewed'||!['not_started','awaiting_commercial'].includes(p.development_status);
+}
+async function loadReleases(){
+ let query=sb.from('project_releases').select('*').eq('project_id',currentProjectId).order('created_at',{ascending:false});
+ const {data,error}=await query;if(error)return setMsg('Could not load releases: '+error.message,true);releases=data||[];
+ const ids=releases.map(r=>r.id);let files=[];
+ if(ids.length){const f=await sb.from('project_files').select('id,release_id,filename,storage_path,category,size_bytes').eq('project_id',currentProjectId).eq('stage','release').in('release_id',ids);if(f.error)return setMsg('Could not load release files: '+f.error.message,true);files=f.data||[]}
+ const box=document.getElementById('releaseList');if(!releases.length){box.innerHTML='<p class="muted">No releases available yet.</p>';return}
+ box.innerHTML=releases.map(r=>{
+  const rf=files.filter(f=>f.release_id===r.id);const staffButtons=isStaff&&r.status==='draft'?`<button class="primary" onclick="releaseToCustomer('${r.id}')">Release to customer</button>`:'';
+  return `<div class="release ${r.status}"><div class="row space"><div><strong>${esc(r.revision)}</strong> ${r.title?'· '+esc(r.title):''}<div>${badge(human(r.status),r.status==='released'?'ok':'warn')}</div></div><div>${staffButtons}</div></div>${r.release_notes?`<p>${esc(r.release_notes).replaceAll('\n','<br>')}</p>`:''}<div class="files">${rf.length?rf.map(f=>`<div class="file"><span>📄 ${esc(f.filename)}</span><button class="ghost" onclick="downloadReleaseFile('${esc(f.storage_path)}')">Download</button></div>`).join(''):'<span class="muted small">No files uploaded.</span>'}</div></div>`;
+ }).join('');
+}
+async function downloadReleaseFile(path){
+ const {data,error}=await sb.storage.from('cps-project-files').createSignedUrl(path,300);if(error)return setMsg('Could not create download link: '+error.message,true);window.open(data.signedUrl,'_blank','noopener');
+}
+async function requestChanges(){
+ const note=prompt('What information should the customer update in Stage 1?');if(!note?.trim())return;
+ const {error}=await sb.from('projects').update({stage1_status:'changes_requested',stage1_change_request:note.trim(),development_status:'not_started'}).eq('id',currentProjectId);if(error)return setMsg(error.message,true);
+ await notify('changes_requested');await loadProject(currentProjectId);
+}
+async function lockSpecification(){
+ if(!confirm('Lock the submitted Stage 1 questionnaire as the agreed development baseline?'))return;
+ const {error}=await sb.from('projects').update({stage1_status:'reviewed',stage1_locked_at:new Date().toISOString(),stage1_change_request:null,development_status:'awaiting_commercial'}).eq('id',currentProjectId);if(error)return setMsg(error.message,true);await loadProject(currentProjectId);
+}
+async function startDevelopment(){
+ if(!confirm('Confirm commercial agreement and mark this project In development?'))return;
+ const {error}=await sb.from('projects').update({development_status:'in_development'}).eq('id',currentProjectId);if(error)return setMsg(error.message,true);await loadProject(currentProjectId);
+}
+async function createDraftRelease(){
+ const rev=document.getElementById('releaseRevision').value.trim(),title=document.getElementById('releaseTitle').value.trim(),notes=document.getElementById('releaseNotes').value.trim(),files=[...document.getElementById('releaseFiles').files];
+ if(!rev)return setMsg('Enter a release revision.',true);if(!files.length)return setMsg('Choose at least one release file.',true);
+ const {data:r,error}=await sb.from('project_releases').insert({project_id:currentProjectId,revision:rev,title:title||null,release_notes:notes||null}).select('*').single();if(error)return setMsg('Could not create release: '+error.message,true);
+ document.getElementById('releaseFileState').textContent='Uploading…';
+ try{
+  for(const file of files){
+   const cat=/\.cps$/i.test(file.name)?'post':/\.(f3d|machine|mch|md)$/i.test(file.name)?'simulation':/\.(pdf|txt|docx?)$/i.test(file.name)?'release_notes':'test_package';
+   const path=`${currentProject.owner_user_id}/${currentProjectId}/release/${r.id}/${cat}/${Date.now()}-${safeName(file.name)}`;
+   const up=await sb.storage.from('cps-project-files').upload(path,file,{upsert:false,contentType:file.type||undefined});if(up.error)throw up.error;
+   const meta=await sb.from('project_files').insert({project_id:currentProjectId,release_id:r.id,stage:'release',category:cat,filename:file.name,storage_path:path,mime_type:file.type||null,size_bytes:file.size});if(meta.error)throw meta.error;
+  }
+  document.getElementById('releaseRevision').value='';document.getElementById('releaseTitle').value='';document.getElementById('releaseNotes').value='';document.getElementById('releaseFiles').value='';document.getElementById('releaseFileState').textContent='Draft release created.';
+  await loadReleases();
+ }catch(e){setMsg('Upload failed: '+(e.message||e),true)}
+}
+async function releaseToCustomer(releaseId){
+ if(!confirm('Make this release visible to the customer and open commissioning?'))return;
+ let nextS2=currentProject.stage2_status==='not_started'?'draft':currentProject.stage2_status;
+ const {error:rerr}=await sb.from('project_releases').update({status:'released',released_at:new Date().toISOString()}).eq('id',releaseId);if(rerr)return setMsg(rerr.message,true);
+ const {error:perr}=await sb.from('projects').update({development_status:'ready_for_testing',stage2_status:nextS2}).eq('id',currentProjectId);if(perr)return setMsg(perr.message,true);
+ const n=await notify('release_ready',releaseId);
+ await loadProject(currentProjectId);
+ if(n.ok)setMsg('Release published and customer notification sent.');
+ else setMsg('Release published. Email notification could not be sent: '+(n.error||'unknown error'),true);
+}
+async function notify(action,releaseId=null){
+ try{const {data,error}=await sb.functions.invoke('notify-project',{body:{action,project_id:currentProjectId,release_id:releaseId}});if(error)return {ok:false,error:error.message};if(data?.error)return {ok:false,error:data.error};return {ok:true,data}}catch(e){return {ok:false,error:e.message||String(e)}}
+}
+sb.auth.onAuthStateChange((_e,s)=>setTimeout(()=>handleSession(s),0));(async()=>{const {data:{session}}=await sb.auth.getSession();await handleSession(session)})();
+</script>
+</body></html>
