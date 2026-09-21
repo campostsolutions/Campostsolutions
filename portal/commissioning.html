@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cam Post Solutions – Connected Commissioning Portal</title>
+<style>
+  :root{
+    --bg:#f5f7fa;
+    --panel:#ffffff;
+    --text:#172033;
+    --muted:#687386;
+    --border:#dfe4ea;
+    --accent:#0d63c8;
+    --accent2:#084b99;
+    --soft:#edf5ff;
+    --danger:#a63d40;
+    --ok:#19724b;
+    --shadow:0 12px 30px rgba(15,35,65,.08);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.5;
+  }
+  .shell{max-width:1080px;margin:0 auto;padding:28px 18px 60px}
+  .masthead{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:22px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    margin-bottom:20px;
+  }
+  .brand-strip{
+    display:flex;align-items:center;justify-content:space-between;gap:24px;
+    padding:16px 26px 14px;background:#fff;
+    border-top:4px solid #5c8b2f;
+  }
+  .brand-strip img{display:block;width:140px;height:auto;object-fit:contain;flex:0 0 auto;clip-path:inset(0 0 5px 0);margin-bottom:-5px}
+  .brand-tagline{
+    color:#445064;font-size:14px;font-weight:600;letter-spacing:.01em;text-align:right;white-space:nowrap;
+  }
+  .hero{
+    background:linear-gradient(115deg,#0b315f,#0d63c8);
+    color:white;padding:24px 28px 26px;
+    border-radius:0;box-shadow:none;margin:0;
+  }
+  .hero h1{margin:0 0 7px;font-size:clamp(27px,3.5vw,38px);line-height:1.12;letter-spacing:-.02em}
+  .hero p{margin:0;max-width:830px;color:#e5f0ff;font-size:15px}
+  .topbar{
+    display:flex;gap:14px;align-items:center;justify-content:space-between;
+    margin:18px 0;
+    flex-wrap:wrap;
+  }
+  .progress-wrap{flex:1;min-width:240px}
+  .progress-label{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .progress{height:10px;background:#e3e8ef;border-radius:999px;overflow:hidden}
+  .progress > div{height:100%;background:var(--accent);width:0;transition:.25s}
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .step{display:none;padding:28px}
+  .step.active{display:block}
+  .step h2{margin:0 0 6px;font-size:26px}
+  .step .intro{margin:0 0 24px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+  .full{grid-column:1 / -1}
+  label.field{display:block}
+  label.field span.lbl{display:block;font-weight:700;margin-bottom:7px}
+  label.field span.help{display:block;color:var(--muted);font-size:13px;margin-top:5px}
+  input,select,textarea{
+    width:100%;
+    border:1px solid #cfd7e3;
+    background:white;
+    color:var(--text);
+    padding:12px 13px;
+    border-radius:10px;
+    font:inherit;
+    outline:none;
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(13,99,200,.12)}
+  textarea{min-height:110px;resize:vertical}
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:12px;
+  }
+  .choice{
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+    cursor:pointer;
+    transition:.15s;
+    background:#fff;
+  }
+  .choice:hover{border-color:#9bbce3;transform:translateY(-1px)}
+  .choice input{width:auto;margin-right:8px}
+  .choice strong{display:block;margin-bottom:4px}
+  .choice small{color:var(--muted)}
+  .section{
+    margin-top:24px;
+    padding-top:22px;
+    border-top:1px solid var(--border);
+  }
+  .section h3{margin:0 0 4px}
+  .section p{margin:0 0 16px;color:var(--muted)}
+  .checkgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .check{
+    display:flex;gap:8px;align-items:flex-start;
+    border:1px solid var(--border);
+    border-radius:10px;padding:10px 12px;background:#fff
+  }
+  .check input{width:auto;margin-top:3px}
+  .notice{
+    border-left:4px solid var(--accent);
+    background:var(--soft);
+    padding:14px 16px;
+    border-radius:10px;
+    margin:18px 0;
+  }
+  .notice.warning{border-left-color:#c57a16;background:#fff6e9}
+  .notice.critical{border-left-color:var(--danger);background:#fff0f0}
+  .nav{
+    display:flex;justify-content:space-between;gap:10px;
+    padding:20px 28px;border-top:1px solid var(--border);background:#fbfcfe
+  }
+  button{
+    border:0;border-radius:10px;padding:12px 18px;font-weight:700;font-size:15px;cursor:pointer
+  }
+  button.primary{background:var(--accent);color:white}
+  button.primary:hover{background:var(--accent2)}
+  button.secondary{background:#e8edf3;color:var(--text)}
+  button.ghost{background:white;border:1px solid var(--border);color:var(--text)}
+  .commission-link{display:inline-block;background:var(--accent);color:white;text-decoration:none;padding:12px 18px;border-radius:10px;font-weight:700}
+  .commission-link:hover{background:var(--accent2)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+  .conditional{display:none}
+  .conditional.show{display:block}
+  .summary{
+    background:#f8fafc;border:1px solid var(--border);padding:18px;border-radius:12px
+  }
+  .summary h3{margin-top:0}
+  .summary dl{display:grid;grid-template-columns:220px 1fr;gap:8px 14px}
+  .summary dt{font-weight:700}
+  .summary dd{margin:0;color:#364055}
+  .pill{
+    display:inline-block;background:#eef3f8;border-radius:999px;padding:5px 10px;font-size:12px;margin:3px 4px 3px 0
+  }
+  .req{color:var(--danger)}
+  .upload{
+    border:2px dashed #bdc9d8;border-radius:12px;padding:20px;text-align:center;background:#fafcff
+  }
+  .small{font-size:13px;color:var(--muted)}
+  footer{color:var(--muted);text-align:center;margin-top:18px;font-size:13px}
+
+
+    .file-hint{display:flex;gap:10px;align-items:flex-start;background:#f1f7ff;border:1px solid #cfe2fb;border-radius:11px;padding:12px 14px;margin:12px 0;color:#24405f}
+  .file-hint strong{color:#0b315f}
+  .turret-card{border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:14px;background:#fbfcfe}
+  .turret-card h4{margin:0 0 12px;font-size:17px}
+  .offline-link{display:inline-flex;align-items:center;gap:7px;text-decoration:none;border:1px solid var(--border);background:#fff;color:var(--text);border-radius:10px;padding:11px 14px;font-weight:700}
+  .offline-link:hover{border-color:#9bbce3;background:#f8fbff}
+  .feature-conditional{display:none}
+  .feature-conditional.show{display:flex}
+  .machine-table{table-layout:fixed}
+  .machine-table th:first-child{width:14%}
+  .machine-table td input,.machine-table td select{width:100%;min-width:0}
+  .machine-table tr.conditional{display:none}
+  .machine-table tr.conditional.show{display:table-row}
+
+  .stage-ribbon{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 18px;
+  }
+  .stage-card{
+    border:1px solid var(--border);background:#fff;border-radius:14px;padding:14px 16px;
+  }
+  .stage-card.active{border-color:var(--accent);background:var(--soft)}
+  .stage-card strong{display:block}
+  .stage-card small{color:var(--muted)}
+  .machine-table{width:100%;border-collapse:collapse;margin-top:10px}
+  .machine-table th,.machine-table td{border:1px solid var(--border);padding:8px;text-align:left;vertical-align:top}
+  .machine-table th{background:#f3f6f9}
+  .machine-table input,.machine-table select{min-width:90px}
+  .status-list{display:grid;gap:8px;margin-top:10px}
+  .status-row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);padding:7px 0}
+  .status-ok{color:var(--ok);font-weight:700}
+  .status-warn{color:#9a650e;font-weight:700}
+
+  @media (max-width:800px){
+    .brand-strip{align-items:flex-start;flex-direction:column;gap:10px;padding:14px 18px}
+    .brand-tagline{text-align:left;font-size:13px;white-space:normal}
+    .hero{padding:21px 20px 23px}
+
+    .grid,.grid-3,.cards,.checkgrid,.stage-ribbon{grid-template-columns:1fr}
+    .step{padding:20px}
+    .nav{padding:16px 20px}
+    .summary dl{grid-template-columns:1fr}
+  }
+
+  /* Table rows must retain table-row display when conditionally shown. */
+  tr.conditional.show{display:table-row!important}
+  label.conditional.show,div.conditional.show{display:block}
+
+  .test-table{width:100%;border-collapse:collapse;margin-top:14px}.test-table th,.test-table td{border:1px solid var(--border);padding:10px;vertical-align:top}.test-table th{background:#f3f6f9;text-align:left}.test-table select{min-width:120px}.badge{display:inline-block;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:700;background:#eef3f8}.badge.critical{background:#fff0f0;color:#9b3034}.group-title{display:flex;justify-content:space-between;gap:12px;align-items:center}.file-drop{border:2px dashed #bdc9d8;border-radius:12px;padding:18px;background:#fafcff}.file-drop.required{border-color:#d49a9d;background:#fffafa}.file-drop.loaded{border-color:#7db596;background:#f4fbf7}.file-drop input[type=file]{margin-top:10px}.file-state{font-size:13px;margin-top:8px;color:var(--muted)}.file-state.ok{color:var(--ok);font-weight:700}.import-summary{display:none;margin-top:15px}.import-summary.show{display:block}.issue-row{display:grid;grid-template-columns:1fr 150px 1fr;gap:10px;margin-bottom:10px}.outcome-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.outcome-card{border:1px solid var(--border);border-radius:12px;padding:14px}.outcome-card input{width:auto}.hidden{display:none!important}.evidence-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.accept-row{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border);border-radius:11px;padding:12px;background:#fff}.accept-row input{width:auto;margin-top:3px}.result-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.result-box{border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}.result-box strong{display:block;font-size:24px}.result-box.fail{background:#fff5f5}.result-box.pass{background:#f4fbf7}.result-box.warn{background:#fff8ee}.release-table{width:100%;border-collapse:collapse}.release-table th,.release-table td{border:1px solid var(--border);padding:9px;vertical-align:top}.release-table th{background:#f3f6f9;text-align:left;width:32%}
+  @media(max-width:800px){.issue-row,.outcome-grid,.evidence-grid,.result-summary{grid-template-columns:1fr}.test-table{font-size:13px}}
+
+  .portal-card{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:20px 24px;margin:0 0 18px}
+  .portal-card h2,.portal-card h3{margin:0 0 7px}
+  .login-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end}
+  .account-row{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap}
+  .account-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .save-state{font-size:13px;color:var(--muted);font-weight:700}
+  .save-state.saved{color:var(--ok)}
+  .save-state.saving{color:#9a650e}
+  .message{font-size:13px;color:var(--muted);margin-top:8px}
+  .message.error{color:var(--danger);font-weight:700}
+  .project-banner{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:18px}
+  .project-banner strong{font-size:18px}
+  .project-status{display:inline-block;margin-left:8px;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:700;background:#eef3f8}
+  .staff-controls{display:none;margin-top:12px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:#fff}
+  .staff-controls.show{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .staff-note{font-size:13px;color:var(--muted);flex:1;min-width:240px}
+  .project-status.enabled{background:#e9f8ef;color:var(--ok)}
+  .uploaded-list{margin-top:8px;display:grid;gap:5px}
+  .uploaded-file{font-size:12px;color:#35435a;background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+  @media(max-width:800px){.login-row{grid-template-columns:1fr}.account-row{align-items:flex-start;flex-direction:column}}
+
+  .cps-help-fab{
+    position:fixed;right:22px;bottom:22px;z-index:950;
+    border:0;border-radius:999px;padding:11px 16px;
+    background:#0d63c8;color:#fff;font-weight:800;cursor:pointer;
+    box-shadow:0 8px 24px rgba(13,99,200,.26)
+  }
+  .cps-help-overlay{
+    display:none;position:fixed;inset:0;z-index:1000;background:rgba(10,25,45,.48);
+    padding:24px;overflow:auto
+  }
+  .cps-help-overlay.show{display:block}
+  .cps-help-modal{
+    max-width:760px;margin:5vh auto;background:#fff;border-radius:18px;
+    box-shadow:0 25px 70px rgba(0,0,0,.22);overflow:hidden
+  }
+  .cps-help-head{
+    display:flex;justify-content:space-between;gap:14px;align-items:center;
+    padding:18px 22px;background:linear-gradient(115deg,#0b315f,#0d63c8);color:#fff
+  }
+  .cps-help-head h2{margin:0;font-size:23px}
+  .cps-help-close{background:transparent!important;color:#fff!important;border:1px solid rgba(255,255,255,.5)!important;padding:7px 10px!important}
+  .cps-help-body{padding:20px 22px}
+  .cps-help-body h3{margin:15px 0 6px}
+  .cps-help-body p,.cps-help-body li{line-height:1.5}
+  .cps-help-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+  .cps-help-actions a{display:inline-block;text-decoration:none;border-radius:9px;padding:9px 12px;font-weight:700}
+  .cps-help-primary{background:#0d63c8;color:#fff}
+  .cps-help-secondary{border:1px solid #dfe4ea;color:#172033;background:#fff}
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<div class="shell">
+<div class="masthead">
+    <div class="brand-strip">
+      <img src="data:image/png;base64,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" alt="Cam Post Solutions Ltd">
+      <div class="brand-tagline">CNC post processors · machine simulation · CAM solutions</div>
+    </div>
+
+<div id="authCard" class="portal-card">
+  <div id="signedOutPanel">
+    <h2>Commissioning portal</h2>
+    <p class="intro">Sign in with the same email address used for the machine questionnaire.</p>
+    <div class="login-row">
+      <label class="field"><span class="lbl">Email address</span><input id="loginEmail" type="email" autocomplete="email"></label>
+      <button class="primary" type="button" onclick="sendSignInEmail()">Send sign-in email</button>
+    </div>
+    <div id="otpPanel" style="display:none;margin-top:14px">
+      <div class="login-row">
+        <label class="field"><span class="lbl">Sign-in code</span><input id="loginOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Enter the code from your email"></label>
+        <button class="primary" type="button" onclick="verifyOtpCode()">Verify code</button>
+      </div>
+    </div>
+    <div id="authMessage" class="message"></div>
+  </div>
+
+  <div id="signedInPanel" style="display:none">
+    <div class="account-row">
+      <div>
+        <strong>Signed in as <span id="signedInEmail"></span></strong>
+        <div id="accountMessage" class="message"></div>
+      </div>
+      <div class="account-actions">
+        <span id="saveStatus" class="save-state">Select a project</span>
+        <a class="ghost" style="text-decoration:none" href="index.html">Project home</a><a class="ghost" style="text-decoration:none" href="dashboard.html">CPS dashboard</a>
+        <button class="ghost" type="button" onclick="saveCommissioning(false)">Save now</button>
+        <button class="ghost" type="button" onclick="signOutPortal()">Sign out</button>
+      </div>
+    </div>
+    <div class="grid" style="margin-top:14px">
+      <label class="field full">
+        <span class="lbl">Commissioning project</span>
+        <select id="projectPicker" onchange="switchProject(this.value)">
+          <option value="">Select project…</option>
+        </select>
+        <span class="help" id="projectPickerHelp">Stage 2 must be enabled by Cam Post Solutions before commissioning can be completed.</span>
+      </label>
+    </div>
+    <div id="staffControls" class="staff-controls">
+      <div class="staff-note" id="staffControlText">CPS staff controls</div>
+      <button id="enableCommissioningBtn" class="primary" type="button" onclick="enableCommissioningHere()">Enable commissioning</button>
+    </div>
+  </div>
+</div>
+
+<div id="portalApp" style="display:none">
+  <div class="stage-ribbon">
+    <div class="stage-card"><strong>Stage 1 · Machine information</strong><small>Stored questionnaire and supporting evidence</small></div>
+    <div class="stage-card active"><strong>Stage 2 · Commissioning</strong><small>Machine test plan and verification record</small></div>
+    <div class="stage-card"><strong>Stage 3 · Sign-off</strong><small>Customer acceptance and release record</small></div>
+  </div>
+
+  <div class="topbar">
+    <div class="progress-wrap">
+      <div class="progress-label"><span id="progressText">Step 1 of 7</span><span id="progressPct">14%</span></div>
+      <div class="progress"><div id="progressBar"></div></div>
+    </div>
+    <div class="toolbar">
+      <a class="offline-link" href="./commissioning-offline.docx">Offline commissioning form</a>
+    </div>
+  </div>
+
+  <form id="commissioning" class="panel">
+    
+<section class="step active" data-step="1">
+  <h2>1. Select project & confirm machine</h2>
+  <p class="intro">Choose the CPS project you are commissioning. The machine-specific test plan is generated directly from the approved Stage 1 questionnaire.</p>
+  <div class="project-banner">
+    <strong id="projectReference">No project selected</strong>
+    <span id="projectStageStatus" class="project-status">Stage 2 not enabled</span>
+    <div class="small" id="projectGateMessage" style="margin-top:6px">Select a project above.</div>
+  </div>
+  <div class="grid">
+    <label class="field"><span class="lbl">Customer</span><input name="company" id="company" readonly></label>
+    <label class="field"><span class="lbl">Machine</span><input name="machine" id="machine" readonly></label>
+    <label class="field"><span class="lbl">Control</span><input name="control" id="control" readonly></label>
+    <label class="field"><span class="lbl">CAM</span><input name="cam" id="cam" readonly></label>
+    <label class="field"><span class="lbl">Post filename / version under test</span><input name="post_version"></label>
+    <label class="field"><span class="lbl">Commissioning date</span><input name="test_date" type="date"></label>
+    <label class="field"><span class="lbl">Commissioned by</span><input name="commissioned_by"></label>
+    <label class="field"><span class="lbl">Customer/operator present</span><input name="operator_present"></label>
+  </div>
+  <div id="importSummary" class="summary import-summary"></div>
+</section>
+
+    <section class="step" data-step="2"><h2>2. Pre-test readiness</h2><p class="intro">Confirm that the machine, workholding and test environment are ready before running new NC output.</p><div class="notice critical"><strong>Machine verification required:</strong> commissioning must be carried out by competent personnel in accordance with the machine builder's procedures and the site's own safety controls. New NC should be reviewed and introduced cautiously.</div><div id="pretestTests"></div></section>
+    <section class="step" data-step="3"><h2>3. Core post verification</h2><p class="intro">Verify the common post behaviour before moving into machine-specific functions.</p><div id="coreTests"></div></section>
+    <section class="step" data-step="4"><h2>4. Machine-specific verification</h2><p class="intro">These tests are generated from the machine type, capabilities, rotary axes and control features recorded in Stage 1.</p><div id="dynamicTests"></div></section>
+    <section class="step" data-step="5"><h2>5. Test evidence & files</h2><p class="intro">Attach the files that show exactly what was tested and what happened on the machine. These become part of the project record.</p><div class="notice warning"><strong>Required evidence:</strong> the commissioning record cannot be completed without both the tested NC/results and the CAM test project used to generate them.</div><div class="evidence-grid"><div class="file-drop required" id="testedNcBox"><strong>Tested NC / machine test results <span class="req">*</span></strong><p class="small">Upload the NC files actually tested, including any machine-edited versions, result files or returned code. Multiple files are allowed.</p><input id="testedNcFiles" name="testedNcFiles" type="file" multiple onchange="uploadStage2Files(this.files,'tested_nc_results','testedNcState','testedNcBox')" ><div id="testedNcState" class="file-state">No files selected.</div></div><div class="file-drop required" id="camProjectBox"><strong>CAM test project / archive <span class="req">*</span></strong><p class="small">Upload the CAM project used for commissioning (for example Fusion F3D/F3Z, FeatureCAM project, PowerMill project archive or ZIP).</p><input id="camProjectFiles" name="camProjectFiles" type="file" multiple onchange="uploadStage2Files(this.files,'cam_test_project','camProjectState','camProjectBox')" ><div id="camProjectState" class="file-state">No files selected.</div></div><div class="file-drop"><strong>Machine photos / screenshots / video</strong><p class="small">Optional but strongly recommended for unusual motion, alarms, collisions/near-misses, axis positions or control messages.</p><input id="visualEvidenceFiles" name="visualEvidenceFiles" type="file" multiple onchange="uploadStage2Files(this.files,'visual_evidence','visualEvidenceState')" ><div id="visualEvidenceState" class="file-state">No files selected.</div></div><div class="file-drop"><strong>Control / diagnostic / trace files</strong><p class="small">Optional controller logs, traces, backups or diagnostic files captured during the test.</p><input id="diagnosticFiles" name="diagnosticFiles" type="file" multiple onchange="uploadStage2Files(this.files,'diagnostic','diagnosticState')" ><div id="diagnosticState" class="file-state">No files selected.</div></div></div><div class="section"><label class="field"><span class="lbl">Evidence notes / filenames / secure links</span><textarea name="evidence_notes" placeholder="Use this for anything too large to upload directly, or to explain which files correspond to which tests."></textarea></label></div><div class="notice">Files are uploaded immediately to the secure CPS project record. You can sign out and return later without re-selecting previously uploaded evidence.</div></section>
+    <section class="step" data-step="6"><h2>6. Issues & changes</h2><p class="intro">Record anything that fails, needs clarification or requires a post/simulation change.</p><div id="issues"><div class="issue-row"><input name="issue_description" placeholder="Issue / observed machine behaviour"><select name="issue_severity"><option>Minor</option><option>Blocks testing</option><option>Safety-critical</option></select><input name="issue_action" placeholder="Required action / post change"></div></div><button type="button" class="secondary" onclick="addIssue()">+ Add issue</button></section>
+    <section class="step" data-step="7"><h2>7. Commissioning outcome</h2><p class="intro">Record the state of the project at the end of this machine test.</p><div class="outcome-grid"><label class="outcome-card"><input type="radio" name="outcome" value="Ready for sign-off" onchange="updateOutcome()"> <strong>Ready for sign-off</strong><br><span class="small">Agreed functions tested with no blocking issues.</span></label><label class="outcome-card"><input type="radio" name="outcome" value="Retest required" onchange="updateOutcome()"> <strong>Retest required</strong><br><span class="small">Post/simulation changes required before acceptance.</span></label><label class="outcome-card"><input type="radio" name="outcome" value="Blocked" onchange="updateOutcome()"> <strong>Blocked</strong><br><span class="small">Further machine information, supplier input or customer action required.</span></label></div><div class="section"><label class="field"><span class="lbl">Commissioning summary</span><textarea name="commissioning_summary"></textarea></label><label class="field" style="margin-top:14px"><span class="lbl">Outstanding limitations / items not tested</span><textarea name="limitations"></textarea></label></div><div class="notice">Stage 3 sign-off should cover only functionality actually verified on the machine. Anything not tested remains explicitly listed as outstanding or outside scope.</div><div id="stage3Ready" class="section hidden"><h3>Next stage: customer sign-off</h3><p class="small">This commissioning record is stored against the same CPS project. Stage 3 will use the saved project directly, so there is no JSON hand-off.</p><a id="stage3Link" class="commission-link" href="./signoff.html">Continue to Stage 3 – Sign-off</a></div></section>
+    <div class="nav">
+      <button type="button" id="prevBtn" class="secondary" onclick="changeStep(-1)">Back</button>
+      <button type="button" id="nextBtn" class="primary" onclick="changeStep(1)">Next</button>
+      <button type="button" id="finishBtn" class="primary" style="display:none" onclick="completeCommissioning()">Complete commissioning</button>
+    </div>
+  </form>
+  <footer>Cam Post Solutions Ltd · Connected Stage 2 commissioning portal alpha v5</footer>
+</div>
+</div>
+
+<script>
+const SUPABASE_URL="https://hfxghrzhthvmcvzxletp.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_TTAEax5Jgl-gcYKdixdxiA_Imyz7hHg";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+
+let currentStep=1,totalSteps=7,stage1={},currentUser=null,currentProjectId=null,currentProjectRow=null,isCpsStaff=false,commissioningLocked=false;
+let isHydrating=false,saveTimer=null,uploadedStage2Categories=new Set(),uploadedStage2Files=[];
+
+function arr(v){return Array.isArray(v)?v:(v?[v]:[]);}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+function setv(id,v){const e=document.getElementById(id);if(e)e.value=v||'';}
+function setAuthMessage(m,error=false){const e=document.getElementById('authMessage');e.textContent=m||'';e.classList.toggle('error',!!error);}
+function setAccountMessage(m,error=false){const e=document.getElementById('accountMessage');e.textContent=m||'';e.classList.toggle('error',!!error);}
+function setSaveStatus(t,state=''){const e=document.getElementById('saveStatus');e.textContent=t;e.className='save-state'+(state?' '+state:'');}
+
+async function sendSignInEmail(){
+  const email=document.getElementById('loginEmail').value.trim();
+  if(!email){setAuthMessage('Enter your email address first.',true);return;}
+  setAuthMessage('Sending sign-in email…');
+  const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
+  if(error){setAuthMessage(error.message,true);return;}
+  document.getElementById('otpPanel').style.display='block';
+  setAuthMessage('Email sent. Enter the sign-in code from your email below.');
+}
+async function verifyOtpCode(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const token=document.getElementById('loginOtp').value.replace(/\D/g,'');
+  if(!email||!token){setAuthMessage('Enter the email address and sign-in code.',true);return;}
+  const {error}=await sb.auth.verifyOtp({email,token,type:'email'});
+  if(error){setAuthMessage(error.message,true);return;}
+  setAuthMessage('');
+}
+async function signOutPortal(){
+  await sb.auth.signOut();
+  currentUser=null;currentProjectId=null;currentProjectRow=null;stage1={};
+  document.getElementById('portalApp').style.display='none';
+  document.getElementById('signedInPanel').style.display='none';
+  document.getElementById('signedOutPanel').style.display='block';
+}
+async function handleSession(session){
+  if(!session?.user){
+    document.getElementById('portalApp').style.display='none';
+    document.getElementById('signedInPanel').style.display='none';
+    document.getElementById('signedOutPanel').style.display='block';
+    return;
+  }
+  currentUser=session.user;
+  const {data:staffRow}=await sb.from('cps_staff').select('user_id').eq('user_id',currentUser.id).maybeSingle();
+  isCpsStaff=!!staffRow;
+  document.getElementById('signedOutPanel').style.display='none';
+  document.getElementById('signedInPanel').style.display='block';
+  document.getElementById('portalApp').style.display='block';
+  document.getElementById('signedInEmail').textContent=currentUser.email||'';
+  await refreshProjectPicker();
+}
+async function refreshProjectPicker(){
+  const {data,error}=await sb.from('projects')
+    .select('id,reference,customer_company,machine_manufacturer,machine_model,stage1_status,stage2_status,updated_at')
+    .order('updated_at',{ascending:false});
+  if(error){setAccountMessage('Could not load projects: '+error.message,true);return;}
+  const picker=document.getElementById('projectPicker');
+  picker.innerHTML='<option value="">Select project…</option>';
+  for(const p of (data||[])){
+    const label=[p.reference,p.customer_company,[p.machine_manufacturer,p.machine_model].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
+    const opt=document.createElement('option');
+    opt.value=p.id;opt.textContent=label+` · Stage 2: ${p.stage2_status}`;
+    picker.appendChild(opt);
+  }
+  const requested=new URLSearchParams(location.search).get('project');
+  if(requested && (data||[]).some(p=>p.id===requested)){
+    picker.value=requested;await loadProject(requested);return;
+  }
+  if(data?.length===1){picker.value=data[0].id;await loadProject(data[0].id);}
+  else setAccountMessage('Choose the project to commission.');
+}
+async function switchProject(id){if(!id){resetCommissioning();return;}await loadProject(id);}
+
+function projectStageEnabled(){
+  return !!currentProjectRow && ['draft','completed','retest_required'].includes(currentProjectRow.stage2_status) && currentProjectRow.stage2_status!=='not_started';
+}
+function projectStageEditable(){
+  return !!currentProjectRow && ['draft','retest_required'].includes(currentProjectRow.stage2_status);
+}
+function setCommissioningLock(locked){
+  commissioningLocked=!!locked;
+  document.querySelectorAll('#commissioning input,#commissioning select,#commissioning textarea').forEach(el=>el.disabled=commissioningLocked);
+  document.getElementById('finishBtn').disabled=commissioningLocked;
+}
+function resetCommissioning(){
+  isHydrating=true;
+  document.getElementById('commissioning').reset();
+  stage1={};currentProjectId=null;currentProjectRow=null;uploadedStage2Categories.clear();uploadedStage2Files=[];
+  document.getElementById('projectReference').textContent='No project selected';
+  document.getElementById('projectStageStatus').textContent='Stage 2 not enabled';
+  document.getElementById('projectStageStatus').className='project-status';
+  document.getElementById('projectGateMessage').textContent='Select a project above.';
+  renderStaffControls();
+  document.getElementById('pretestTests').innerHTML='';
+  document.getElementById('coreTests').innerHTML='';
+  document.getElementById('dynamicTests').innerHTML='';
+  currentStep=1;document.querySelectorAll('.step').forEach(x=>x.classList.remove('active'));
+  document.querySelector('.step[data-step="1"]').classList.add('active');updateNav();
+  isHydrating=false;setSaveStatus('Select a project');
+}
+
+function renderStaffControls(){
+  const box=document.getElementById('staffControls');
+  const btn=document.getElementById('enableCommissioningBtn');
+  const text=document.getElementById('staffControlText');
+  const help=document.getElementById('projectPickerHelp');
+  if(!box||!btn||!text)return;
+
+  if(!isCpsStaff){
+    box.classList.remove('show');
+    if(help) help.textContent='Stage 2 must be enabled by Cam Post Solutions before commissioning can be completed.';
+    return;
+  }
+
+  box.classList.add('show');
+  if(!currentProjectRow){
+    text.textContent='CPS staff: select a project to review or commission.';
+    btn.style.display='none';
+    if(help) help.textContent='You are signed in with CPS staff access.';
+    return;
+  }
+
+  if(currentProjectRow.stage2_status==='not_started'){
+    text.textContent='This project has not been released for machine commissioning yet. Review Stage 1, then enable Stage 2 when you are ready.';
+    btn.style.display='inline-block';
+    btn.textContent='Enable commissioning';
+    btn.disabled=false;
+  } else {
+    text.textContent='Commissioning is already enabled for this project.';
+    btn.style.display='none';
+  }
+  if(help) help.textContent='CPS staff can enable Stage 2 directly here after reviewing the Stage 1 questionnaire.';
+}
+
+async function enableCommissioningHere(){
+  if(!isCpsStaff || !currentProjectId || !currentProjectRow) return;
+  if(currentProjectRow.stage2_status!=='not_started') return;
+  const ok=confirm('Mark Stage 1 as reviewed and enable Stage 2 commissioning for '+(currentProjectRow.reference||'this project')+'?');
+  if(!ok) return;
+
+  setSaveStatus('Enabling…','saving');
+  const {error}=await sb.from('projects').update({
+    stage1_status:'reviewed',
+    stage2_status:'draft'
+  }).eq('id',currentProjectId);
+
+  if(error){
+    setSaveStatus('Enable failed');
+    setAccountMessage('Could not enable commissioning: '+error.message,true);
+    return;
+  }
+
+  currentProjectRow.stage1_status='reviewed';
+  currentProjectRow.stage2_status='draft';
+  document.getElementById('projectStageStatus').textContent='Stage 2: draft';
+  document.getElementById('projectStageStatus').className='project-status enabled';
+  document.getElementById('projectGateMessage').textContent='Commissioning is enabled for this project. Changes are saved securely against the CPS project.';
+  setSaveStatus('Saved','saved');
+  setAccountMessage('Commissioning enabled. You can continue with the test plan now.');
+  renderStaffControls();
+  await refreshProjectPickerPreserveSelection();
+}
+
+async function refreshProjectPickerPreserveSelection(){
+  const keep=currentProjectId;
+  const {data,error}=await sb.from('projects')
+    .select('id,reference,customer_company,machine_manufacturer,machine_model,stage1_status,stage2_status,updated_at')
+    .order('updated_at',{ascending:false});
+  if(error) return;
+  const picker=document.getElementById('projectPicker');
+  picker.innerHTML='<option value="">Select project…</option>';
+  for(const p of (data||[])){
+    const label=[p.reference,p.customer_company,[p.machine_manufacturer,p.machine_model].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
+    const opt=document.createElement('option');
+    opt.value=p.id;
+    opt.textContent=label+` · Stage 2: ${p.stage2_status}`;
+    picker.appendChild(opt);
+  }
+  if(keep){
+    picker.value=keep;
+  }
+}
+
+async function loadProject(id){
+  setSaveStatus('Loading…','saving');
+  const {data,error}=await sb.from('projects').select('*').eq('id',id).single();
+  if(error){setAccountMessage('Could not load project: '+error.message,true);setSaveStatus('Load failed');return;}
+  currentProjectRow=data;currentProjectId=data.id;stage1=data.stage1_data||{};
+  populateProject();buildAllTests();await loadStage2Files();
+  if(data.stage2_data && Object.keys(data.stage2_data).length) hydrateCommissioning(data.stage2_data);
+  setCommissioningLock(data.stage2_status==='completed');
+  const enabled=data.stage2_status!=='not_started';
+  document.getElementById('projectStageStatus').textContent=enabled?`Stage 2: ${data.stage2_status}`:'Stage 2 not enabled';
+  document.getElementById('projectStageStatus').className='project-status'+(enabled?' enabled':'');
+  document.getElementById('projectGateMessage').textContent=enabled
+    ? 'Commissioning is enabled for this project. Changes are saved securely against the CPS project.'
+    : 'Cam Post Solutions must review Stage 1 and enable commissioning before machine testing is recorded.';
+  setAccountMessage(data.stage2_status==='completed'?'Completed commissioning record loaded. The Stage 2 baseline is locked.':(enabled?'Project loaded.':(isCpsStaff?'Project loaded. Review Stage 1, then use the CPS staff control above to enable commissioning.':'Project loaded, but commissioning has not yet been enabled by CPS.')));
+  setSaveStatus(enabled?'Saved':(isCpsStaff?'Ready for CPS review':'Waiting for CPS'));
+  renderStaffControls();
+}
+
+function populateProject(){
+  setv('company',stage1.company||currentProjectRow?.customer_company);
+  setv('machine',[stage1.machine_manufacturer||currentProjectRow?.machine_manufacturer,stage1.machine_model||currentProjectRow?.machine_model].filter(Boolean).join(' '));
+  setv('control',[stage1.control_manufacturer||currentProjectRow?.control_manufacturer,stage1.control_model||currentProjectRow?.control_model].filter(Boolean).join(' '));
+  setv('cam',[stage1.cam_system||currentProjectRow?.cam_system,stage1.cam_version].filter(Boolean).join(' '));
+  document.getElementById('projectReference').textContent=currentProjectRow?.reference||'Project';
+  const caps=arr(stage1.capabilities);
+  const sum=document.getElementById('importSummary');sum.classList.add('show');
+  sum.innerHTML=`<h3>Project configuration</h3><dl>
+    <dt>Machine type</dt><dd>${esc(stage1.machine_type||'—')}</dd>
+    <dt>Capabilities</dt><dd>${caps.map(x=>`<span class="pill">${esc(x)}</span>`).join('')||'—'}</dd>
+    <dt>Project scope</dt><dd>${esc(stage1.project_scope||currentProjectRow?.deliverable||'—')}</dd>
+    <dt>Stage 1</dt><dd>${esc(currentProjectRow?.stage1_status||'—')}</dd>
+  </dl>`;
+}
+
+function testTable(title,items){
+  if(!items.length)return '';
+  return `<div class="section"><div class="group-title"><h3>${esc(title)}</h3></div><div style="overflow-x:auto"><table class="test-table"><thead><tr><th style="width:43%">Verification</th><th style="width:15%">Status</th><th>Notes / observed behaviour</th></tr></thead><tbody>${
+    items.map(x=>`<tr data-test-key="${esc(title+'|'+x.text)}"><td>${esc(x.text)} ${x.critical?'<span class="badge critical">Safety-critical</span>':''}</td><td><select name="test_status"><option>Not tested</option><option>Pass</option><option>Fail</option><option>N/A</option></select><input type="hidden" name="test_name" value="${esc(x.text)}"><input type="hidden" name="test_group" value="${esc(title)}"></td><td><textarea name="test_note" style="min-height:55px"></textarea></td></tr>`).join('')
+  }</tbody></table></div></div>`;
+}
+
+function buildAllTests(){
+  const caps=arr(stage1.capabilities),rot=arr(stage1.rotary_axes),features=arr(stage1.features);
+  const type=stage1.machine_type||'',ctrl=stage1.control_manufacturer||'';
+  const pre=[
+    {text:'Machine/control identity matches the Stage 1 project record'},
+    {text:'Latest post processor and, where applicable, machine simulation version identified'},
+    {text:'Known-proven machine NC / manuals are available for comparison'},
+    {text:'Workholding, stock, tools and offsets for the test are confirmed'},
+    {text:'Test NC reviewed at the control before execution',critical:true},
+    {text:'Initial machine test strategy agreed with the operator (clearance, overrides/single block as appropriate)',critical:true}
+  ];
+  if((stage1.project_scope||'').toLowerCase().includes('simulation'))pre.push({text:'Machine CAD model and simulation kinematics have been reviewed against the physical machine'});
+  document.getElementById('pretestTests').innerHTML=testTable('Pre-test checks',pre);
+
+  const core=[
+    {text:'Program header, program number/name and comments are accepted by the control'},
+    {text:'Units and absolute/incremental modes are correct'},
+    {text:'Work offset / datum selection is correct',critical:true},
+    {text:'Tool call / offset format is correct',critical:true},
+    {text:'Spindle start, direction and stop are correct',critical:true},
+    {text:'Coolant commands used in the test operate as intended'},
+    {text:'Safe retract / reference return behaves as expected',critical:true},
+    {text:'Tool change sequence and tool-change position are safe and correct',critical:true},
+    {text:'Program end / reset leaves the machine in the expected state'}
+  ];
+  document.getElementById('coreTests').innerHTML=testTable('Core post behaviour',core);
+
+  const groups=[];
+  const indexed=caps.includes('4-axis')||caps.includes('5-axis positioning')||rot.length>0;
+  if(indexed)groups.push(['Rotary / indexed positioning',[
+    {text:'Rotary axis positive direction agrees with the machine',critical:true},
+    {text:'Rotary zero positions correspond to the physical machine',critical:true},
+    {text:'Rotary limits / continuous behaviour are respected',critical:true},
+    {text:'Safe retract before rotary/head repositioning is correct',critical:true},
+    {text:'Indexed workplane orientation matches the programmed face',critical:true},
+    {text:'Workplace/workplane transformation activates and cancels correctly'},
+    {text:'Coordinates after indexing match the intended datum'}
+  ]]);
+  if(caps.includes('Simultaneous 5-axis')||caps.includes('Simultaneous milling'))groups.push(['Simultaneous multi-axis',[
+    {text:'TCP/RTCP activates and cancels correctly',critical:true},
+    {text:'Tool-tip position is maintained during controlled rotary motion',critical:true},
+    {text:'Rotary solution / shortest-path behaviour is acceptable'},
+    {text:'Feed mode and simultaneous output are accepted by the control'}
+  ]]);
+  const turning=type==='Turning centre / lathe'||type==='Swiss / sliding-head'||caps.includes('Turning on mill');
+  if(turning){
+    const x=[
+      {text:'Turning X/Z directions and diameter/radius convention',critical:true},
+      {text:'Turning spindle direction, RPM and CSS/fixed-RPM behaviour'},
+      {text:'Tool/turret call and offset convention',critical:true}
+    ];
+    if(caps.includes('Driven tooling'))x.push({text:'Driven-tool spindle start/stop and direction'});
+    if(caps.includes('C-axis'))x.push({text:'C-axis engage/release and positive direction',critical:true});
+    if(caps.includes('Y-axis'))x.push({text:'Y-axis direction and limits'});
+    if(caps.includes('B-axis head'))x.push({text:'B-axis head indexing / milling orientation',critical:true});
+    groups.push(['Turning / mill-turn',x]);
+  }
+  const tc=parseInt(stage1.turret_count||'1');
+  if(tc>=2){
+    const x=[];
+    for(let i=1;i<=tc;i++){
+      x.push({text:`Turret/tool carrier ${i} indexes and applies the expected offsets`,critical:true});
+      if(stage1[`turret${i}_position`]==='Lower')x.push({text:`Lower turret/tool carrier ${i} park position clears the transfer/machining area`,critical:true});
+    }
+    groups.push(['Multiple tool carriers',x]);
+  }
+  if(caps.includes('Sub spindle'))groups.push(['Sub spindle',[
+    {text:'Sub-spindle axis direction and approach are correct',critical:true},
+    {text:'Chuck/collet clamp and unclamp commands are correct',critical:true},
+    {text:'Main/sub spindle speed/direction conventions are correct'}
+  ]]);
+  if(caps.includes('Part transfer'))groups.push(['Part transfer / spindle handover',[
+    {text:'Approach and grip sequence is correct at controlled clearance',critical:true},
+    {text:'Spindle synchronisation / orientation behaves as expected',critical:true},
+    {text:'Clamp/unclamp sequence is correct',critical:true},
+    {text:'Retract/pull-out/cutoff sequence clears safely',critical:true}
+  ]]);
+  if(caps.includes('Multiple channels'))groups.push(['Multi-channel',[
+    {text:'Programs/channels start in the intended state'},
+    {text:'Wait / synchronisation codes stop and release the correct channel',critical:true},
+    {text:'Shared-axis ownership / handover behaves as intended',critical:true},
+    {text:'Program end/reset leaves channels in a known state'}
+  ]]);
+  if(caps.includes('Parts catcher'))groups.push(['Parts catcher',[{text:'Parts catcher deploy/retract commands and clearance',critical:true}]]);
+  if(caps.includes('Tailstock / steady'))groups.push(['Tailstock / steady',[{text:'Tailstock/steady commands and clearance',critical:true}]]);
+  if(caps.includes('Probing')||features.includes('Probing'))groups.push(['Probing',[{text:'Probe on/off and protected positioning'},{text:'Probe cycle output / result handling where in scope'}]]);
+  if((stage1.project_scope||'').toLowerCase().includes('simulation'))groups.push(['Machine simulation',[
+    {text:'Machine model is aligned to machine zero / rotary centres'},
+    {text:'Axis directions and limits match the physical machine'},
+    {text:'Tool, holder and workholding positions match the intended setup'},
+    {text:'Relevant collision pairs / machine components are represented'},
+    {text:'Simulation agrees with observed machine motion for the tested program'}
+  ]]);
+  const optMap={
+    'Siemens':arr(stage1.siemens_options),'Fanuc':arr(stage1.fanuc_options),'Heidenhain':arr(stage1.heidenhain_options),
+    'Okuma':arr(stage1.okuma_options),'Mazatrol / Smooth':arr(stage1.mazak_options),'Haas':arr(stage1.haas_options),
+    'Hurco':arr(stage1.hurco_options),'Mitsubishi':arr(stage1.mitsubishi_options)
+  };
+  const opts=optMap[ctrl]||[];
+  if(opts.length)groups.push([ctrl+' control-specific functions',
+    opts.filter(x=>!String(x).toLowerCase().includes('unknown')).map(x=>({text:`Verify programmed use of ${x} where included in the agreed test`,critical:/TCP|TRAORI|CYCLE800|PLANE|M128|DWO|transform/i.test(x)}))
+  ]);
+  document.getElementById('dynamicTests').innerHTML=groups.length?groups.map(g=>testTable(g[0],g[1])).join(''):'<div class="notice">No additional machine-specific tests were generated from Stage 1.</div>';
+}
+
+function addIssue(){
+  document.getElementById('issues').insertAdjacentHTML('beforeend','<div class="issue-row"><input name="issue_description" placeholder="Issue / observed machine behaviour"><select name="issue_severity"><option>Minor</option><option>Blocks testing</option><option>Safety-critical</option></select><input name="issue_action" placeholder="Required action / post change"></div>');
+}
+function collect(){
+  const fd=new FormData(document.getElementById('commissioning')),o={tests:[],issues:[],project_reference:currentProjectRow?.reference||null};
+  const names=fd.getAll('test_name'),groups=fd.getAll('test_group'),sts=fd.getAll('test_status'),notes=fd.getAll('test_note');
+  for(let i=0;i<names.length;i++)o.tests.push({group:groups[i],test:names[i],status:sts[i],note:notes[i]});
+  const ids=fd.getAll('issue_description'),sev=fd.getAll('issue_severity'),act=fd.getAll('issue_action');
+  for(let i=0;i<ids.length;i++)if(ids[i]||act[i])o.issues.push({description:ids[i],severity:sev[i],action:act[i]});
+  for(const [k,v] of fd.entries())if(!['test_name','test_group','test_status','test_note','issue_description','issue_severity','issue_action','testedNcFiles','camProjectFiles','visualEvidenceFiles','diagnosticFiles'].includes(k))o[k]=v;
+  o.evidence_files=uploadedStage2Files;
+  o._meta={generated:new Date().toISOString(),form_version:'CPS Connected Commissioning Portal alpha v1'};
+  return o;
+}
+function hydrateCommissioning(d){
+  isHydrating=true;
+  for(const [k,v] of Object.entries(d||{})){
+    if(['tests','issues','evidence_files','_meta','project_reference'].includes(k))continue;
+    const es=[...document.querySelectorAll(`[name="${CSS.escape(k)}"]`)];
+    if(!es.length)continue;
+    if(es[0].type==='radio')es.forEach(e=>e.checked=e.value===v);
+    else es[0].value=v??'';
+  }
+  const testMap=new Map(arr(d?.tests).map(t=>[`${t.group}|${t.test}`,t]));
+  document.querySelectorAll('tr[data-test-key]').forEach(row=>{
+    const t=testMap.get(row.dataset.testKey);if(!t)return;
+    row.querySelector('[name="test_status"]').value=t.status||'Not tested';
+    row.querySelector('[name="test_note"]').value=t.note||'';
+  });
+  const issues=document.getElementById('issues');
+  if(d?.issues?.length){
+    issues.innerHTML='';
+    d.issues.forEach(i=>{
+      addIssue();
+      const row=issues.lastElementChild;
+      row.querySelector('[name="issue_description"]').value=i.description||'';
+      row.querySelector('[name="issue_severity"]').value=i.severity||'Minor';
+      row.querySelector('[name="issue_action"]').value=i.action||'';
+    });
+  }
+  updateOutcome();isHydrating=false;
+}
+function scheduleAutosave(){
+  if(isHydrating||commissioningLocked||!currentUser||!currentProjectId||!projectStageEditable())return;
+  clearTimeout(saveTimer);setSaveStatus('Unsaved changes');
+  saveTimer=setTimeout(()=>saveCommissioning(true),1200);
+}
+async function saveCommissioning(silent=false){
+  if(!currentProjectId){if(!silent)setAccountMessage('Select a project first.',true);return false;}
+  if(!projectStageEditable()){if(!silent)setAccountMessage(currentProjectRow?.stage2_status==='completed'?'Completed commissioning records are locked.':'Commissioning has not been enabled for this project.',true);return false;}
+  try{
+    setSaveStatus('Saving…','saving');
+    const payload={stage2_data:collect(),stage2_status:currentProjectRow.stage2_status==='not_started'?'draft':currentProjectRow.stage2_status};
+    const {error}=await sb.from('projects').update(payload).eq('id',currentProjectId);
+    if(error)throw error;
+    if(currentProjectRow.stage2_status==='not_started')currentProjectRow.stage2_status='draft';
+    setSaveStatus('Saved just now','saved');
+    if(!silent)setAccountMessage('Commissioning record saved securely.');
+    return true;
+  }catch(e){setSaveStatus('Save failed');setAccountMessage('Could not save: '+(e.message||e),true);return false;}
+}
+function safeFileName(name){return name.replace(/[^a-zA-Z0-9._-]+/g,'_').slice(0,160);}
+async function uploadStage2Files(files,category,stateId,boxId){
+  if(!files?.length)return;
+  if(!currentProjectId||!projectStageEditable()){setAccountMessage(currentProjectRow?.stage2_status==='completed'?'Completed commissioning records are locked.':'Select an enabled commissioning project before uploading.',true);return;}
+  const state=document.getElementById(stateId),box=boxId?document.getElementById(boxId):null;
+  try{
+    state.textContent='Uploading…';
+    for(const file of [...files]){
+      const path=`${currentUser.id}/${currentProjectId}/stage2/${category}/${Date.now()}-${safeFileName(file.name)}`;
+      const {error:upErr}=await sb.storage.from('cps-project-files').upload(path,file,{upsert:false,contentType:file.type||undefined});
+      if(upErr)throw upErr;
+      const {error:metaErr}=await sb.from('project_files').insert({
+        project_id:currentProjectId,stage:'stage2',category,filename:file.name,storage_path:path,mime_type:file.type||null,size_bytes:file.size
+      });
+      if(metaErr)throw metaErr;
+    }
+    await loadStage2Files();setAccountMessage('Evidence upload complete.');scheduleAutosave();
+  }catch(e){state.textContent='Upload failed: '+(e.message||e);setAccountMessage('Upload failed: '+(e.message||e),true);}
+}
+async function loadStage2Files(){
+  uploadedStage2Categories.clear();uploadedStage2Files=[];
+  if(!currentProjectId)return;
+  const {data,error}=await sb.from('project_files').select('category,filename,created_at').eq('project_id',currentProjectId).eq('stage','stage2').order('created_at',{ascending:true});
+  if(error){setAccountMessage('Could not load commissioning evidence: '+error.message,true);return;}
+  for(const f of (data||[])){uploadedStage2Categories.add(f.category);uploadedStage2Files.push({category:f.category,name:f.filename});}
+  renderEvidenceState('testedNcState','testedNcBox','tested_nc_results');
+  renderEvidenceState('camProjectState','camProjectBox','cam_test_project');
+  renderEvidenceState('visualEvidenceState',null,'visual_evidence');
+  renderEvidenceState('diagnosticState',null,'diagnostic');
+}
+function renderEvidenceState(stateId,boxId,cat){
+  const names=uploadedStage2Files.filter(f=>f.category===cat).map(f=>f.name);
+  const state=document.getElementById(stateId);if(!state)return;
+  if(names.length){
+    state.innerHTML='<div class="uploaded-list">'+names.map(n=>`<div class="uploaded-file">✓ ${esc(n)}</div>`).join('')+'</div>';
+    state.className='file-state ok';if(boxId)document.getElementById(boxId).classList.add('loaded');
+  }else{state.textContent='No files uploaded.';state.className='file-state';if(boxId)document.getElementById(boxId).classList.remove('loaded');}
+}
+function validateEvidence(showAlert=true){
+  const ok=uploadedStage2Categories.has('tested_nc_results')&&uploadedStage2Categories.has('cam_test_project');
+  if(!ok&&showAlert)alert('Please upload both the tested NC / machine results and the CAM test project before continuing.');
+  return ok;
+}
+function changeStep(d){
+  if(d>0&&currentStep===1&&!currentProjectId){alert('Please select a CPS project first.');return;}
+  if(d>0&&currentStep===1&&!projectStageEnabled()){alert(isCpsStaff?'Use the “Enable commissioning” button above after reviewing Stage 1.':'Commissioning has not yet been enabled for this project by Cam Post Solutions.');return;}
+  if(d>0&&currentStep===5&&!validateEvidence())return;
+  const n=currentStep+d;if(n<1||n>totalSteps)return;
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+  currentStep=n;document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+  updateNav();window.scrollTo({top:0,behavior:'smooth'});
+}
+function updateNav(){
+  document.getElementById('prevBtn').disabled=currentStep===1;
+  document.getElementById('nextBtn').style.display=currentStep===totalSteps?'none':'inline-block';
+  document.getElementById('finishBtn').style.display=currentStep===totalSteps?'inline-block':'none';
+  const p=Math.round(currentStep/totalSteps*100);
+  document.getElementById('progressBar').style.width=p+'%';
+  document.getElementById('progressText').textContent=`Step ${currentStep} of ${totalSteps}`;
+  document.getElementById('progressPct').textContent=p+'%';
+}
+function updateOutcome(){
+  const out=document.querySelector('input[name="outcome"]:checked')?.value||'';
+  const ready=out==='Ready for sign-off'&&validateEvidence(false);
+  document.getElementById('stage3Ready').classList.toggle('hidden',!ready);
+  const link=document.getElementById('stage3Link');
+  if(link&&currentProjectId) link.href='./signoff.html?project='+encodeURIComponent(currentProjectId);
+}
+async function completeCommissioning(){
+  if(!projectStageEditable()){alert('This commissioning record is locked or not currently editable.');return;}
+  if(!validateEvidence())return;
+  const out=document.querySelector('input[name="outcome"]:checked')?.value;
+  if(!out){alert('Please select a commissioning outcome first.');return;}
+  const data=collect();
+  const nextStatus=out==='Ready for sign-off'?'completed':'retest_required';
+  try{
+    setSaveStatus('Completing…','saving');
+    const payload={
+      stage2_data:data,stage2_status:nextStatus,stage2_completed_at:new Date().toISOString()
+    };
+    if(out==='Ready for sign-off')payload.stage3_status='draft';
+    const {error}=await sb.from('projects').update(payload).eq('id',currentProjectId);
+    if(error)throw error;
+    currentProjectRow.stage2_status=nextStatus;
+    if(out==='Ready for sign-off')currentProjectRow.stage3_status='draft';
+    document.getElementById('projectStageStatus').textContent='Stage 2: '+nextStatus;
+    setSaveStatus('Commissioning saved','saved');
+    setAccountMessage(out==='Ready for sign-off'?'Commissioning completed. Stage 3 sign-off is now enabled.':'Commissioning saved as requiring further work / retest.');
+    updateOutcome();
+    alert(out==='Ready for sign-off'?'Commissioning completed and saved to the CPS project. Stage 3 is now enabled.':'Commissioning record saved. Further work or retest is required before sign-off.');
+  }catch(e){setSaveStatus('Completion failed');setAccountMessage('Could not complete commissioning: '+(e.message||e),true);}
+}
+
+document.getElementById('commissioning').addEventListener('input',scheduleAutosave);
+document.getElementById('commissioning').addEventListener('change',scheduleAutosave);
+sb.auth.onAuthStateChange((_event,session)=>{setTimeout(()=>handleSession(session),0);});
+(async()=>{const {data:{session}}=await sb.auth.getSession();await handleSession(session);updateNav();})();
+</script>
+
+<button class="cps-help-fab" type="button" onclick="openCpsHelp()">? Help</button>
+<div id="cpsHelpOverlay" class="cps-help-overlay" onclick="if(event.target===this)closeCpsHelp()">
+  <div class="cps-help-modal" role="dialog" aria-modal="true" aria-labelledby="cpsHelpTitle">
+    <div class="cps-help-head">
+      <h2 id="cpsHelpTitle">CPS Portal Help</h2>
+      <button type="button" class="cps-help-close" onclick="closeCpsHelp()">Close</button>
+    </div>
+    <div class="cps-help-body">
+      
+          <h3>Stage 2 – Commissioning</h3>
+          <ul>
+            <li>The checklist is generated from the saved Stage 1 machine configuration.</li>
+            <li>Record each item as Pass, Fail, Not tested or N/A, with notes where useful.</li>
+            <li>Tested NC/results and the CAM test project are mandatory evidence.</li>
+            <li>Choose Ready for sign-off only when the agreed scope is proven and no blocking issue remains.</li>
+            <li>Retest required keeps the project in Stage 2.</li>
+          </ul>
+          <h3>CPS staff</h3>
+          <p>If Stage 2 is locked at “not started”, use the CPS staff control to enable commissioning after reviewing Stage 1. Completed Stage 2 records are locked as the commissioning baseline.</p>
+        
+      <div class="cps-help-actions">
+        <a class="cps-help-primary" href="./help.html#customer" target="_blank">Open full guide</a>
+        <a class="cps-help-secondary" href="./help.html" target="_blank">Customer & staff guides</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function openCpsHelp(){document.getElementById('cpsHelpOverlay').classList.add('show');}
+function closeCpsHelp(){document.getElementById('cpsHelpOverlay').classList.remove('show');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCpsHelp();});
+</script>
+
+</body>
+</html>
