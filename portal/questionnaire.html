@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cam Post Solutions – Post Processor Questionnaire – Customer Portal</title>
+<style>
+  :root{
+    --bg:#f5f7fa;
+    --panel:#ffffff;
+    --text:#172033;
+    --muted:#687386;
+    --border:#dfe4ea;
+    --accent:#0d63c8;
+    --accent2:#084b99;
+    --soft:#edf5ff;
+    --danger:#a63d40;
+    --ok:#19724b;
+    --shadow:0 12px 30px rgba(15,35,65,.08);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.5;
+  }
+  .shell{max-width:1080px;margin:0 auto;padding:28px 18px 60px}
+  .masthead{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:22px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    margin-bottom:20px;
+  }
+  .brand-strip{
+    display:flex;align-items:center;justify-content:space-between;gap:24px;
+    padding:16px 26px 14px;background:#fff;
+    border-top:4px solid #5c8b2f;
+  }
+  .brand-strip img{display:block;width:140px;height:auto;object-fit:contain;flex:0 0 auto;clip-path:inset(0 0 5px 0);margin-bottom:-5px}
+  .brand-tagline{
+    color:#445064;font-size:14px;font-weight:600;letter-spacing:.01em;text-align:right;white-space:nowrap;
+  }
+  .hero{
+    background:linear-gradient(115deg,#0b315f,#0d63c8);
+    color:white;padding:24px 28px 26px;
+    border-radius:0;box-shadow:none;margin:0;
+  }
+  .hero h1{margin:0 0 7px;font-size:clamp(27px,3.5vw,38px);line-height:1.12;letter-spacing:-.02em}
+  .hero p{margin:0;max-width:830px;color:#e5f0ff;font-size:15px}
+  .topbar{
+    display:flex;gap:14px;align-items:center;justify-content:space-between;
+    margin:18px 0;
+    flex-wrap:wrap;
+  }
+  .progress-wrap{flex:1;min-width:240px}
+  .progress-label{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .progress{height:10px;background:#e3e8ef;border-radius:999px;overflow:hidden}
+  .progress > div{height:100%;background:var(--accent);width:0;transition:.25s}
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .step{display:none;padding:28px}
+  .step.active{display:block}
+  .step h2{margin:0 0 6px;font-size:26px}
+  .step .intro{margin:0 0 24px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+  .full{grid-column:1 / -1}
+  label.field{display:block}
+  label.field span.lbl{display:block;font-weight:700;margin-bottom:7px}
+  label.field span.help{display:block;color:var(--muted);font-size:13px;margin-top:5px}
+  input,select,textarea{
+    width:100%;
+    border:1px solid #cfd7e3;
+    background:white;
+    color:var(--text);
+    padding:12px 13px;
+    border-radius:10px;
+    font:inherit;
+    outline:none;
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(13,99,200,.12)}
+  textarea{min-height:110px;resize:vertical}
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:12px;
+  }
+  .choice{
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+    cursor:pointer;
+    transition:.15s;
+    background:#fff;
+  }
+  .choice:hover{border-color:#9bbce3;transform:translateY(-1px)}
+  .choice input{width:auto;margin-right:8px}
+  .choice strong{display:block;margin-bottom:4px}
+  .choice small{color:var(--muted)}
+  .section{
+    margin-top:24px;
+    padding-top:22px;
+    border-top:1px solid var(--border);
+  }
+  .section h3{margin:0 0 4px}
+  .section p{margin:0 0 16px;color:var(--muted)}
+  .checkgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .check{
+    display:flex;gap:8px;align-items:flex-start;
+    border:1px solid var(--border);
+    border-radius:10px;padding:10px 12px;background:#fff
+  }
+  .check input{width:auto;margin-top:3px}
+  .notice{
+    border-left:4px solid var(--accent);
+    background:var(--soft);
+    padding:14px 16px;
+    border-radius:10px;
+    margin:18px 0;
+  }
+  .notice.warning{border-left-color:#c57a16;background:#fff6e9}
+  .notice.critical{border-left-color:var(--danger);background:#fff0f0}
+  .nav{
+    display:flex;justify-content:space-between;gap:10px;
+    padding:20px 28px;border-top:1px solid var(--border);background:#fbfcfe
+  }
+  button{
+    border:0;border-radius:10px;padding:12px 18px;font-weight:700;font-size:15px;cursor:pointer
+  }
+  button.primary{background:var(--accent);color:white}
+  button.primary:hover{background:var(--accent2)}
+  button.secondary{background:#e8edf3;color:var(--text)}
+  button.ghost{background:white;border:1px solid var(--border);color:var(--text)}
+  .commission-link{display:inline-block;background:var(--accent);color:white;text-decoration:none;padding:12px 18px;border-radius:10px;font-weight:700}
+  .commission-link:hover{background:var(--accent2)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+  .conditional{display:none}
+  label.field.conditional{display:none}
+  div.conditional{display:none}
+  .conditional.show{display:block}
+  label.field.conditional.show{display:block}
+  div.conditional.show{display:block}
+  .summary{
+    background:#f8fafc;border:1px solid var(--border);padding:18px;border-radius:12px
+  }
+  .summary h3{margin-top:0}
+  .summary dl{display:grid;grid-template-columns:220px 1fr;gap:8px 14px}
+  .summary dt{font-weight:700}
+  .summary dd{margin:0;color:#364055}
+  .pill{
+    display:inline-block;background:#eef3f8;border-radius:999px;padding:5px 10px;font-size:12px;margin:3px 4px 3px 0
+  }
+  .req{color:var(--danger)}
+  .upload{
+    border:2px dashed #bdc9d8;border-radius:12px;padding:20px;text-align:center;background:#fafcff
+  }
+  .small{font-size:13px;color:var(--muted)}
+  footer{color:var(--muted);text-align:center;margin-top:18px;font-size:13px}
+
+
+    .file-hint{display:flex;gap:10px;align-items:flex-start;background:#f1f7ff;border:1px solid #cfe2fb;border-radius:11px;padding:12px 14px;margin:12px 0;color:#24405f}
+  .file-hint strong{color:#0b315f}
+  .turret-card{border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:14px;background:#fbfcfe}
+  .turret-card h4{margin:0 0 12px;font-size:17px}
+  .offline-link{display:inline-flex;align-items:center;gap:7px;text-decoration:none;border:1px solid var(--border);background:#fff;color:var(--text);border-radius:10px;padding:11px 14px;font-weight:700}
+  .offline-link:hover{border-color:#9bbce3;background:#f8fbff}
+  .feature-conditional{display:none}
+  .feature-conditional.show{display:flex}
+  .machine-table{table-layout:fixed}
+  .machine-table th:first-child{width:14%}
+  .machine-table td input,.machine-table td select{width:100%;min-width:0}
+  .machine-table tr.conditional{display:none}
+  .machine-table tr.conditional.show{display:table-row}
+
+  .stage-ribbon{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 18px;
+  }
+  .stage-card{
+    border:1px solid var(--border);background:#fff;border-radius:14px;padding:14px 16px;
+  }
+  .stage-card.active{border-color:var(--accent);background:var(--soft)}
+  .stage-card strong{display:block}
+  .stage-card small{color:var(--muted)}
+  .machine-table{width:100%;border-collapse:collapse;margin-top:10px}
+  .machine-table th,.machine-table td{border:1px solid var(--border);padding:8px;text-align:left;vertical-align:top}
+  .machine-table th{background:#f3f6f9}
+  .machine-table input,.machine-table select{min-width:90px}
+  .status-list{display:grid;gap:8px;margin-top:10px}
+  .status-row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);padding:7px 0}
+  .status-ok{color:var(--ok);font-weight:700}
+  .status-warn{color:#9a650e;font-weight:700}
+
+
+  .portal-auth{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:22px;margin:0 0 18px}
+  .portal-auth h2{margin:0 0 6px;font-size:22px}
+  .portal-auth p{margin:0 0 14px;color:var(--muted)}
+  .auth-grid{display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:10px;align-items:end}
+  .portal-account{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .portal-account-left{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .portal-badge{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;background:#edf7f0;color:#17643f;font-size:13px;font-weight:700}
+  .portal-message{margin-top:10px;font-size:13px;color:var(--muted)}
+  .portal-message.error{color:var(--danger);font-weight:600}
+  .save-state{font-size:13px;color:var(--muted);white-space:nowrap}
+  .save-state.saving{color:#9a650e}
+  .save-state.saved{color:var(--ok)}
+  .project-ref{font-size:13px;font-weight:700;color:#35435a}
+  .uploaded-list{margin-top:10px;text-align:left;display:grid;gap:4px}
+  .uploaded-file{font-size:12px;color:#35435a;background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+  .upload.busy{opacity:.65;pointer-events:none}
+
+  @media (max-width:800px){
+    .brand-strip{align-items:flex-start;flex-direction:column;gap:10px;padding:14px 18px}
+    .brand-tagline{text-align:left;font-size:13px;white-space:normal}
+    .hero{padding:21px 20px 23px}
+
+    .grid,.grid-3,.cards,.checkgrid,.stage-ribbon,.auth-grid{grid-template-columns:1fr}
+    .step{padding:20px}
+    .nav{padding:16px 20px}
+    .summary dl{grid-template-columns:1fr}
+  }
+
+  /* Table rows must retain table-row display when conditionally shown. */
+  tr.conditional.show{display:table-row!important}
+  label.conditional.show,div.conditional.show{display:block}
+
+  .cps-help-fab{
+    position:fixed;right:22px;bottom:22px;z-index:950;
+    border:0;border-radius:999px;padding:11px 16px;
+    background:#0d63c8;color:#fff;font-weight:800;cursor:pointer;
+    box-shadow:0 8px 24px rgba(13,99,200,.26)
+  }
+  .cps-help-overlay{
+    display:none;position:fixed;inset:0;z-index:1000;background:rgba(10,25,45,.48);
+    padding:24px;overflow:auto
+  }
+  .cps-help-overlay.show{display:block}
+  .cps-help-modal{
+    max-width:760px;margin:5vh auto;background:#fff;border-radius:18px;
+    box-shadow:0 25px 70px rgba(0,0,0,.22);overflow:hidden
+  }
+  .cps-help-head{
+    display:flex;justify-content:space-between;gap:14px;align-items:center;
+    padding:18px 22px;background:linear-gradient(115deg,#0b315f,#0d63c8);color:#fff
+  }
+  .cps-help-head h2{margin:0;font-size:23px}
+  .cps-help-close{background:transparent!important;color:#fff!important;border:1px solid rgba(255,255,255,.5)!important;padding:7px 10px!important}
+  .cps-help-body{padding:20px 22px}
+  .cps-help-body h3{margin:15px 0 6px}
+  .cps-help-body p,.cps-help-body li{line-height:1.5}
+  .cps-help-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+  .cps-help-actions a{display:inline-block;text-decoration:none;border-radius:9px;padding:9px 12px;font-weight:700}
+  .cps-help-primary{background:#0d63c8;color:#fff}
+  .cps-help-secondary{border:1px solid #dfe4ea;color:#172033;background:#fff}
+
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="masthead">
+    <div class="brand-strip">
+      <img src="data:image/png;base64,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" alt="Cam Post Solutions Ltd">
+      <div class="brand-tagline">CNC post processors · machine simulation · CAM solutions</div>
+    </div>
+    <div class="hero">
+      <h1>Post Processor Development Questionnaire</h1>
+      <p>Stage 1 of the Cam Post Solutions post-development workflow. This questionnaire collects the machine, control, CAM, programming and evidence needed to develop or modify a CNC post processor and, where required, machine simulation.</p>
+    </div>
+  </div>
+
+
+  <div id="authPanel" class="portal-auth">
+    <div id="signedOutPanel">
+      <h2>Save and continue your questionnaire</h2>
+      <p>Sign in with your email address. Your answers and uploaded files will be saved securely so you can return later.</p>
+      <div class="auth-grid">
+        <label class="field"><span class="lbl">Email address</span><input id="loginEmail" type="email" autocomplete="email" placeholder="name@company.co.uk"></label>
+        <button class="primary" type="button" onclick="sendSignInEmail()">Send sign-in email</button>
+      </div>
+      <div id="otpPanel" style="display:none;margin-top:14px">
+        <div class="auth-grid">
+          <label class="field"><span class="lbl">Sign-in code</span><input id="loginOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Enter the code from your email"></label>
+          <button class="primary" type="button" onclick="verifyOtpCode()">Verify code</button>
+        </div>
+      </div>
+      <div id="authMessage" class="portal-message"></div>
+    </div>
+    <div id="signedInPanel" style="display:none">
+      <div class="portal-account">
+        <div class="portal-account-left">
+          <span class="portal-badge">✓ Signed in</span>
+          <span id="signedInEmail" class="small"></span>
+          <span id="projectReference" class="project-ref">New questionnaire</span>
+        </div>
+        <div class="toolbar">
+          <select id="projectPicker" aria-label="Your questionnaires" onchange="switchProject(this.value)" style="width:auto;min-width:220px"></select>
+          <a class="ghost" style="text-decoration:none" href="index.html">Project home</a><button class="ghost" type="button" onclick="newQuestionnaire()">New questionnaire</button>
+          <button class="ghost" type="button" onclick="signOutPortal()">Sign out</button>
+        </div>
+      </div>
+      <div id="accountMessage" class="portal-message"></div>
+    </div>
+  </div>
+
+  <div id="portalApp" style="display:none">
+  <div class="stage-ribbon">
+    <div class="stage-card active"><strong>Stage 1 · Machine information</strong><small>Customer questionnaire and supporting evidence</small></div>
+    <div class="stage-card"><strong>Stage 2 · Commissioning</strong><small>Machine test plan and verification checklist</small></div>
+    <div class="stage-card"><strong>Stage 3 · Sign-off</strong><small>Customer acceptance and release record</small></div>
+  </div>
+
+  <div class="topbar">
+    <div class="progress-wrap">
+      <div class="progress-label"><span id="progressText">Step 1 of 10</span><span id="progressPct">10%</span></div>
+      <div class="progress"><div id="progressBar"></div></div>
+    </div>
+    <div class="toolbar">
+      <span id="saveStatus" class="save-state">Sign in to save</span>
+      <button class="ghost" type="button" onclick="saveProjectNow(false)">Save now</button>
+      <a class="offline-link" href="./questionnaire-offline.docx">Offline Word form</a>
+    </div>
+  </div>
+
+  <form id="questionnaire" class="panel">
+
+    <!-- 1 -->
+    <section class="step active" data-step="1">
+      <h2>1. Customer & project</h2>
+      <p class="intro">Start with the basic project information.</p>
+      <div class="grid">
+        <label class="field"><span class="lbl">Company name <span class="req">*</span></span><input name="company" required></label>
+        <label class="field"><span class="lbl">Main technical contact <span class="req">*</span></span><input name="contact" required></label>
+        <label class="field"><span class="lbl">Email <span class="req">*</span></span><input name="email" type="email" required></label>
+        <label class="field"><span class="lbl">Telephone</span><input name="telephone"></label>
+        <label class="field"><span class="lbl">Machine location</span><input name="machine_location"></label>
+        <label class="field"><span class="lbl">Who will be available for machine testing?</span><input name="test_contact"></label>
+      </div>
+      <div class="section">
+        <h3>Project deliverable <span class="req">*</span></h3>
+        <p>Choose the final deliverable required from Cam Post Solutions.</p>
+        <div class="cards">
+          <label class="choice"><input type="radio" name="project_scope" value="Post only" required onchange="updateConditionals()"><strong>Post only</strong><small>Post processor development or modification without machine simulation.</small></label>
+          <label class="choice"><input type="radio" name="project_scope" value="Post + simulation" onchange="updateConditionals()"><strong>Post + simulation</strong><small>Post processor together with a machine simulation model.</small></label>
+          <label class="choice"><input type="radio" name="project_scope" value="Simulation only" onchange="updateConditionals()"><strong>Simulation only</strong><small>Machine simulation without post-processor development.</small></label>
+        </div>
+      </div>
+
+      <div class="conditional" id="simulationRequirement">
+        <div class="notice critical"><strong>Machine CAD model required:</strong> machine simulation cannot be developed without a suitable CAD model of the machine. The CAD model <strong>must be uploaded in Section 9 – Files & Evidence</strong> with this questionnaire.</div>
+      </div>
+
+      <div class="conditional" id="postWorkType">
+        <div class="section">
+          <h3>Post-processor work</h3>
+          <p>Select the type of post work required.</p>
+          <div class="checkgrid">
+            <label class="check"><input type="checkbox" name="project_type" value="New post processor">New post processor</label>
+            <label class="check"><input type="checkbox" name="project_type" value="Modify existing post">Modify existing post</label>
+            <label class="check"><input type="checkbox" name="project_type" value="Post migration">Existing post migration</label>
+            <label class="check"><input type="checkbox" name="project_type" value="Other">Other</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="step" data-step="2">
+      <h2>2. CAM system</h2>
+      <p class="intro">Tell us what CAM system the post will be developed for.</p>
+      <div class="grid">
+        <label class="field">
+          <span class="lbl">CAM system <span class="req">*</span></span>
+          <select name="cam_system" required>
+            <option value="">Select...</option>
+            <option>Autodesk Fusion</option>
+            <option>FeatureCAM</option>
+            <option>PowerMill</option>
+            <option>PartMaker</option>
+            <option>Other</option>
+          </select>
+        </label>
+        <label class="field"><span class="lbl">Version</span><input name="cam_version"></label>
+        <label class="field full"><span class="lbl">Existing post processor / base post</span><input name="existing_post" placeholder="Filename, source or description"></label>
+        <label class="field full"><span class="lbl">What is the main reason for this project?</span><textarea name="project_reason" placeholder="New machine, existing post issue, additional functionality, migration, etc."></textarea></label>
+        <label class="field full"><span class="lbl">If an existing post is in use, which behaviour must remain unchanged?</span><textarea name="preserve_behaviour"></textarea></label>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="step" data-step="3">
+      <h2>3. Machine</h2>
+      <p class="intro">First choose what the machine fundamentally is. We will then ask what it can actually do.</p>
+
+      <div class="grid">
+        <label class="field"><span class="lbl">Manufacturer <span class="req">*</span></span><input name="machine_manufacturer" required></label>
+        <label class="field"><span class="lbl">Model <span class="req">*</span></span><input name="machine_model" required></label>
+        <label class="field"><span class="lbl">Serial number</span><input name="serial_number"></label>
+        <label class="field"><span class="lbl">Approx. year</span><input name="machine_year"></label>
+      </div>
+
+      <div class="section">
+        <h3>Base machine type</h3>
+        <p>Choose the closest fundamental machine type. Additional capabilities are selected below.</p>
+        <div class="cards">
+          <label class="choice">
+            <input type="radio" name="machine_type" value="Turning centre / lathe" required onchange="updateConditionals()">
+            <strong>Turning centre / lathe</strong>
+            <small>From simple 2-axis lathes through to complex multi-function turning centres</small>
+          </label>
+          <label class="choice">
+            <input type="radio" name="machine_type" value="Milling / machining centre" onchange="updateConditionals()">
+            <strong>Milling / machining centre</strong>
+            <small>3-axis, 4-axis, 5-axis, table/table, head/table or head/head</small>
+          </label>
+          <label class="choice">
+            <input type="radio" name="machine_type" value="Swiss / sliding-head" onchange="updateConditionals()">
+            <strong>Swiss / sliding-head</strong>
+            <small>Sliding-head, gang-tool and multi-channel machines</small>
+          </label>
+          <label class="choice">
+            <input type="radio" name="machine_type" value="Router / woodworking" onchange="updateConditionals()">
+            <strong>Router / woodworking</strong>
+            <small>Routers, woodworking machining centres and similar machines</small>
+          </label>
+          <label class="choice">
+            <input type="radio" name="machine_type" value="Robot / other" onchange="updateConditionals()">
+            <strong>Robot / other</strong>
+            <small>Robot, special-purpose or unusual machine configuration</small>
+          </label>
+        </div>
+      </div>
+
+      <div class="conditional" id="turnCapabilities">
+        <div class="section">
+          <h3>Turning-centre capabilities</h3>
+          <p>Select everything the machine supports. These choices control the questions shown later.</p>
+          <div class="checkgrid">
+            <label class="check"><input type="checkbox" name="capabilities" value="Driven tooling" onchange="updateConditionals()">Driven / live tooling</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="C-axis" onchange="updateConditionals()">C-axis spindle positioning</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Y-axis" onchange="updateConditionals()">Y-axis</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="B-axis head" onchange="updateConditionals()">B-axis milling head / carrier</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Simultaneous milling" onchange="updateConditionals()">Simultaneous multi-axis milling</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Sub spindle" onchange="updateConditionals()">Sub spindle</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Multiple turrets" onchange="updateConditionals()">Multiple turrets / tool carriers</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Multiple channels" onchange="updateConditionals()">Multiple CNC channels</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Part transfer" onchange="updateConditionals()">Part transfer / spindle handover</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Bar feeder" onchange="updateConditionals()">Bar feeder</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Parts catcher" onchange="updateConditionals()">Parts catcher</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Tailstock / steady" onchange="updateConditionals()">Tailstock / steady rest</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Probing" onchange="updateConditionals()">Probing</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="millCapabilities">
+        <div class="section">
+          <h3>Milling-centre capabilities</h3>
+          <p>Select everything the machine supports. Turning capability can be added without reclassifying the machine as a lathe.</p>
+          <div class="checkgrid">
+            <label class="check"><input type="checkbox" name="capabilities" value="4-axis" onchange="updateConditionals()">4-axis capability</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="5-axis positioning" onchange="updateConditionals()">5-axis positioning / 3+2</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Simultaneous 5-axis" onchange="updateConditionals()">Simultaneous 5-axis</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Turning on mill" onchange="updateConditionals()">Turning using rotary table / spindle</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Pallet changer" onchange="updateConditionals()">Pallet changer</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Probing" onchange="updateConditionals()">Probing</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Angle head" onchange="updateConditionals()">Angle head / auxiliary head</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="swissCapabilities">
+        <div class="section">
+          <h3>Swiss / sliding-head capabilities</h3>
+          <div class="checkgrid">
+            <label class="check"><input type="checkbox" name="capabilities" value="Guide bush" onchange="updateConditionals()">Guide bush</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Non-guide-bush mode" onchange="updateConditionals()">Non-guide-bush mode</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Sub spindle" onchange="updateConditionals()">Sub spindle</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Driven tooling" onchange="updateConditionals()">Driven tooling</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Y-axis" onchange="updateConditionals()">Y-axis</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="B-axis head" onchange="updateConditionals()">B-axis head / carrier</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Multiple channels" onchange="updateConditionals()">Multiple CNC channels</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Part transfer" onchange="updateConditionals()">Part transfer / spindle handover</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Bar feeder" onchange="updateConditionals()">Bar feeder</label>
+            <label class="check"><input type="checkbox" name="capabilities" value="Parts catcher" onchange="updateConditionals()">Parts catcher</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section class="step" data-step="4">
+      <h2>4. Control</h2>
+      <p class="intro">Exact control identification is important. A photograph of the version screen is ideal.</p>
+      <div class="grid">
+        <label class="field">
+          <span class="lbl">Control manufacturer <span class="req">*</span></span>
+          <select name="control_manufacturer" required onchange="updateConditionals()">
+            <option value="">Select...</option>
+            <option>Fanuc</option>
+            <option>Siemens</option>
+            <option>Heidenhain</option>
+            <option>Okuma</option>
+            <option>Mazatrol / Smooth</option>
+            <option>Haas</option>
+            <option>Hurco</option>
+            <option>Mitsubishi</option>
+            <option>Other</option>
+          </select>
+        </label>
+        <label class="field"><span class="lbl">Exact model / version <span class="req">*</span></span><input name="control_model" placeholder="e.g. 840D sl, 31i-B5, TNC640" required></label>
+        <label class="field full"><span class="lbl">Other control options / notes</span><textarea name="control_options" placeholder="Only add anything not covered by the options below, or anything unusual/unknown."></textarea></label>
+      </div>
+
+      <div class="conditional" id="siemensBlock">
+        <div class="section">
+          <h3>Siemens options</h3>
+          <div class="checkgrid">
+            <label class="check"><input type="checkbox" name="siemens_options" value="CYCLE800">CYCLE800 / swivel cycle</label>
+            <label class="check"><input type="checkbox" name="siemens_options" value="TRAORI">TRAORI / TCP</label>
+            <label class="check"><input type="checkbox" name="siemens_options" value="SUPA">SUPA</label>
+            <label class="check"><input type="checkbox" name="siemens_options" value="Frames">Frames / $P_UIFR</label>
+            <label class="check"><input type="checkbox" name="siemens_options" value="ORIAXES">ORIAXES / ORIVECT</label>
+            <label class="check"><input type="checkbox" name="siemens_options" value="TRANSMIT">TRANSMIT / polar milling</label>
+            <label class="check"><input type="checkbox" name="siemens_options" value="TRACYL">TRACYL / cylindrical milling</label>
+            <label class="check"><input type="checkbox" name="siemens_options" value="Unknown">Not sure / please confirm from manual</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="fanucBlock">
+        <div class="section">
+          <h3>Fanuc options</h3>
+          <div class="checkgrid">
+            <label class="check"><input type="checkbox" name="fanuc_options" value="G43.4">TCP / G43.4 / G43.5</label>
+            <label class="check"><input type="checkbox" name="fanuc_options" value="G68.2">Tilted workplane / G68.2</label>
+            <label class="check"><input type="checkbox" name="fanuc_options" value="Polar">Polar interpolation</label>
+            <label class="check"><input type="checkbox" name="fanuc_options" value="Cylindrical">Cylindrical interpolation</label>
+            <label class="check"><input type="checkbox" name="fanuc_options" value="AI contour">AI contour / high-speed machining</label>
+            <label class="check"><input type="checkbox" name="fanuc_options" value="Unknown">Not sure / please confirm from manual</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="heidenhainBlock">
+        <div class="section">
+          <h3>Heidenhain options</h3>
+          <div class="checkgrid">
+            <label class="check"><input type="checkbox" name="heidenhain_options" value="PLANE">PLANE / PLANE SPATIAL</label>
+            <label class="check"><input type="checkbox" name="heidenhain_options" value="Cycle 19">Cycle 19 / tilted working plane</label>
+            <label class="check"><input type="checkbox" name="heidenhain_options" value="FUNCTION TCPM">FUNCTION TCPM / TCPM</label>
+            <label class="check"><input type="checkbox" name="heidenhain_options" value="M128/M129">M128 / M129 legacy TCPM</label>
+            <label class="check"><input type="checkbox" name="heidenhain_options" value="M91/M92">M91 / M92 machine/reference positioning</label>
+            <label class="check"><input type="checkbox" name="heidenhain_options" value="M126/M127">M126 / M127 shorter-path rotary traverse</label>
+            <label class="check"><input type="checkbox" name="heidenhain_options" value="M94">M94 rotary-axis normalisation</label>
+            <label class="check"><input type="checkbox" name="heidenhain_options" value="M140">M140 retract in tool-axis direction</label>
+            <label class="check"><input type="checkbox" name="heidenhain_options" value="Unknown">Not sure / please confirm from manual</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="okumaBlock">
+        <div class="section">
+          <h3>Okuma OSP control features used / available</h3>
+          <p class="small">Select anything you know is fitted or currently used. If unsure, select the final option and provide manuals/sample NC in Section 9.</p>
+          <div class="checkgrid">
+            <label class="check"><input type="checkbox" name="okuma_options" value="Tool Center Point Control">Tool Center Point Control (TCPC)</label>
+            <label class="check"><input type="checkbox" name="okuma_options" value="Fixture Offset">Fixture Offset</label>
+            <label class="check"><input type="checkbox" name="okuma_options" value="Dynamic Fixture Offset">Dynamic Fixture Offset</label>
+            <label class="check"><input type="checkbox" name="okuma_options" value="Posture Control">Posture Control</label>
+            <label class="check"><input type="checkbox" name="okuma_options" value="Super-NURBS">Super-NURBS / Super-NURBS RT</label>
+            <label class="check"><input type="checkbox" name="okuma_options" value="X-C / cylindrical">X-C coordinate conversion / cylindrical side machining</label>
+            <label class="check"><input type="checkbox" name="okuma_options" value="Spindle or turret synchronisation">Spindle / turret synchronisation functions</label>
+            <label class="check"><input type="checkbox" name="okuma_options" value="Unknown">Not sure / please confirm from manual</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="mazakBlock">
+        <div class="section">
+          <h3>Mazatrol / Smooth control features used / available</h3>
+          <p class="small">Exact functions vary by machine and Smooth generation. Select known features; otherwise provide manuals/sample NC in Section 9.</p>
+          <div class="checkgrid">
+            <label class="check"><input type="checkbox" name="mazak_options" value="Tool Center Point Control">Tool Center Point Control / simultaneous 5-axis compensation</label>
+            <label class="check"><input type="checkbox" name="mazak_options" value="Tilted workplane">Tilted workplane / 3+2 coordinate transformation</label>
+            <label class="check"><input type="checkbox" name="mazak_options" value="Polar interpolation">Polar interpolation</label>
+            <label class="check"><input type="checkbox" name="mazak_options" value="Cylindrical interpolation">Cylindrical interpolation</label>
+            <label class="check"><input type="checkbox" name="mazak_options" value="Milling spindle / C-axis mode">Milling spindle / C-axis mode switching</label>
+            <label class="check"><input type="checkbox" name="mazak_options" value="Spindle sync / transfer">Main/sub spindle synchronisation / transfer</label>
+            <label class="check"><input type="checkbox" name="mazak_options" value="Multi-turret / multi-channel">Multi-turret / multi-channel functions</label>
+            <label class="check"><input type="checkbox" name="mazak_options" value="Unknown">Not sure / please confirm from manual</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="haasBlock">
+        <div class="section">
+          <h3>Haas control features used / available</h3>
+          <p class="small">Select the functions that are fitted or used on this machine.</p>
+          <div class="checkgrid">
+            <label class="check"><input type="checkbox" name="haas_options" value="G234 TCPC">G234 Tool Center Point Control (TCPC)</label>
+            <label class="check"><input type="checkbox" name="haas_options" value="G254/G255 DWO">G254 / G255 Dynamic Work Offset (DWO)</label>
+            <label class="check"><input type="checkbox" name="haas_options" value="G268/G269 FCS">G268 / G269 Feature Coordinate System</label>
+            <label class="check"><input type="checkbox" name="haas_options" value="G143 5-axis TLC">G143 5-axis tool length compensation</label>
+            <label class="check"><input type="checkbox" name="haas_options" value="G112/G113">G112 / G113 XY-to-XC interpolation</label>
+            <label class="check"><input type="checkbox" name="haas_options" value="G107">G107 cylindrical mapping</label>
+            <label class="check"><input type="checkbox" name="haas_options" value="G198/G199 spindle sync">G198 / G199 synchronous spindle control</label>
+            <label class="check"><input type="checkbox" name="haas_options" value="Unknown">Not sure / please confirm from manual</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="hurcoBlock">
+        <div class="section">
+          <h3>Hurco WinMax control features used / available</h3>
+          <p class="small">Select the functions that are fitted or used on this machine.</p>
+          <div class="checkgrid">
+            <label class="check"><input type="checkbox" name="hurco_options" value="M128/M129 TCPM">M128 / M129 Tool Center Point Management</label>
+            <label class="check"><input type="checkbox" name="hurco_options" value="Transform Plane">Transform Plane / Workpiece Transform</label>
+            <label class="check"><input type="checkbox" name="hurco_options" value="Tool Vector">Tool Vector input / retract</label>
+            <label class="check"><input type="checkbox" name="hurco_options" value="G41.2 3D compensation">G41.2 3D Tool Geometry Compensation</label>
+            <label class="check"><input type="checkbox" name="hurco_options" value="Shortest Angular Traverse">Shortest Angular Traverse</label>
+            <label class="check"><input type="checkbox" name="hurco_options" value="Universal Rotary">Universal Rotary / automatic safe repositioning</label>
+            <label class="check"><input type="checkbox" name="hurco_options" value="Unknown">Not sure / please confirm from manual</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="mitsubishiBlock">
+        <div class="section">
+          <h3>Mitsubishi control features used / available</h3>
+          <p class="small">Functions vary by CNC series and machine builder. Select known features; otherwise provide manuals/sample NC in Section 9.</p>
+          <div class="checkgrid">
+            <label class="check"><input type="checkbox" name="mitsubishi_options" value="Tool Center Point Control">Tool Center Point Control</label>
+            <label class="check"><input type="checkbox" name="mitsubishi_options" value="Inclined surface machining">Inclined surface machining command</label>
+            <label class="check"><input type="checkbox" name="mitsubishi_options" value="High-speed high-accuracy">High-speed / high-accuracy control (G05 / G61.1 where applicable)</label>
+            <label class="check"><input type="checkbox" name="mitsubishi_options" value="Polar/cylindrical interpolation">Polar / cylindrical interpolation</label>
+            <label class="check"><input type="checkbox" name="mitsubishi_options" value="Spindle-mode servo / C-axis">Spindle-mode servo / C-axis control</label>
+            <label class="check"><input type="checkbox" name="mitsubishi_options" value="Multi-part-system / sync">Multi-part-system / spindle synchronisation functions</label>
+            <label class="check"><input type="checkbox" name="mitsubishi_options" value="Unknown">Not sure / please confirm from manual</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="step" data-step="5">
+      <h2>5. Machine configuration</h2>
+      <p class="intro">The questions here are generated from the machine type and capabilities selected earlier.</p>
+
+      <div class="conditional" id="millConfig">
+        <div class="section" style="margin-top:0;padding-top:0;border-top:0">
+          <h3>Milling / rotary kinematics</h3>
+
+          <div class="grid">
+            <label class="field">
+              <span class="lbl">General kinematic arrangement</span>
+              <select name="mill_kinematics">
+                <option value="">Select...</option>
+                <option>Table / table</option>
+                <option>Head / table</option>
+                <option>Head / head</option>
+                <option>Trunnion</option>
+                <option>Swivelling head</option>
+                <option>Other / unknown</option>
+              </select>
+            </label>
+            <label class="field"><span class="lbl">TCP / RTCP available?</span><select name="tcp"><option>Unknown</option><option>Yes</option><option>No</option></select></label>
+          </div>
+
+          <div class="section">
+            <h3>Rotary axes present</h3>
+            <p>Select the actual machine rotary axes. Each selected axis opens a structured definition below.</p>
+            <div class="checkgrid">
+              <label class="check"><input type="checkbox" name="rotary_axes" value="A" onchange="updateConditionals()">A axis</label>
+              <label class="check"><input type="checkbox" name="rotary_axes" value="B" onchange="updateConditionals()">B axis</label>
+              <label class="check"><input type="checkbox" name="rotary_axes" value="C" onchange="updateConditionals()">C axis</label>
+            </div>
+          </div>
+
+          <div class="conditional" id="axisA">
+            <div class="section">
+              <h3>A-axis definition</h3>
+              <div class="grid-3">
+                <label class="field"><span class="lbl">What physically rotates?</span><select name="A_component"><option>Table / workpiece</option><option>Head / tool</option><option>Other / unknown</option></select></label>
+                <label class="field"><span class="lbl">Rotation about machine axis</span><select name="A_about" onchange="updateConditionals()"><option>X</option><option>Y</option><option>Z</option><option>Non-standard / nutating</option><option>Unknown</option></select></label>
+                <label class="field"><span class="lbl">Continuous?</span><select name="A_continuous"><option>No</option><option>Yes</option><option>Unknown</option></select></label>
+                <label class="field"><span class="lbl">Minimum</span><input name="A_min_config" placeholder="degrees"></label>
+                <label class="field"><span class="lbl">Maximum</span><input name="A_max_config" placeholder="degrees"></label>
+                <label class="field"><span class="lbl">Capability</span><select name="A_mode"><option>Positioning only</option><option>Simultaneous</option><option>Both</option><option>Unknown</option></select></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="conditional" id="axisB">
+            <div class="section">
+              <h3>B-axis definition</h3>
+              <div class="grid-3">
+                <label class="field"><span class="lbl">What physically rotates?</span><select name="B_component"><option>Table / workpiece</option><option>Head / tool</option><option>Other / unknown</option></select></label>
+                <label class="field"><span class="lbl">Rotation about machine axis</span><select name="B_about" onchange="updateConditionals()"><option>Y</option><option>X</option><option>Z</option><option>Non-standard / nutating</option><option>Unknown</option></select></label>
+                <label class="field"><span class="lbl">Continuous?</span><select name="B_continuous"><option>No</option><option>Yes</option><option>Unknown</option></select></label>
+                <label class="field"><span class="lbl">Minimum</span><input name="B_min_config" placeholder="degrees"></label>
+                <label class="field"><span class="lbl">Maximum</span><input name="B_max_config" placeholder="degrees"></label>
+                <label class="field"><span class="lbl">Capability</span><select name="B_mode"><option>Positioning only</option><option>Simultaneous</option><option>Both</option><option>Unknown</option></select></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="conditional" id="axisC">
+            <div class="section">
+              <h3>C-axis definition</h3>
+              <div class="grid-3">
+                <label class="field"><span class="lbl">What physically rotates?</span><select name="C_component"><option>Table / workpiece</option><option>Head / tool</option><option>Spindle</option><option>Other / unknown</option></select></label>
+                <label class="field"><span class="lbl">Rotation about machine axis</span><select name="C_about" onchange="updateConditionals()"><option>Z</option><option>X</option><option>Y</option><option>Non-standard / nutating</option><option>Unknown</option></select></label>
+                <label class="field"><span class="lbl">Continuous?</span><select name="C_continuous"><option>No</option><option>Yes</option><option>Unknown</option></select></label>
+                <label class="field"><span class="lbl">Minimum</span><input name="C_min_config" placeholder="degrees"></label>
+                <label class="field"><span class="lbl">Maximum</span><input name="C_max_config" placeholder="degrees"></label>
+                <label class="field"><span class="lbl">Capability</span><select name="C_mode"><option>Positioning only</option><option>Simultaneous</option><option>Both</option><option>Unknown</option></select></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="conditional" id="vectorBlock">
+            <div class="section">
+              <h3>Advanced / unusual kinematics</h3>
+              <p>Only complete this for a nutating or non-standard axis that is not aligned with the normal machine X/Y/Z directions.</p>
+              <div class="grid">
+                <label class="field"><span class="lbl">Axis / component</span><input name="vector_axis" placeholder="e.g. B head"></label>
+                <label class="field"><span class="lbl">Known rotation vector</span><input name="rotation_vector" placeholder="e.g. X 0.707, Y 0, Z 0.707"></label>
+                <label class="field full"><span class="lbl">Additional kinematic notes</span><textarea name="kinematic_notes"></textarea></label>
+              </div>
+            </div>
+          </div>
+          <div class="notice">For rotary machines, please provide a photograph or kinematic drawing showing each rotary axis at 0°. You can attach these in <strong>Section 9 – Files & Evidence</strong> at the end of this form.</div>
+        </div>
+      </div>
+
+      <div class="conditional" id="turningConfig">
+        <div class="section" style="margin-top:0;padding-top:0;border-top:0">
+          <h3>Turning configuration</h3>
+          <div class="grid">
+            <label class="field"><span class="lbl">Number of spindles</span><select name="spindle_count" onchange="updateConditionals()"><option>1</option><option>2</option><option>More than 2</option></select></label>
+            <label class="field"><span class="lbl">Maximum main-spindle RPM</span><input name="main_spindle_rpm" type="number" min="0"></label>
+            <label class="field conditional" id="subRpmField"><span class="lbl">Maximum sub-spindle RPM</span><input name="sub_spindle_rpm" type="number" min="0"></label>
+            <label class="field full"><span class="lbl">Spindle gear ranges and related codes</span><input name="gear_ranges" placeholder="Only if applicable"></label>
+          </div>
+
+          <div class="section">
+            <h3>Turrets / tool carriers</h3>
+            <p>Define each turret or tool carrier separately. Up to three are supported in this questionnaire.</p>
+            <label class="field" id="turretCountField" style="max-width:360px"><span class="lbl">Number of turrets / tool carriers</span><select name="turret_count" onchange="updateConditionals()"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label>
+
+            <div class="turret-card" id="turret1Card">
+              <h4>Turret / tool carrier 1</h4>
+              <div class="grid-3">
+                <label class="field"><span class="lbl">Position / type</span><select name="turret1_position" onchange="updateConditionals()"><option>Upper</option><option>Lower</option><option>B-axis head</option><option>Gang / tool carrier</option><option>Other</option></select></label>
+                <label class="field"><span class="lbl">Live tooling</span><select name="turret1_live"><option>Unknown</option><option>No</option><option>Yes</option></select></label>
+                <label class="field"><span class="lbl">Y-axis</span><select name="turret1_y"><option>Unknown</option><option>No</option><option>Yes</option></select></label>
+                <label class="field"><span class="lbl">B-axis</span><select name="turret1_b"><option>Unknown</option><option>No</option><option>Positioning</option><option>Simultaneous</option><option>Both</option></select></label>
+                <label class="field"><span class="lbl">Spindle access</span><select id="turret1Access" name="turret1_access"><option>Main only</option><option>Sub only</option><option>Main and sub</option><option>Other / unknown</option></select></label>
+                <label class="field"><span class="lbl">Normal safe retract</span><input name="turret1_safe"></label>
+                <label class="field full conditional" id="turret1Park" hidden><span class="lbl">Lower-turret park position</span><input name="turret1_park" placeholder="Position used to move the lower turret safely out of the working/transfer area"></label>
+              </div>
+            </div>
+
+            <div class="turret-card conditional" id="turret2Card">
+              <h4>Turret / tool carrier 2</h4>
+              <div class="grid-3">
+                <label class="field"><span class="lbl">Position / type</span><select name="turret2_position" onchange="updateConditionals()"><option>Upper</option><option selected>Lower</option><option>B-axis head</option><option>Gang / tool carrier</option><option>Other</option></select></label>
+                <label class="field"><span class="lbl">Live tooling</span><select name="turret2_live"><option>Unknown</option><option>No</option><option>Yes</option></select></label>
+                <label class="field"><span class="lbl">Y-axis</span><select name="turret2_y"><option>Unknown</option><option>No</option><option>Yes</option></select></label>
+                <label class="field"><span class="lbl">B-axis</span><select name="turret2_b"><option>Unknown</option><option>No</option><option>Positioning</option><option>Simultaneous</option><option>Both</option></select></label>
+                <label class="field"><span class="lbl">Spindle access</span><select id="turret2Access" name="turret2_access"><option>Main only</option><option>Sub only</option><option>Main and sub</option><option>Other / unknown</option></select></label>
+                <label class="field"><span class="lbl">Normal safe retract</span><input name="turret2_safe"></label>
+                <label class="field full conditional" id="turret2Park" hidden><span class="lbl">Lower-turret park position</span><input name="turret2_park" placeholder="Position used to move the lower turret safely out of the working/transfer area"></label>
+              </div>
+            </div>
+
+            <div class="turret-card conditional" id="turret3Card">
+              <h4>Turret / tool carrier 3</h4>
+              <div class="grid-3">
+                <label class="field"><span class="lbl">Position / type</span><select name="turret3_position" onchange="updateConditionals()"><option>Upper</option><option>Lower</option><option>B-axis head</option><option>Gang / tool carrier</option><option>Other</option></select></label>
+                <label class="field"><span class="lbl">Live tooling</span><select name="turret3_live"><option>Unknown</option><option>No</option><option>Yes</option></select></label>
+                <label class="field"><span class="lbl">Y-axis</span><select name="turret3_y"><option>Unknown</option><option>No</option><option>Yes</option></select></label>
+                <label class="field"><span class="lbl">B-axis</span><select name="turret3_b"><option>Unknown</option><option>No</option><option>Positioning</option><option>Simultaneous</option><option>Both</option></select></label>
+                <label class="field"><span class="lbl">Spindle access</span><select id="turret3Access" name="turret3_access"><option>Main only</option><option>Sub only</option><option>Main and sub</option><option>Other / unknown</option></select></label>
+                <label class="field"><span class="lbl">Normal safe retract</span><input name="turret3_safe"></label>
+                <label class="field full conditional" id="turret3Park" hidden><span class="lbl">Lower-turret park position</span><input name="turret3_park" placeholder="Position used to move the lower turret safely out of the working/transfer area"></label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="millTurningConfig">
+        <div class="section">
+          <h3>Turning capability on milling machine</h3>
+          <p>Complete this for machining centres that can perform basic turning using a rotary table or spindle.</p>
+          <div class="grid">
+            <label class="field"><span class="lbl">Axis used as turning spindle</span><input name="mill_turning_axis" placeholder="e.g. C table"></label>
+            <label class="field"><span class="lbl">Maximum turning RPM</span><input name="mill_turning_rpm" type="number" min="0"></label>
+            <label class="field"><span class="lbl">Constant surface speed supported?</span><select name="mill_turning_css"><option>Unknown</option><option>No</option><option>Yes</option></select></label>
+            <label class="field"><span class="lbl">Turning clamp / mode command</span><input name="mill_turning_mode_code"></label>
+            <label class="field full"><span class="lbl">Turning-specific notes or restrictions</span><textarea name="mill_turning_notes"></textarea></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="swissConfig">
+        <div class="section">
+          <h3>Swiss / sliding-head configuration</h3>
+          <div class="grid">
+            <label class="field"><span class="lbl">Sliding-head axis / stroke</span><input name="sliding_head_details" placeholder="e.g. Z1, 200 mm stroke"></label>
+            <label class="field conditional" id="guideBushField"><span class="lbl">Guide-bush arrangement</span><select name="guide_bush"><option>Fixed guide bush</option><option>Driven / synchronised guide bush</option><option>Convertible guide-bush / non-guide-bush</option><option>Unknown</option></select></label>
+            <label class="field conditional" id="channelCountField"><span class="lbl">Number of CNC channels</span><input name="channel_count" type="number" min="1" placeholder="e.g. 2"></label>
+            <label class="field full conditional" id="channelAssignmentField"><span class="lbl">Which axes/spindles belong to each channel?</span><textarea name="channel_assignment"></textarea></label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="step" data-step="6">
+      <h2>6. Programming conventions</h2>
+      <p class="intro">How is the machine normally programmed?</p>
+      <div class="grid">
+        <label class="field"><span class="lbl">Units</span><select name="units"><option>Metric</option><option>Imperial</option><option>Both</option></select></label>
+        <label class="field"><span class="lbl">Program/file extension</span><input name="extension" placeholder=".nc, .mpf, .h, etc."></label>
+        <label class="field"><span class="lbl">Program number / name format</span><input name="program_format"></label>
+        <label class="field"><span class="lbl">Work offset system</span><input name="work_offsets" placeholder="G54-G59, G54.1, Siemens frames, datum table..."></label>
+        <label class="field"><span class="lbl">Sequence numbers required?</span><select name="sequence_numbers"><option>No</option><option>Yes</option><option>Optional</option></select></label>
+        <label class="field"><span class="lbl">Diameter or radius programming?</span><select name="diameter_mode"><option>N/A</option><option>Diameter</option><option>Radius</option><option>Both</option></select></label>
+        <label class="field full"><span class="lbl">Company formatting standards / comments / naming requirements</span><textarea name="formatting_requirements"></textarea></label>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="step" data-step="7">
+      <h2>7. Machine positioning & safety</h2>
+      <p class="intro">Only the safety-relevant questions for the selected machine capabilities are shown.</p>
+
+      <div class="notice critical"><strong>Important:</strong> Please use proven machine behaviour, sample NC or manual information wherever possible. Leave unknown values blank rather than guessing.</div>
+
+      <div class="section" style="margin-top:0;padding-top:0;border-top:0">
+        <h3>Machine-coordinate positions and limits</h3>
+        <p>Enter known machine-coordinate values.</p>
+        <div style="overflow-x:auto">
+          <table class="machine-table">
+            <thead><tr><th>Axis</th><th>Minimum</th><th>Maximum</th><th>Home / reference</th><th>Tool-change</th></tr></thead>
+            <tbody>
+              <tr><th>X</th><td><input name="X_min"></td><td><input name="X_max"></td><td><input name="X_home"></td><td><input name="X_toolchange"></td></tr>
+              <tr><th>Y</th><td><input name="Y_min"></td><td><input name="Y_max"></td><td><input name="Y_home"></td><td><input name="Y_toolchange"></td></tr>
+              <tr><th>Z</th><td><input name="Z_min"></td><td><input name="Z_max"></td><td><input name="Z_home"></td><td><input name="Z_toolchange"></td></tr>
+              <tr class="conditional" id="A_limit_row"><th>A</th><td><input name="A_min"></td><td><input name="A_max"></td><td><input name="A_home"></td><td><input name="A_toolchange"></td></tr>
+              <tr class="conditional" id="B_limit_row"><th>B</th><td><input name="B_min"></td><td><input name="B_max"></td><td><input name="B_home"></td><td><input name="B_toolchange"></td></tr>
+              <tr class="conditional" id="C_limit_row"><th>C</th><td><input name="C_min"></td><td><input name="C_max"></td><td><input name="C_home"></td><td><input name="C_toolchange"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Common retract & tool-change behaviour</h3>
+        <div class="grid">
+          <label class="field"><span class="lbl">Normal machine retract command</span><input name="retract_command" placeholder="G53, G28, SUPA, machine-specific cycle..."></label>
+          <label class="field"><span class="lbl">Reference return / home command</span><input name="home_command"></label>
+          <label class="field"><span class="lbl">Safe Z / retract position</span><input name="safe_z"></label>
+          <label class="field"><span class="lbl">Tool-change position</span><input name="toolchange_position"></label>
+          <label class="field"><span class="lbl">Tool call format</span><input name="tool_call" placeholder="e.g. T12 M6, T0101, TOOL CALL..."></label>
+          <label class="field"><span class="lbl">Tool preload supported?</span><select name="tool_preload"><option>Unknown</option><option>Yes</option><option>No</option></select></label>
+          <label class="field full"><span class="lbl">Does the machine require a specific position or sequence before tool change?</span><textarea name="toolchange_sequence" placeholder="If yes, describe or reference proven NC code."></textarea></label>
+        </div>
+      </div>
+
+      <div class="conditional" id="rotarySafety">
+        <div class="section">
+          <h3>Rotary / head positioning</h3>
+          <div class="grid">
+            <label class="field"><span class="lbl">Is a specific retract required before rotary/head repositioning?</span><select name="rotary_retract_required"><option>Unknown</option><option>No</option><option>Yes</option></select></label>
+            <label class="field"><span class="lbl">Rotary/head safe position</span><input name="rotary_safe_position"></label>
+            <label class="field full"><span class="lbl">If a sequence is required, describe it or reference proven NC code</span><textarea name="rotary_sequence"></textarea></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="turningSafety">
+        <div class="section">
+          <h3>Turning-related safe positions</h3>
+          <div class="grid">
+            <label class="field"><span class="lbl">Normal safe turret/tool-carrier retract position</span><input name="turret_safe_position"></label>
+            <label class="field"><span class="lbl">Spindle orientation required for any operation?</span><select name="spindle_orientation_required"><option>Unknown</option><option>No</option><option>Yes</option></select></label>
+            <label class="field full"><span class="lbl">Known chuck, spindle, turret or workholding clearance restrictions</span><textarea name="turning_clearance_restrictions"></textarea></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="transferSafety">
+        <div class="section">
+          <h3>Part transfer / spindle handover</h3>
+          <div class="grid">
+            <label class="field"><span class="lbl">Transfer type</span><select name="transfer_type"><option value="">Select...</option><option>Main to sub before cutoff</option><option>Main to sub after cutoff</option><option>Pull-out transfer</option><option>Pick-off transfer</option><option>Other</option></select></label>
+            <label class="field"><span class="lbl">Which spindle moves during transfer?</span><input name="transfer_moving_spindle"></label>
+            <label class="field"><span class="lbl">Spindle synchronisation command</span><input name="spindle_sync_command"></label>
+            <label class="field"><span class="lbl">Phase/orientation required?</span><select name="transfer_phase"><option>Unknown</option><option>Yes</option><option>No</option></select></label>
+            <label class="field full"><span class="lbl">Required approach / grip / retract sequence</span><textarea name="transfer_sequence"></textarea></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="partsCatcherSafety">
+        <div class="section">
+          <h3>Parts catcher</h3>
+          <div class="grid">
+            <label class="field"><span class="lbl">Deploy / retract codes</span><input name="parts_catcher_codes"></label>
+            <label class="field full"><span class="lbl">Any positioning or clearance requirements before operation?</span><textarea name="parts_catcher_clearance"></textarea></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="tailstockSafety">
+        <div class="section">
+          <h3>Tailstock / steady rest</h3>
+          <div class="grid">
+            <label class="field"><span class="lbl">Control method / M-codes</span><input name="tailstock_codes"></label>
+            <label class="field full"><span class="lbl">Positioning or clearance restrictions</span><textarea name="tailstock_clearance"></textarea></label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="step" data-step="8">
+      <h2>8. Required machining features</h2>
+      <p class="intro">Select the machining operations the post must support. Machine hardware and automation were selected earlier.</p>
+      <div class="checkgrid">
+        <label class="check feature-conditional feature-turning"><input type="checkbox" name="features" value="2-axis turning">2-axis turning</label>
+        <label class="check feature-conditional feature-turning"><input type="checkbox" name="features" value="Threading">Threading</label>
+        <label class="check feature-conditional feature-turning"><input type="checkbox" name="features" value="Grooving">Grooving</label>
+        <label class="check feature-conditional feature-milling"><input type="checkbox" name="features" value="3-axis milling">3-axis milling</label>
+        <label class="check feature-conditional feature-indexed"><input type="checkbox" name="features" value="3+2 milling">3+2 milling</label>
+        <label class="check feature-conditional feature-simultaneous"><input type="checkbox" name="features" value="Simultaneous 4/5-axis">Simultaneous 4/5-axis</label>
+        <label class="check"><input type="checkbox" name="features" value="Drilling cycles">Drilling cycles</label>
+        <label class="check"><input type="checkbox" name="features" value="Rigid tapping">Rigid tapping</label>
+        <label class="check"><input type="checkbox" name="features" value="Machine cutter compensation">Machine cutter compensation</label>
+        <label class="check feature-conditional feature-polar"><input type="checkbox" name="features" value="Polar interpolation">Polar interpolation</label>
+        <label class="check feature-conditional feature-polar"><input type="checkbox" name="features" value="Cylindrical interpolation">Cylindrical interpolation</label>
+        <label class="check feature-conditional feature-backwork"><input type="checkbox" name="features" value="Back working">Back working</label>
+        <label class="check feature-conditional feature-probing"><input type="checkbox" name="features" value="Probing">Probing</label>
+        <label class="check"><input type="checkbox" name="features" value="Special automation">Other machine-specific automation</label>
+      </div>
+      <div class="section">
+        <h3>Canned cycles</h3>
+        <div class="checkgrid">
+          <label class="check"><input type="checkbox" name="cycles" value="Turning cycles">Turning cycles</label>
+          <label class="check"><input type="checkbox" name="cycles" value="Drilling cycles">Drilling cycles</label>
+          <label class="check"><input type="checkbox" name="cycles" value="Threading cycles">Threading cycles</label>
+          <label class="check"><input type="checkbox" name="cycles" value="Tapping cycles">Tapping cycles</label>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Coolant functions and codes</h3>
+        <div style="overflow-x:auto">
+          <table class="machine-table">
+            <thead><tr><th>Function</th><th>Used?</th><th>ON code</th><th>OFF code</th></tr></thead>
+            <tbody>
+              <tr><th>Flood</th><td><select name="coolant_flood_used"><option>No</option><option>Yes</option></select></td><td><input name="coolant_flood_on"></td><td><input name="coolant_flood_off"></td></tr>
+              <tr><th>Through spindle/tool</th><td><select name="coolant_thru_used"><option>No</option><option>Yes</option></select></td><td><input name="coolant_thru_on"></td><td><input name="coolant_thru_off"></td></tr>
+              <tr><th>Air blast</th><td><select name="coolant_air_used"><option>No</option><option>Yes</option></select></td><td><input name="coolant_air_on"></td><td><input name="coolant_air_off"></td></tr>
+              <tr><th>Mist</th><td><select name="coolant_mist_used"><option>No</option><option>Yes</option></select></td><td><input name="coolant_mist_on"></td><td><input name="coolant_mist_off"></td></tr>
+              <tr><th>High pressure</th><td><select name="coolant_high_used"><option>No</option><option>Yes</option></select></td><td><input name="coolant_high_on"></td><td><input name="coolant_high_off"></td></tr>
+              <tr><th>Other / combined</th><td><select name="coolant_other_used"><option>No</option><option>Yes</option></select></td><td><input name="coolant_other_on"></td><td><input name="coolant_other_off"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section conditional" id="transferBlock">
+        <h3>Part transfer / spindle handover</h3>
+        <div class="grid">
+          <label class="field"><span class="lbl">Transfer type</span><select name="transfer_type"><option value="">Select...</option><option>Main to sub before cutoff</option><option>Main to sub after cutoff</option><option>Pull-out transfer</option><option>Pick-off transfer</option><option>Other</option></select></label>
+          <label class="field"><span class="lbl">Which spindle moves during transfer?</span><input name="transfer_moving_spindle"></label>
+          <label class="field"><span class="lbl">Spindle synchronisation command</span><input name="spindle_sync_command"></label>
+          <label class="field"><span class="lbl">Phase/orientation required?</span><select name="transfer_phase"><option>Unknown</option><option>Yes</option><option>No</option></select></label>
+          <label class="field full"><span class="lbl">Describe the proven transfer sequence</span><textarea name="transfer_sequence"></textarea></label>
+        </div>
+      </div>
+
+      <div class="section">
+        <label class="field"><span class="lbl">Anything unusual or machine-specific we need to support?</span><textarea name="special_requirements" placeholder="Special M-codes, spindle handover behaviour, B-axis rules, probing conventions, etc."></textarea></label>
+      </div>
