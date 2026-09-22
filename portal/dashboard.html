@@ -53,14 +53,14 @@ table{width:100%;border-collapse:collapse}th,td{padding:11px 9px;border-bottom:1
 
 <div id="app" style="display:none">
  <div class="grid" id="stats"></div>
- <div class="card"><div class="row space"><div><h2 style="margin:0">Projects</h2><div class="muted">Open the Project Home to request Stage 1 changes, lock the specification, track development and release test files.</div></div><div style="min-width:260px"><input id="filter" placeholder="Search customer, machine or reference…" oninput="renderProjects()"></div></div></div>
+ <div class="card"><div class="row space"><div><h2 style="margin:0">Projects</h2><div class="muted">Open Project Home for workflow actions, or use Project files to jump straight to the internal customer-file library.</div></div><div style="min-width:260px"><input id="filter" placeholder="Search customer, machine or reference…" oninput="renderProjects()"></div></div></div>
  <div class="card tablewrap"><table><thead><tr><th>Project</th><th>Customer / machine</th><th>Stage 1</th><th>Stage 2</th><th>Stage 3</th><th>Updated</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div>
 </div>
 </div>
 <script>
 const SUPABASE_URL="https://hfxghrzhthvmcvzxletp.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_TTAEax5Jgl-gcYKdixdxiA_Imyz7hHg";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
-let user=null,projects=[];
+let user=null,projects=[],projectFileCounts={};
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 function authMsg(t,e=false){const x=document.getElementById('authMsg');x.textContent=t||'';x.classList.toggle('error',e)}
 function msg(t,e=false){const x=document.getElementById('msg');x.textContent=t||'';x.classList.toggle('error',e)}
@@ -78,7 +78,12 @@ async function loadProjects(){
  msg('Loading…');
  const {data,error}=await sb.from('projects').select('*').order('updated_at',{ascending:false});
  if(error)return msg('Could not load projects: '+error.message,true);
- projects=data||[];renderStats();renderProjects();msg(`${projects.length} project${projects.length===1?'':'s'} loaded.`);
+ projects=data||[];
+ projectFileCounts={};
+ const files=await sb.from('project_files').select('project_id').eq('stage','project');
+ if(files.error)console.warn('Could not load Project files counts',files.error);
+ else for(const f of files.data||[])projectFileCounts[f.project_id]=(projectFileCounts[f.project_id]||0)+1;
+ renderStats();renderProjects();msg(`${projects.length} project${projects.length===1?'':'s'} loaded.`);
 }
 function badge(value){
  const v=value||'—';let cls='';
@@ -108,6 +113,8 @@ function projectActions(p){
   else if(p.stage1_status==='draft') primaryLabel='View draft';
 
   buttons.push(`<a class="btn primary" href="index.html?project=${encodeURIComponent(p.id)}">${primaryLabel}</a>`);
+  const fileCount=projectFileCounts[p.id]||0;
+  buttons.push(`<a class="btn ghost" href="index.html?project=${encodeURIComponent(p.id)}&section=files">Project files (${fileCount})</a>`);
 
   if(p.stage2_status!=='not_started'){
     const s2Label=p.stage2_status==='completed'?'View Stage 2':'Open Stage 2';
