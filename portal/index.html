@@ -244,11 +244,15 @@ async function requestChanges(){
 }
 async function lockSpecification(){
  if(!confirm('Accept the submitted Stage 1 information and lock it as the agreed development baseline?'))return;
- const {error}=await sb.from('projects').update({stage1_status:'reviewed',stage1_locked_at:new Date().toISOString(),stage1_change_request:null,development_status:'awaiting_commercial'}).eq('id',currentProjectId);if(error)return setMsg(error.message,true);await loadProject(currentProjectId);
+ const {error}=await sb.from('projects').update({stage1_status:'reviewed',stage1_locked_at:new Date().toISOString(),stage1_change_request:null,development_status:'awaiting_commercial'}).eq('id',currentProjectId);if(error)return setMsg(error.message,true);
+ await notify('specification_locked');
+ await loadProject(currentProjectId);
 }
 async function startDevelopment(){
  if(!confirm('Confirm commercial agreement and mark this project In development?'))return;
- const {error}=await sb.from('projects').update({development_status:'in_development'}).eq('id',currentProjectId);if(error)return setMsg(error.message,true);await loadProject(currentProjectId);
+ const {error}=await sb.from('projects').update({development_status:'in_development'}).eq('id',currentProjectId);if(error)return setMsg(error.message,true);
+ await notify('development_started');
+ await loadProject(currentProjectId);
 }
 async function createDraftRelease(){
  const rev=document.getElementById('releaseRevision').value.trim(),title=document.getElementById('releaseTitle').value.trim(),notes=document.getElementById('releaseNotes').value.trim(),files=[...document.getElementById('releaseFiles').files];
