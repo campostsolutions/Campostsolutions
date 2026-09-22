@@ -233,7 +233,11 @@
   .staff-note{font-size:13px;color:var(--muted);flex:1;min-width:240px}
   .project-status.enabled{background:#e9f8ef;color:var(--ok)}
   .uploaded-list{margin-top:8px;display:grid;gap:5px}
-  .uploaded-file{font-size:12px;color:#35435a;background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+  .uploaded-file{font-size:12px;color:#35435a;background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 8px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .uploaded-file-name{overflow-wrap:anywhere}
+  .uploaded-file-actions{display:flex;gap:6px;flex:0 0 auto}
+  .evidence-action{border:1px solid var(--border)!important;background:#fff!important;color:var(--text)!important;padding:5px 8px!important;font-size:12px!important}
+  .evidence-action.remove{border-color:#e7baba!important;background:#fff5f5!important;color:#9b3035!important}
   @media(max-width:800px){.login-row{grid-template-columns:1fr}.account-row{align-items:flex-start;flex-direction:column}}
 
   .cps-help-fab{
@@ -766,23 +770,90 @@ async function uploadStage2Files(files,category,stateId,boxId){
   }catch(e){state.textContent='Upload failed: '+(e.message||e);setAccountMessage('Upload failed: '+(e.message||e),true);}
 }
 async function loadStage2Files(){
-  uploadedStage2Categories.clear();uploadedStage2Files=[];
   if(!currentProjectId)return;
-  const {data,error}=await sb.from('project_files').select('category,filename,created_at').eq('project_id',currentProjectId).eq('stage','stage2').order('created_at',{ascending:true});
+  const requestedProjectId=currentProjectId;
+  const {data,error}=await sb.from('project_files')
+    .select('id,category,filename,storage_path,mime_type,size_bytes,created_at')
+    .eq('project_id',requestedProjectId)
+    .eq('stage','stage2')
+    .order('created_at',{ascending:true});
   if(error){setAccountMessage('Could not load commissioning evidence: '+error.message,true);return;}
-  for(const f of (data||[])){uploadedStage2Categories.add(f.category);uploadedStage2Files.push({category:f.category,name:f.filename});}
+  if(requestedProjectId!==currentProjectId)return;
+
+  // Assign the completed query atomically. This avoids duplicate rows if auth/session
+  // startup causes two evidence loads to overlap.
+  uploadedStage2Files=(data||[]).map(f=>({
+    id:f.id,category:f.category,name:f.filename,path:f.storage_path,
+    mime_type:f.mime_type,size_bytes:f.size_bytes,created_at:f.created_at
+  }));
+  uploadedStage2Categories=new Set(uploadedStage2Files.map(f=>f.category));
+
   renderEvidenceState('testedNcState','testedNcBox','tested_nc_results');
   renderEvidenceState('camProjectState','camProjectBox','cam_test_project');
   renderEvidenceState('visualEvidenceState',null,'visual_evidence');
   renderEvidenceState('diagnosticState',null,'diagnostic');
 }
 function renderEvidenceState(stateId,boxId,cat){
-  const names=uploadedStage2Files.filter(f=>f.category===cat).map(f=>f.name);
+  const files=uploadedStage2Files.filter(f=>f.category===cat);
   const state=document.getElementById(stateId);if(!state)return;
-  if(names.length){
-    state.innerHTML='<div class="uploaded-list">'+names.map(n=>`<div class="uploaded-file">✓ ${esc(n)}</div>`).join('')+'</div>';
+  if(files.length){
+    const canEdit=projectStageEditable();
+    state.innerHTML='<div class="uploaded-list">'+files.map(f=>{
+      const actions=canEdit
+        ? `<span class="uploaded-file-actions"><button type="button" class="evidence-action" onclick="replaceStage2File('${f.id}','${esc(f.path)}','${esc(f.category)}','${esc(f.name)}')">Replace</button><button type="button" class="evidence-action remove" onclick="removeStage2File('${f.id}','${esc(f.path)}','${esc(f.name)}')">Remove</button></span>`
+        : '';
+      return `<div class="uploaded-file"><span class="uploaded-file-name">✓ ${esc(f.name)}</span>${actions}</div>`;
+    }).join('')+'</div>';
     state.className='file-state ok';if(boxId)document.getElementById(boxId).classList.add('loaded');
   }else{state.textContent='No files uploaded.';state.className='file-state';if(boxId)document.getElementById(boxId).classList.remove('loaded');}
+}
+async function removeStage2File(id,path,filename){
+  if(!projectStageEditable()){setAccountMessage('Completed commissioning evidence is locked.',true);return;}
+  if(!confirm(`Remove "${filename}" from this commissioning record?`))return;
+  try{
+    const {error:metaErr}=await sb.from('project_files').delete().eq('id',id).eq('project_id',currentProjectId);
+    if(metaErr)throw metaErr;
+    const {error:storageErr}=await sb.storage.from('cps-project-files').remove([path]);
+    if(storageErr)console.warn('Evidence metadata removed but storage cleanup failed',storageErr);
+    await loadStage2Files();
+    scheduleAutosave();
+    setAccountMessage(`Removed ${filename}.`);
+  }catch(e){setAccountMessage('Could not remove evidence: '+(e.message||e),true);}
+}
+function replaceStage2File(id,oldPath,category,oldFilename){
+  if(!projectStageEditable()){setAccountMessage('Completed commissioning evidence is locked.',true);return;}
+  const picker=document.createElement('input');
+  picker.type='file';
+  picker.onchange=async()=>{
+    const file=picker.files?.[0];if(!file)return;
+    try{
+      setAccountMessage(`Replacing ${oldFilename}…`);
+      const newPath=`${currentUser.id}/${currentProjectId}/stage2/${category}/${Date.now()}-${safeFileName(file.name)}`;
+      const {error:upErr}=await sb.storage.from('cps-project-files').upload(newPath,file,{upsert:false,contentType:file.type||undefined});
+      if(upErr)throw upErr;
+      const {error:insertErr}=await sb.from('project_files').insert({
+        project_id:currentProjectId,stage:'stage2',category,filename:file.name,
+        storage_path:newPath,mime_type:file.type||null,size_bytes:file.size
+      });
+      if(insertErr){
+        await sb.storage.from('cps-project-files').remove([newPath]);
+        throw insertErr;
+      }
+
+      const {error:deleteErr}=await sb.from('project_files').delete().eq('id',id).eq('project_id',currentProjectId);
+      if(deleteErr)throw deleteErr;
+      const {error:oldStorageErr}=await sb.storage.from('cps-project-files').remove([oldPath]);
+      if(oldStorageErr)console.warn('Replacement succeeded but old storage cleanup failed',oldStorageErr);
+
+      await loadStage2Files();
+      scheduleAutosave();
+      setAccountMessage(`Replaced ${oldFilename} with ${file.name}.`);
+    }catch(e){
+      setAccountMessage('Could not replace evidence: '+(e.message||e),true);
+      await loadStage2Files();
+    }
+  };
+  picker.click();
 }
 function validateEvidence(showAlert=true){
   const ok=uploadedStage2Categories.has('tested_nc_results')&&uploadedStage2Categories.has('cam_test_project');
