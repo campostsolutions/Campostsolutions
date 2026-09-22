@@ -71,8 +71,8 @@
   <div class="section-title"><div><h2>CPS workflow controls</h2><div class="muted small">Use these controls to progress the project; customers do not see them.</div></div></div>
   <div class="row">
     <button id="requestChangesBtn" class="ghost" onclick="requestChanges()">Request Stage 1 changes</button>
-    <button id="lockSpecBtn" class="ghost" onclick="lockSpecification()">Lock specification</button>
-    <button id="startDevBtn" class="primary" onclick="startDevelopment()">Commercial agreed · Start development</button>
+    <button id="lockSpecBtn" class="ghost" onclick="lockSpecification()">Accept & lock specification</button>
+    <button id="startDevBtn" class="primary" onclick="startDevelopment()">Price/scope agreed · Start development</button>
   </div>
   <div class="message">Stage 2 opens automatically when a release is made available for testing.</div>
  </div>
@@ -140,7 +140,9 @@ function renderProject(){
  document.getElementById('stage1Top').href=qurl;document.getElementById('tl1link').href=qurl;
  document.getElementById('tl2link').href=c2;document.getElementById('tl3link').href=c3;
  document.getElementById('tl1text').textContent={draft:'Questionnaire in progress.',submitted:'Submitted to CPS for review.',changes_requested:'CPS has requested additional information.',reviewed:'Specification locked as the development baseline.'}[p.stage1_status]||human(p.stage1_status);
- document.getElementById('tldevtext').textContent={not_started:'Not started.',awaiting_commercial:'Specification agreed; commercial agreement pending.',in_development:'Post/simulation development in progress.',ready_for_testing:'A release is ready for machine testing.',commissioning:'Machine testing in progress.',signoff:'Awaiting final acceptance.',completed:'Project accepted.',on_hold:'Project on hold.'}[p.development_status]||human(p.development_status);
+ document.getElementById('tldevtext').textContent=p.stage1_status==='submitted'
+   ? 'REQUEST received. CPS review, discussion and commercial agreement come next.'
+   : ({not_started:'Not started.',awaiting_commercial:'Specification agreed; price/scope agreement pending.',in_development:'Post/simulation development in progress.',ready_for_testing:'A release is ready for machine testing.',commissioning:'Machine testing in progress.',signoff:'Awaiting final acceptance.',completed:'Project accepted.',on_hold:'Project on hold.'}[p.development_status]||human(p.development_status));
  document.getElementById('tlreltext').textContent='See releases below.';
  document.getElementById('tl2text').textContent=p.stage2_status==='not_started'?'Not available until CPS releases files for testing.':p.stage2_status==='completed'?'Commissioning completed.':'Commissioning available / in progress.';
  document.getElementById('tl3text').textContent=p.stage3_status==='not_started'?'Available after commissioning is completed.':human(p.stage3_status);
@@ -157,6 +159,16 @@ function renderProject(){
  document.getElementById('requestChangesBtn').disabled=!['submitted','reviewed'].includes(p.stage1_status);
  document.getElementById('lockSpecBtn').disabled=p.stage1_status!=='submitted';
  document.getElementById('startDevBtn').disabled=p.stage1_status!=='reviewed'||!['not_started','awaiting_commercial'].includes(p.development_status);
+
+ if(isStaff){
+   if(p.stage1_status==='submitted'){
+     setMsg('REQUEST received. Review Stage 1, then either request changes or Accept & lock specification. Once price/scope are agreed, start development.');
+   }else if(p.stage1_status==='reviewed' && p.development_status==='awaiting_commercial'){
+     setMsg('Specification locked. Agree price/scope with the customer, then click Price/scope agreed · Start development.');
+   }else if(p.development_status==='in_development'){
+     setMsg('Development is active. When you have a testable post/simulation, create a draft release below and Release to customer.');
+   }
+ }
 }
 async function loadReleases(){
  let query=sb.from('project_releases').select('*').eq('project_id',currentProjectId).order('created_at',{ascending:false});
@@ -178,11 +190,11 @@ async function downloadReleaseFile(path,filename){
 }
 async function requestChanges(){
  const note=prompt('What information should the customer update in Stage 1?');if(!note?.trim())return;
- const {error}=await sb.from('projects').update({stage1_status:'changes_requested',stage1_change_request:note.trim(),development_status:'not_started'}).eq('id',currentProjectId);if(error)return setMsg(error.message,true);
+ const {error}=await sb.from('projects').update({stage1_status:'changes_requested',stage1_change_request:note.trim(),development_status:'not_started',stage1_notified_at:null,stage1_notification_error:null}).eq('id',currentProjectId);if(error)return setMsg(error.message,true);
  await notify('changes_requested');await loadProject(currentProjectId);
 }
 async function lockSpecification(){
- if(!confirm('Lock the submitted Stage 1 questionnaire as the agreed development baseline?'))return;
+ if(!confirm('Accept the submitted Stage 1 information and lock it as the agreed development baseline?'))return;
  const {error}=await sb.from('projects').update({stage1_status:'reviewed',stage1_locked_at:new Date().toISOString(),stage1_change_request:null,development_status:'awaiting_commercial'}).eq('id',currentProjectId);if(error)return setMsg(error.message,true);await loadProject(currentProjectId);
 }
 async function startDevelopment(){
