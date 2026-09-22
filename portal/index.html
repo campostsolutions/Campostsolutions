@@ -37,6 +37,11 @@
    <div class="row"><a id="stage1Top" class="btn ghost" href="#">Stage 1</a><button class="ghost" onclick="loadProject(currentProjectId)">Refresh</button></div>
  </div>
 
+ <div id="staffNextAction" class="card hidden">
+  <div class="section-title"><div><h2>CPS next action</h2><div id="staffNextActionText" class="muted small"></div></div></div>
+  <div id="staffNextActionButtons" class="row"></div>
+ </div>
+
  <div class="card">
   <div class="section-title"><h2>Project progress</h2></div>
   <div class="timeline">
@@ -132,6 +137,41 @@ async function loadProject(id){
  currentProject=data;document.getElementById('app').classList.remove('hidden');renderProject();
  await loadReleases();setMsg('Project loaded.');
 }
+function renderStaffNextAction(){
+ const box=document.getElementById('staffNextAction');
+ const text=document.getElementById('staffNextActionText');
+ const buttons=document.getElementById('staffNextActionButtons');
+ if(!box||!text||!buttons)return;
+ if(!isStaff||!currentProject){box.classList.add('hidden');return;}
+
+ const p=currentProject;
+ box.classList.remove('hidden');
+ let html='';
+
+ if(p.stage1_status==='submitted'){
+   text.textContent='Review the submitted questionnaire. Either request changes or accept it as the development baseline.';
+   html='<button class="ghost" onclick="requestChanges()">Request Stage 1 changes</button><button class="primary" onclick="lockSpecification()">Accept & lock specification</button>';
+ }else if(p.stage1_status==='changes_requested'){
+   text.textContent='Waiting for the customer to update and resubmit Stage 1.';
+   html='<a class="btn ghost" href="questionnaire.html?project='+encodeURIComponent(p.id)+'">View Stage 1</a>';
+ }else if(p.stage1_status==='reviewed' && ['not_started','awaiting_commercial'].includes(p.development_status)){
+   text.textContent='The technical specification is locked. Once price and scope are agreed, start development here.';
+   html='<button class="primary" onclick="startDevelopment()">Price/scope agreed · Start development</button>';
+ }else if(p.development_status==='in_development'){
+   text.textContent='Development is active. Create a test release when the post/simulation is ready for machine testing.';
+   html='<button class="primary" onclick="document.getElementById(\'releaseRevision\').focus();document.getElementById(\'staffReleaseBox\').scrollIntoView({behavior:\'smooth\'})">Create test release</button>';
+ }else if(p.development_status==='ready_for_testing' || p.stage2_status!=='not_started'){
+   text.textContent='A test release has been issued. Use the commissioning/release history below to continue the test cycle.';
+   html='<a class="btn primary" href="commissioning.html?project='+encodeURIComponent(p.id)+'">Open commissioning</a>';
+ }else if(['accepted','accepted_with_limitations'].includes(p.stage3_status)){
+   text.textContent='The current tested release is accepted. Any new revision should start a new release / commissioning cycle.';
+   html='<a class="btn ghost" href="signoff.html?project='+encodeURIComponent(p.id)+'">View sign-off</a>';
+ }else{
+   text.textContent='Review the project status below.';
+   html='';
+ }
+ buttons.innerHTML=html;
+}
 function renderProject(){
  const p=currentProject, q=p.stage1_data||{};
  document.getElementById('ref').textContent=p.reference;
@@ -163,6 +203,7 @@ function renderProject(){
  document.getElementById('requestChangesBtn').disabled=!['submitted','reviewed'].includes(p.stage1_status);
  document.getElementById('lockSpecBtn').disabled=p.stage1_status!=='submitted';
  document.getElementById('startDevBtn').disabled=p.stage1_status!=='reviewed'||!['not_started','awaiting_commercial'].includes(p.development_status);
+ renderStaffNextAction();
 
  if(isStaff){
    if(p.stage1_status==='submitted'){
