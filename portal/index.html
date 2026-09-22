@@ -10,8 +10,11 @@
 .card{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:20px 22px;margin-bottom:18px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.space{justify-content:space-between}.login{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}label{font-weight:700}input,select,textarea{width:100%;padding:11px 12px;border:1px solid #cfd7e3;border-radius:10px;font:inherit;background:#fff}textarea{min-height:90px}button,a.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}button.primary,a.primary{background:var(--accent);color:#fff}button.ghost,a.ghost{background:#fff;border:1px solid var(--border);color:var(--text)}button.danger{background:#fff0f0;color:var(--danger);border:1px solid #f1c4c4}button:disabled{opacity:.5;cursor:not-allowed}.message{font-size:13px;color:var(--muted);margin-top:7px}.error{color:var(--danger)!important;font-weight:700}.muted{color:var(--muted)}.small{font-size:13px}
 .project-head{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start}.ref{font-size:26px;font-weight:800}.status{display:inline-block;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:800;background:#eef3f8;margin:2px}.status.ok{background:#e9f8ef;color:var(--ok)}.status.warn{background:#fff6e9;color:var(--warn)}.status.bad{background:#fff0f0;color:var(--danger)}
 .timeline{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.stage{border:1px solid var(--border);border-radius:14px;padding:14px;background:#fbfcfe;min-height:130px}.stage.active{border-color:#0d63c8;background:#eef6ff}.stage.done{border-color:#b9dec9;background:#f5fbf7}.stage h3{margin:0 0 6px;font-size:16px}.stage p{margin:0 0 10px;font-size:13px;color:var(--muted)}.stage a{font-size:13px}
-.section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.section-title h2{margin:0}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.release{border:1px solid var(--border);border-radius:14px;padding:15px;margin:10px 0;background:#fbfcfe}.release.released{border-left:4px solid var(--ok)}.release.draft{border-left:4px solid var(--warn)}.files{display:grid;gap:7px;margin-top:10px}.file{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--border);border-radius:9px;padding:8px 10px;background:#fff}.file span{overflow-wrap:anywhere}.staff-box{border:1px solid #bfd7f1;background:#f5f9ff;border-radius:14px;padding:16px;margin-top:14px}.staff-box h3{margin:0 0 10px}.callout{border-left:4px solid var(--accent);background:#f7fbff;border-radius:10px;padding:12px 15px;margin:12px 0}.callout.warn{border-left-color:var(--warn);background:#fff9ef}.hidden{display:none!important}.upload-list{font-size:13px;color:var(--muted);margin-top:6px}.cps-help{position:fixed;right:22px;bottom:22px;z-index:900;background:#0d63c8;color:#fff;border:0;border-radius:999px;padding:11px 16px;font-weight:800;box-shadow:0 8px 24px rgba(13,99,200,.25)}
-@media(max-width:850px){.timeline{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.project-head{grid-template-columns:1fr}}@media(max-width:560px){.timeline{grid-template-columns:1fr}.brand{flex-direction:column;align-items:flex-start}.login{grid-template-columns:1fr}}
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.section-title h2{margin:0}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.release{border:1px solid var(--border);border-radius:14px;padding:15px;margin:10px 0;background:#fbfcfe}.release.released{border-left:4px solid var(--ok)}.release.draft{border-left:4px solid var(--warn)}.files{display:grid;gap:7px;margin-top:10px}.file{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--border);border-radius:9px;padding:8px 10px;background:#fff}.file span{overflow-wrap:anywhere}.staff-box{border:1px solid #bfd7f1;background:#f5f9ff;border-radius:14px;padding:16px;margin-top:14px}.staff-box h3{margin:0 0 10px}.callout{border-left:4px solid var(--accent);background:#f7fbff;border-radius:10px;padding:12px 15px;margin:12px 0}.callout.warn{border-left-color:var(--warn);background:#fff9ef}
+.support-line{font-size:15px;line-height:1.55}.support-line strong{color:#0b315f}
+.project-file-meta{font-size:12px;color:var(--muted);margin-top:3px}
+.hidden{display:none!important}.upload-list{font-size:13px;color:var(--muted);margin-top:6px}.cps-help{position:fixed;right:22px;bottom:22px;z-index:900;background:#0d63c8;color:#fff;border:0;border-radius:999px;padding:11px 16px;font-weight:800;box-shadow:0 8px 24px rgba(13,99,200,.25)}
+@media(max-width:850px){.timeline{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.project-head{grid-template-columns:1fr}.file{align-items:flex-start;flex-wrap:wrap}.file>.row{width:100%}}@media(max-width:560px){.timeline{grid-template-columns:1fr}.brand{flex-direction:column;align-items:flex-start}.login{grid-template-columns:1fr}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
 </head>
@@ -35,6 +38,20 @@
  <div class="card project-head">
    <div><div class="ref" id="ref">Project</div><div id="machine" class="muted"></div><div id="projectStatus" style="margin-top:7px"></div></div>
    <div class="row"><a id="stage1Top" class="btn ghost" href="#">Stage 1</a><button class="ghost" onclick="loadProject(currentProjectId)">Refresh</button></div>
+ </div>
+
+ <div id="supportWindowCard" class="card">
+  <div class="section-title"><div><h2>90-day support & modification period</h2><div class="muted small">Based on the project Delivery Date under the CPS Terms.</div></div><span id="supportWindowBadge" class="status"></span></div>
+  <div id="supportWindowText" class="support-line"></div>
+  <div id="supportStaffControls" class="staff-box hidden">
+   <h3>CPS staff · Support-period extension</h3>
+   <p class="muted small">Use only where CPS has agreed an extension in writing. Leaving the date blank clears an existing extension.</p>
+   <div class="grid2">
+    <label>Extended support end date<input id="supportExtensionDate" type="date"></label>
+    <label>Extension note / written agreement reference<input id="supportExtensionNote" placeholder="e.g. Email agreed 12 Oct 2026"></label>
+   </div>
+   <div class="row" style="margin-top:12px"><button class="ghost" onclick="saveSupportExtension()">Save support period</button></div>
+  </div>
  </div>
 
  <div id="staffNextAction" class="card hidden">
@@ -72,6 +89,31 @@
   </div>
  </div>
 
+ <div id="projectFilesCard" class="card hidden">
+  <div class="section-title"><div><h2>Project files</h2><div class="muted small">Internal CPS library for emailed customer files, manuals, sample NC, CAM archives, machine models and other supporting evidence.</div></div><button class="ghost" onclick="loadProjectFilesLibrary()">Refresh</button></div>
+  <div id="projectFilesList"><p class="muted">No project files yet.</p></div>
+  <div class="staff-box" style="margin-top:14px">
+   <h3>CPS staff · Add project files</h3>
+   <div class="grid2">
+    <label>Category<select id="projectFileCategory">
+      <option value="customer_email">Customer email / completed forms</option>
+      <option value="manuals">Manuals / technical documents</option>
+      <option value="sample_nc">Sample / proven NC</option>
+      <option value="cam_projects">CAM projects / archives</option>
+      <option value="machine_models">Machine models / simulation</option>
+      <option value="photos_video">Photos / screenshots / video</option>
+      <option value="commercial_scope">Commercial / scope notes</option>
+      <option value="other">Other</option>
+    </select></label>
+    <label>Source / reference<input id="projectFileSource" placeholder="e.g. Outlook email 22 Sep 2026"></label>
+    <label style="grid-column:1/-1">Notes<input id="projectFileNotes" placeholder="Optional note about the file(s)"></label>
+    <label style="grid-column:1/-1">Files<input id="projectFilesInput" type="file" multiple></label>
+   </div>
+   <div id="projectFileState" class="upload-list"></div>
+   <div class="row" style="margin-top:12px"><button class="primary" onclick="uploadProjectFiles()">Upload to Project files</button></div>
+  </div>
+ </div>
+
  <div id="staffWorkflow" class="card hidden">
   <div class="section-title"><div><h2>CPS workflow controls</h2><div class="muted small">Use these controls to progress the project; customers do not see them.</div></div></div>
   <div class="row">
@@ -97,6 +139,9 @@ function setAuth(t,e=false){const x=document.getElementById('authMsg');x.textCon
 function badge(text,kind=''){return `<span class="status ${kind}">${esc(text)}</span>`}
 function human(s){return String(s||'').replaceAll('_',' ')}
 function safeName(n){return n.replace(/[^a-zA-Z0-9._-]+/g,'_').slice(0,160)}
+function formatBytes(bytes){const n=Number(bytes||0);if(n<1024)return n+' B';const u=['KB','MB','GB','TB'];let v=n/1024,i=0;while(v>=1024&&i<u.length-1){v/=1024;i++}return v.toFixed(v>=10?0:1)+' '+u[i]}
+function formatDateUK(value){if(!value)return '—';return new Date(value).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}
+const PROJECT_FILE_CATEGORIES={customer_email:'Customer email / completed forms',manuals:'Manuals / technical documents',sample_nc:'Sample / proven NC',cam_projects:'CAM projects / archives',machine_models:'Machine models / simulation',photos_video:'Photos / screenshots / video',commercial_scope:'Commercial / scope notes',other:'Other'};
 
 async function sendCode(){
  const email=document.getElementById('loginEmail').value.trim(); if(!email)return setAuth('Enter your email address.',true);
@@ -135,7 +180,9 @@ async function loadProject(id){
  currentProjectId=id;setMsg('Loading…');
  const {data,error}=await sb.from('projects').select('*').eq('id',id).single();if(error)return setMsg(error.message,true);
  currentProject=data;document.getElementById('app').classList.remove('hidden');renderProject();
- await loadReleases();setMsg('Project loaded.');
+ await loadReleases();
+ await loadProjectFilesLibrary();
+ setMsg('Project loaded.');
 }
 function renderStaffNextAction(){
  const box=document.getElementById('staffNextAction');
@@ -202,6 +249,8 @@ function renderProject(){
  document.getElementById('staffWorkflow').classList.toggle('hidden',!isStaff);
  const canCreateRelease=isStaff && p.development_status==='in_development';
  document.getElementById('staffReleaseBox').classList.toggle('hidden',!canCreateRelease);
+ document.getElementById('projectFilesCard').classList.toggle('hidden',!isStaff);
+ renderSupportWindow();
  const requestNotifyBtn=document.getElementById('requestNotifyBtn');
  requestNotifyBtn.disabled=p.stage1_status!=='submitted'||!!p.stage1_notified_at;
  requestNotifyBtn.textContent=p.stage1_notification_error?'Retry REQUEST email':(p.stage1_notified_at?'REQUEST email sent':'Send REQUEST email');
@@ -219,6 +268,114 @@ function renderProject(){
      setMsg('Development is active. When you have a testable post/simulation, create a draft release below and Release to customer.');
    }
  }
+}
+function renderSupportWindow(){
+ const p=currentProject;
+ const badgeEl=document.getElementById('supportWindowBadge');
+ const textEl=document.getElementById('supportWindowText');
+ const staffBox=document.getElementById('supportStaffControls');
+ if(!p?.delivery_date){
+   badgeEl.className='status';
+   badgeEl.textContent='Not started';
+   textEl.innerHTML='<strong>Support period not started.</strong> The 90-day period begins when CPS first makes a test release available to the customer for acceptance testing.';
+   staffBox.classList.add('hidden');
+   return;
+ }
+ const baseEnd=new Date(p.support_period_end||new Date(new Date(p.delivery_date).getTime()+90*86400000));
+ const extension=p.support_extension_end?new Date(p.support_extension_end):null;
+ const effectiveEnd=extension&&extension>baseEnd?extension:baseEnd;
+ const remaining=Math.ceil((effectiveEnd.getTime()-Date.now())/86400000);
+ const expired=remaining<=0;
+ badgeEl.className='status '+(expired?'bad':remaining<=14?'warn':'ok');
+ badgeEl.textContent=expired?'Expired':remaining+' day'+(remaining===1?'':'s')+' remaining';
+ let html='<strong>Delivery Date:</strong> '+esc(formatDateUK(p.delivery_date))+' · <strong>Standard support end:</strong> '+esc(formatDateUK(baseEnd));
+ if(extension&&extension>baseEnd) html+=' · <strong>Extended to:</strong> '+esc(formatDateUK(extension));
+ html+='<br>'+(expired
+   ? 'The 90-day support/modification period has ended. Further changes may be treated as additional work unless CPS agrees otherwise.'
+   : 'Covered support relates to the original agreed specification. The period continues to run if testing is delayed unless CPS agrees an extension in writing.');
+ if(p.support_extension_note)html+='<div class="project-file-meta"><strong>Extension note:</strong> '+esc(p.support_extension_note)+'</div>';
+ textEl.innerHTML=html;
+ staffBox.classList.toggle('hidden',!isStaff);
+ if(isStaff){
+   document.getElementById('supportExtensionDate').value=p.support_extension_end?new Date(p.support_extension_end).toISOString().slice(0,10):'';
+   document.getElementById('supportExtensionNote').value=p.support_extension_note||'';
+ }
+}
+async function saveSupportExtension(){
+ if(!isStaff||!currentProject)return;
+ const date=document.getElementById('supportExtensionDate').value;
+ const note=document.getElementById('supportExtensionNote').value.trim();
+ let end=null;
+ if(date){
+   if(!note)return setMsg('Add a note/reference for the agreed support extension.',true);
+   const chosen=new Date(date+'T23:59:59');
+   const base=new Date(currentProject.support_period_end);
+   if(chosen<=base)return setMsg('An extension must be later than the standard 90-day support end date.',true);
+   end=chosen.toISOString();
+ }
+ const {error}=await sb.from('projects').update({support_extension_end:end,support_extension_note:end?note:null}).eq('id',currentProjectId);
+ if(error)return setMsg('Could not update support period: '+error.message,true);
+ await loadProject(currentProjectId);
+ setMsg(end?'Support-period extension saved.':'Support-period extension cleared.');
+}
+async function loadProjectFilesLibrary(){
+ const box=document.getElementById('projectFilesList');
+ if(!box)return;
+ if(!isStaff||!currentProjectId){box.innerHTML='<p class="muted">Project files are visible to CPS staff only.</p>';return}
+ const {data,error}=await sb.from('project_files')
+   .select('id,category,filename,storage_path,mime_type,size_bytes,source_type,source_ref,notes,created_at')
+   .eq('project_id',currentProjectId).eq('stage','project').order('created_at',{ascending:false});
+ if(error){box.innerHTML='<p class="error">Could not load project files: '+esc(error.message)+'</p>';return}
+ if(!data?.length){box.innerHTML='<p class="muted">No project files yet.</p>';return}
+ box.innerHTML=data.map(f=>{
+   const meta=[PROJECT_FILE_CATEGORIES[f.category]||human(f.category),formatBytes(f.size_bytes),f.source_ref].filter(Boolean).join(' · ');
+   return `<div class="file"><div><strong>${esc(f.filename)}</strong><div class="project-file-meta">${esc(meta)}</div>${f.notes?`<div class="project-file-meta">${esc(f.notes)}</div>`:''}</div><div class="row"><button class="ghost" onclick="downloadProjectFile('${f.id}')">Download</button><button class="danger" onclick="deleteProjectFile('${f.id}')">Delete</button></div></div>`;
+ }).join('');
+}
+async function uploadProjectFiles(){
+ if(!isStaff)return setMsg('Only CPS staff can add Project files.',true);
+ const cat=document.getElementById('projectFileCategory').value;
+ const source=document.getElementById('projectFileSource').value.trim();
+ const notes=document.getElementById('projectFileNotes').value.trim();
+ const files=[...document.getElementById('projectFilesInput').files];
+ const state=document.getElementById('projectFileState');
+ if(!files.length)return setMsg('Choose at least one Project file.',true);
+ state.textContent='Uploading…';
+ try{
+   for(const file of files){
+     const path=`${currentProject.owner_user_id}/${currentProjectId}/project-files/${cat}/${Date.now()}-${safeName(file.name)}`;
+     const up=await sb.storage.from('cps-project-files').upload(path,file,{upsert:false,contentType:file.type||undefined});
+     if(up.error)throw up.error;
+     const meta=await sb.from('project_files').insert({
+       project_id:currentProjectId,stage:'project',category:cat,filename:file.name,storage_path:path,
+       mime_type:file.type||null,size_bytes:file.size,source_type:source?'email_or_manual':'portal',source_ref:source||null,notes:notes||null
+     });
+     if(meta.error){await sb.storage.from('cps-project-files').remove([path]);throw meta.error}
+   }
+   document.getElementById('projectFilesInput').value='';
+   document.getElementById('projectFileSource').value='';
+   document.getElementById('projectFileNotes').value='';
+   state.textContent='Project file upload complete.';
+   await loadProjectFilesLibrary();
+ }catch(e){state.textContent='';setMsg('Project file upload failed: '+(e.message||e),true)}
+}
+async function downloadProjectFile(id){
+ const {data:file,error:metaErr}=await sb.from('project_files').select('filename,storage_path').eq('id',id).eq('project_id',currentProjectId).eq('stage','project').single();
+ if(metaErr)return setMsg('Could not load file record: '+metaErr.message,true);
+ const {data,error}=await sb.storage.from('cps-project-files').createSignedUrl(file.storage_path,300,{download:true});
+ if(error)return setMsg('Could not create download link: '+error.message,true);
+ const u=new URL(data.signedUrl);u.searchParams.set('download',file.filename);window.open(u.toString(),'_blank','noopener');
+}
+async function deleteProjectFile(id){
+ if(!isStaff)return;
+ const {data:file,error:metaErr}=await sb.from('project_files').select('filename,storage_path').eq('id',id).eq('project_id',currentProjectId).eq('stage','project').single();
+ if(metaErr)return setMsg('Could not load file record: '+metaErr.message,true);
+ if(!confirm('Delete "'+file.filename+'" from Project files?'))return;
+ const del=await sb.from('project_files').delete().eq('id',id).eq('project_id',currentProjectId);
+ if(del.error)return setMsg('Could not delete file record: '+del.error.message,true);
+ const storage=await sb.storage.from('cps-project-files').remove([file.storage_path]);
+ if(storage.error)console.warn('Project file metadata deleted but storage cleanup failed',storage.error);
+ await loadProjectFilesLibrary();setMsg('Project file deleted.');
 }
 async function loadReleases(){
  let query=sb.from('project_releases').select('*').eq('project_id',currentProjectId).order('created_at',{ascending:false});
