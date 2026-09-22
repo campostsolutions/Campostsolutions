@@ -1171,14 +1171,21 @@ function machineOemKey(){
   return "";
 }
 
+function controlOptionAllowed(opt,oem){
+  if(!opt.value) return true;
+  if(opt.value==="Other") return true;
+  const requiredOem=opt.dataset.oem||"";
+  if(oem) return requiredOem===oem;
+  return !requiredOem;
+}
+
 function updateControlManufacturerOptions(){
   const sel=document.querySelector('[name="control_manufacturer"]');
   if(!sel) return;
   const oem=machineOemKey();
   let currentStillAllowed=true;
   [...sel.options].forEach(opt=>{
-    const requiredOem=opt.dataset.oem||"";
-    const allowed=!requiredOem || requiredOem===oem;
+    const allowed=controlOptionAllowed(opt,oem);
     opt.disabled=!allowed;
     opt.hidden=!allowed;
     if(opt.selected && !allowed) currentStillAllowed=false;
@@ -1192,8 +1199,7 @@ function updateConditionals(){
   if(controlSelect){
     const oem=machineOemKey();
     [...controlSelect.options].forEach(opt=>{
-      const requiredOem=opt.dataset.oem||"";
-      const allowed=!requiredOem || requiredOem===oem;
+      const allowed=controlOptionAllowed(opt,oem);
       opt.disabled=!allowed;
       opt.hidden=!allowed;
       if(opt.selected && !allowed) controlSelect.value="";
