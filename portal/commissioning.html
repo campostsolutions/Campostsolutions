@@ -239,7 +239,29 @@
   .evidence-action{border:1px solid var(--border)!important;background:#fff!important;color:var(--text)!important;padding:5px 8px!important;font-size:12px!important}
   .evidence-action.remove{border-color:#e7baba!important;background:#fff5f5!important;color:#9b3035!important}
   @media(max-width:800px){.login-row{grid-template-columns:1fr}.account-row{align-items:flex-start;flex-direction:column}}
-@media(max-width:600px){.nav{flex-direction:column-reverse;gap:10px}.nav button,.commission-link{width:100%;text-align:center}input[type="file"]{max-width:100%}.test-table{min-width:680px}}
+@media(max-width:600px){
+    .nav{flex-direction:column-reverse;gap:10px}
+    .nav button,.commission-link{width:100%;text-align:center}
+    input[type="file"]{max-width:100%}
+
+    /* Mobile commissioning: turn verification tables into vertical cards. */
+    .test-table{display:block;width:100%;min-width:0!important;border-collapse:separate;font-size:15px}
+    .test-table thead{display:none}
+    .test-table tbody{display:grid;gap:12px}
+    .test-table tr{display:block;border:1px solid var(--border);border-radius:12px;background:#fff;overflow:hidden}
+    .test-table td{display:block;width:100%!important;border:0!important;padding:12px 14px!important}
+    .test-table td+td{border-top:1px solid var(--border)!important}
+    .test-table td:first-child{font-weight:650;font-size:16px;line-height:1.45;background:#fbfcfe}
+    .test-table td:nth-child(2)::before,
+    .test-table td:nth-child(3)::before{display:block;font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+    .test-table td:nth-child(2)::before{content:"Status"}
+    .test-table td:nth-child(3)::before{content:"Notes / observed behaviour"}
+    .test-table select,.test-table textarea{width:100%;min-width:0!important;font-size:16px}
+    .test-table textarea{min-height:78px!important}
+
+    /* Keep Help clear of the bottom navigation/action buttons. */
+    .cps-help-fab{right:12px;bottom:86px;padding:9px 13px;font-size:14px}
+  }
 
   .cps-help-fab{
     position:fixed;right:22px;bottom:22px;z-index:950;
