@@ -151,6 +151,9 @@ function renderStaffNextAction(){
  if(p.stage1_status==='submitted'){
    text.textContent='Review the submitted questionnaire. Either request changes or accept it as the development baseline.';
    html='<button class="ghost" onclick="requestChanges()">Request Stage 1 changes</button><button class="primary" onclick="lockSpecification()">Accept & lock specification</button>';
+ }else if(p.stage1_status==='draft'){
+   text.textContent='Stage 1 is still a draft. Complete and submit the questionnaire before CPS can review and start development.';
+   html='<a class="btn primary" href="questionnaire.html?project='+encodeURIComponent(p.id)+'">Open Stage 1</a>';
  }else if(p.stage1_status==='changes_requested'){
    text.textContent='Waiting for the customer to update and resubmit Stage 1.';
    html='<a class="btn ghost" href="questionnaire.html?project='+encodeURIComponent(p.id)+'">View Stage 1</a>';
@@ -196,7 +199,9 @@ function renderProject(){
  if(p.stage3_status!=='not_started')document.getElementById('tl3').classList.add(['accepted','accepted_with_limitations'].includes(p.stage3_status)?'done':'active');
  const change=p.stage1_status==='changes_requested'&&p.stage1_change_request;
  document.getElementById('changeRequestBox').classList.toggle('hidden',!change);if(change){document.getElementById('changeRequestText').textContent=p.stage1_change_request;document.getElementById('changeRequestLink').href=qurl}
- document.getElementById('staffWorkflow').classList.toggle('hidden',!isStaff);document.getElementById('staffReleaseBox').classList.toggle('hidden',!isStaff);
+ document.getElementById('staffWorkflow').classList.toggle('hidden',!isStaff);
+ const canCreateRelease=isStaff && p.development_status==='in_development';
+ document.getElementById('staffReleaseBox').classList.toggle('hidden',!canCreateRelease);
  const requestNotifyBtn=document.getElementById('requestNotifyBtn');
  requestNotifyBtn.disabled=p.stage1_status!=='submitted'||!!p.stage1_notified_at;
  requestNotifyBtn.textContent=p.stage1_notification_error?'Retry REQUEST email':(p.stage1_notified_at?'REQUEST email sent':'Send REQUEST email');
