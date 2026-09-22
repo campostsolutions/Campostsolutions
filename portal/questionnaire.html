@@ -216,7 +216,9 @@
   .save-state.saved{color:var(--ok)}
   .project-ref{font-size:13px;font-weight:700;color:#35435a}
   .uploaded-list{margin-top:10px;text-align:left;display:grid;gap:4px}
-  .uploaded-file{font-size:12px;color:#35435a;background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+  .uploaded-file{font-size:12px;color:#35435a;background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 8px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .uploaded-file-name{overflow-wrap:anywhere}
+  .uploaded-delete{border:1px solid #e7baba!important;background:#fff5f5!important;color:#9b3035!important;padding:5px 8px!important;font-size:12px!important;flex:0 0 auto}
   .upload.busy{opacity:.65;pointer-events:none}
 
   @media (max-width:800px){
@@ -659,13 +661,14 @@
 
       <div class="conditional" id="millConfig">
         <div class="section" style="margin-top:0;padding-top:0;border-top:0">
-          <h3>Milling / rotary kinematics</h3>
+          <h3 id="kinematicsHeading">Milling / rotary kinematics</h3><div class="notice conditional" id="turnMillConventionNote"><strong>Standard B-axis turn-mill convention:</strong> B is the milling head/tool rotation about machine Y; C is the workpiece spindle rotation about machine Z. These values have been preselected — only change them if this machine differs.</div>
 
           <div class="grid">
             <label class="field">
               <span class="lbl">General kinematic arrangement</span>
               <select name="mill_kinematics">
                 <option value="">Select...</option>
+                <option>B-axis head / C-axis spindle</option>
                 <option>Table / table</option>
                 <option>Head / table</option>
                 <option>Head / head</option>
@@ -719,7 +722,7 @@
             <div class="section">
               <h3>C-axis definition</h3>
               <div class="grid-3">
-                <label class="field"><span class="lbl">What physically rotates?</span><select name="C_component"><option>Table / workpiece</option><option>Head / tool</option><option>Spindle</option><option>Other / unknown</option></select></label>
+                <label class="field"><span class="lbl">What physically rotates?</span><select name="C_component"><option>Table / workpiece</option><option>Head / tool</option><option value="Spindle">Spindle / workpiece</option><option>Other / unknown</option></select></label>
                 <label class="field"><span class="lbl">Rotation about machine axis</span><select name="C_about" onchange="updateConditionals()"><option>Z</option><option>X</option><option>Y</option><option>Non-standard / nutating</option><option>Unknown</option></select></label>
                 <label class="field"><span class="lbl">Continuous?</span><select name="C_continuous"><option>No</option><option>Yes</option><option>Unknown</option></select></label>
                 <label class="field"><span class="lbl">Minimum</span><input name="C_min_config" placeholder="degrees"></label>
@@ -765,7 +768,7 @@
                 <label class="field"><span class="lbl">Position / type</span><select name="turret1_position" onchange="updateConditionals()"><option>Upper</option><option>Lower</option><option>B-axis head</option><option>Gang / tool carrier</option><option>Other</option></select></label>
                 <label class="field"><span class="lbl">Live tooling</span><select name="turret1_live"><option>Unknown</option><option>No</option><option>Yes</option></select></label>
                 <label class="field"><span class="lbl">Y-axis</span><select name="turret1_y"><option>Unknown</option><option>No</option><option>Yes</option></select></label>
-                <label class="field"><span class="lbl">B-axis</span><select name="turret1_b"><option>Unknown</option><option>No</option><option>Positioning</option><option>Simultaneous</option><option>Both</option></select></label>
+                <label class="field conditional" id="turret1BField"><span class="lbl">B-axis capability</span><select name="turret1_b"><option>Unknown</option><option>No</option><option>Positioning</option><option>Simultaneous</option><option>Both</option></select></label>
                 <label class="field"><span class="lbl">Spindle access</span><select id="turret1Access" name="turret1_access"><option>Main only</option><option>Sub only</option><option>Main and sub</option><option>Other / unknown</option></select></label>
                 <label class="field"><span class="lbl">Normal safe retract</span><input name="turret1_safe"></label>
                 <label class="field full conditional" id="turret1Park" hidden><span class="lbl">Lower-turret park position</span><input name="turret1_park" placeholder="Position used to move the lower turret safely out of the working/transfer area"></label>
@@ -778,7 +781,7 @@
                 <label class="field"><span class="lbl">Position / type</span><select name="turret2_position" onchange="updateConditionals()"><option>Upper</option><option selected>Lower</option><option>B-axis head</option><option>Gang / tool carrier</option><option>Other</option></select></label>
                 <label class="field"><span class="lbl">Live tooling</span><select name="turret2_live"><option>Unknown</option><option>No</option><option>Yes</option></select></label>
                 <label class="field"><span class="lbl">Y-axis</span><select name="turret2_y"><option>Unknown</option><option>No</option><option>Yes</option></select></label>
-                <label class="field"><span class="lbl">B-axis</span><select name="turret2_b"><option>Unknown</option><option>No</option><option>Positioning</option><option>Simultaneous</option><option>Both</option></select></label>
+                <label class="field conditional" id="turret2BField"><span class="lbl">B-axis capability</span><select name="turret2_b"><option>Unknown</option><option>No</option><option>Positioning</option><option>Simultaneous</option><option>Both</option></select></label>
                 <label class="field"><span class="lbl">Spindle access</span><select id="turret2Access" name="turret2_access"><option>Main only</option><option>Sub only</option><option>Main and sub</option><option>Other / unknown</option></select></label>
                 <label class="field"><span class="lbl">Normal safe retract</span><input name="turret2_safe"></label>
                 <label class="field full conditional" id="turret2Park" hidden><span class="lbl">Lower-turret park position</span><input name="turret2_park" placeholder="Position used to move the lower turret safely out of the working/transfer area"></label>
@@ -791,7 +794,7 @@
                 <label class="field"><span class="lbl">Position / type</span><select name="turret3_position" onchange="updateConditionals()"><option>Upper</option><option>Lower</option><option>B-axis head</option><option>Gang / tool carrier</option><option>Other</option></select></label>
                 <label class="field"><span class="lbl">Live tooling</span><select name="turret3_live"><option>Unknown</option><option>No</option><option>Yes</option></select></label>
                 <label class="field"><span class="lbl">Y-axis</span><select name="turret3_y"><option>Unknown</option><option>No</option><option>Yes</option></select></label>
-                <label class="field"><span class="lbl">B-axis</span><select name="turret3_b"><option>Unknown</option><option>No</option><option>Positioning</option><option>Simultaneous</option><option>Both</option></select></label>
+                <label class="field conditional" id="turret3BField"><span class="lbl">B-axis capability</span><select name="turret3_b"><option>Unknown</option><option>No</option><option>Positioning</option><option>Simultaneous</option><option>Both</option></select></label>
                 <label class="field"><span class="lbl">Spindle access</span><select id="turret3Access" name="turret3_access"><option>Main only</option><option>Sub only</option><option>Main and sub</option><option>Other / unknown</option></select></label>
                 <label class="field"><span class="lbl">Normal safe retract</span><input name="turret3_safe"></label>
                 <label class="field full conditional" id="turret3Park" hidden><span class="lbl">Lower-turret park position</span><input name="turret3_park" placeholder="Position used to move the lower turret safely out of the working/transfer area"></label>
@@ -909,8 +912,10 @@
           <div class="grid">
             <label class="field"><span class="lbl">Transfer type</span><select name="transfer_type"><option value="">Select...</option><option>Main to sub before cutoff</option><option>Main to sub after cutoff</option><option>Pull-out transfer</option><option>Pick-off transfer</option><option>Other</option></select></label>
             <label class="field"><span class="lbl">Which spindle moves during transfer?</span><input name="transfer_moving_spindle"></label>
-            <label class="field"><span class="lbl">Spindle synchronisation command</span><input name="spindle_sync_command"></label>
+            <label class="field"><span class="lbl">Spindle synchronisation ON / engage command</span><input name="spindle_sync_command"></label>
+            <label class="field"><span class="lbl">Spindle synchronisation OFF / cancel command</span><input name="spindle_sync_off_command"></label>
             <label class="field"><span class="lbl">Phase/orientation required?</span><select name="transfer_phase"><option>Unknown</option><option>Yes</option><option>No</option></select></label>
+            <label class="field"><span class="lbl">Phase / orientation command</span><input name="transfer_orientation_command"></label>
             <label class="field full"><span class="lbl">Required approach / grip / retract sequence</span><textarea name="transfer_sequence"></textarea></label>
           </div>
         </div>
@@ -985,13 +990,16 @@
       </div>
 
       <div class="section conditional" id="transferBlock">
-        <h3>Part transfer / spindle handover</h3>
+        <h3>Part-transfer commands / M-codes</h3>
+        <p>Enter as many of the actual machine commands as are known. A proven transfer program is still preferred evidence.</p>
         <div class="grid">
-          <label class="field"><span class="lbl">Transfer type</span><select name="transfer_type"><option value="">Select...</option><option>Main to sub before cutoff</option><option>Main to sub after cutoff</option><option>Pull-out transfer</option><option>Pick-off transfer</option><option>Other</option></select></label>
-          <label class="field"><span class="lbl">Which spindle moves during transfer?</span><input name="transfer_moving_spindle"></label>
-          <label class="field"><span class="lbl">Spindle synchronisation command</span><input name="spindle_sync_command"></label>
-          <label class="field"><span class="lbl">Phase/orientation required?</span><select name="transfer_phase"><option>Unknown</option><option>Yes</option><option>No</option></select></label>
-          <label class="field full"><span class="lbl">Describe the proven transfer sequence</span><textarea name="transfer_sequence"></textarea></label>
+          <label class="field"><span class="lbl">Main chuck open command</span><input name="main_chuck_open_command"></label>
+          <label class="field"><span class="lbl">Main chuck close command</span><input name="main_chuck_close_command"></label>
+          <label class="field"><span class="lbl">Sub chuck open command</span><input name="sub_chuck_open_command"></label>
+          <label class="field"><span class="lbl">Sub chuck close command</span><input name="sub_chuck_close_command"></label>
+          <label class="field"><span class="lbl">Part eject / push command</span><input name="transfer_eject_command"></label>
+          <label class="field"><span class="lbl">Cut-off / handover related command</span><input name="transfer_handover_command"></label>
+          <label class="field full"><span class="lbl">Additional transfer commands / M-codes</span><textarea name="transfer_other_commands" placeholder="One command per line, with a short description where useful."></textarea></label>
         </div>
       </div>
 
@@ -1120,7 +1128,7 @@ function value(name){
   const els = [...document.querySelectorAll(`[name="${name}"]`)];
   if(!els.length) return "";
   if(els[0].type === "radio") return els.find(e=>e.checked)?.value || "";
-  if(els[0].type === "checkbox") return els.filter(e=>e.checked).map(e=>e.value);
+  if(els[0].type === "checkbox") return els.filter(e=>e.checked && !e.disabled).map(e=>e.value);
   return els[0].value;
 }
 
@@ -1138,14 +1146,21 @@ function updateConditionals(){
   toggle("postWorkType", postRequired && !!projectScope);
 
   const type = machineType();
-  const caps = value("capabilities");
-  const capabilities = Array.isArray(caps) ? caps : (caps ? [caps] : []);
-  const rotaryAxes = value("rotary_axes");
-  const rot = Array.isArray(rotaryAxes) ? rotaryAxes : (rotaryAxes ? [rotaryAxes] : []);
-
   const isTurning = type === "Turning centre / lathe";
   const isMill = type === "Milling / machining centre";
   const isSwiss = type === "Swiss / sliding-head";
+
+  // Enable only the active machine-type capability branch before reading it,
+  // so stale selections from another branch cannot influence the configuration.
+  toggle("turnCapabilities", isTurning);
+  toggle("millCapabilities", isMill);
+  toggle("swissCapabilities", isSwiss);
+
+  const caps = value("capabilities");
+  const capabilities = Array.isArray(caps) ? caps : (caps ? [caps] : []);
+  const rotaryAxes = value("rotary_axes");
+  let rot = Array.isArray(rotaryAxes) ? rotaryAxes : (rotaryAxes ? [rotaryAxes] : []);
+
   const millTurning = isMill && capabilities.includes("Turning on mill");
   const hasTurning = isTurning || isSwiss || millTurning;
   const hasSubCapability = capabilities.includes("Sub spindle");
@@ -1174,6 +1189,31 @@ function updateConditionals(){
   const hasDriven = capabilities.includes("Driven tooling");
   const hasY = capabilities.includes("Y-axis");
   const hasBHead = capabilities.includes("B-axis head");
+  const standardTurnMill = isTurning && hasBHead;
+
+  if(standardTurnMill){
+    const a=document.querySelector('[name="rotary_axes"][value="A"]');
+    const b=document.querySelector('[name="rotary_axes"][value="B"]');
+    const cc=document.querySelector('[name="rotary_axes"][value="C"]');
+    if(a) a.checked=false;
+    if(b) b.checked=true;
+    if(cc) cc.checked=true;
+    rot=["B","C"];
+
+    const kin=document.querySelector('[name="mill_kinematics"]');
+    const bComp=document.querySelector('[name="B_component"]');
+    const bAbout=document.querySelector('[name="B_about"]');
+    const cComp=document.querySelector('[name="C_component"]');
+    const cAbout=document.querySelector('[name="C_about"]');
+    const cCont=document.querySelector('[name="C_continuous"]');
+    if(kin) kin.value="B-axis head / C-axis spindle";
+    if(bComp) bComp.value="Head / tool";
+    if(bAbout) bAbout.value="Y";
+    if(cComp) cComp.value="Spindle";
+    if(cAbout) cAbout.value="Z";
+    if(cCont) cCont.value="Yes";
+  }
+
   const hasMultiTurret = capabilities.includes("Multiple turrets");
   const hasChannels = capabilities.includes("Multiple channels");
   const hasTransfer = hasSub && !!document.querySelector('[name="capabilities"][value="Part transfer"]:checked');
@@ -1189,6 +1229,9 @@ function updateConditionals(){
   toggle("swissCapabilities", isSwiss);
 
   toggle("millConfig", hasRotaryCapability || hasBHead);
+  toggle("turnMillConventionNote", standardTurnMill);
+  const kinHeading=document.getElementById("kinematicsHeading");
+  if(kinHeading) kinHeading.textContent=standardTurnMill ? "Turn-mill B/C kinematics" : "Milling / rotary kinematics";
   toggle("turningConfig", isTurning);
   toggle("millTurningConfig", millTurning);
   toggle("swissConfig", isSwiss);
@@ -1214,6 +1257,16 @@ function updateConditionals(){
     if(hasMultiTurret && Number(turretCount.value) < 2) turretCount.value = "2";
     if(!hasMultiTurret && turretCount.value !== "1") turretCount.value = "1";
     const tc = Number(turretCount.value || 1);
+
+    // A conventional B-axis turn-mill uses the B-axis milling head as the
+    // primary carrier and any lower/extra turrets as normal fixed turrets.
+    const t1Pos=document.querySelector('[name="turret1_position"]');
+    const t2Pos=document.querySelector('[name="turret2_position"]');
+    const t3Pos=document.querySelector('[name="turret3_position"]');
+    if(standardTurnMill && t1Pos && t1Pos.value==="Upper") t1Pos.value="B-axis head";
+    if(tc>=2 && t2Pos && !t2Pos.dataset.userSet && t2Pos.value==="Lower") t2Pos.value="Lower";
+    if(tc>=3 && t3Pos && !t3Pos.dataset.userSet && t3Pos.value==="Upper") t3Pos.value="Upper";
+
     toggle("turret2Card", tc >= 2);
     toggle("turret3Card", tc >= 3);
     toggleCarrierPark("turret1Park", false);
@@ -1222,6 +1275,15 @@ function updateConditionals(){
     toggleCarrierPark("turret1Park", value("turret1_position") === "Lower");
     toggleCarrierPark("turret2Park", tc >= 2 && value("turret2_position") === "Lower");
     toggleCarrierPark("turret3Park", tc >= 3 && value("turret3_position") === "Lower");
+
+    [1,2,3].forEach(n=>{
+      const inUse=n===1 || n<=tc;
+      const pos=value(`turret${n}_position`);
+      const isBCarrier=inUse && pos==="B-axis head";
+      toggle(`turret${n}BField`, isBCarrier);
+      const bSel=document.querySelector(`[name="turret${n}_b"]`);
+      if(bSel && !isBCarrier) bSel.value="No";
+    });
   }
 
   toggle("rotarySafety", hasRotaryCapability || hasBHead || rot.length > 0);
@@ -1386,6 +1448,7 @@ function formDataObject(){
   }
   [1,2,3].forEach(n=>{
     if(obj[`turret${n}_position`]!=="Lower") delete obj[`turret${n}_park`];
+    if(obj[`turret${n}_position`]!=="B-axis head") delete obj[`turret${n}_b`];
   });
   const tc=Number(obj.turret_count||1);
   if(tc<2){
@@ -1735,19 +1798,46 @@ async function uploadFiles(files,category,displayId){
 async function loadProjectFiles(){
   uploadedCategories.clear(); uploadedFileNames=[];
   if(!currentProjectId) return;
-  const {data,error}=await sb.from("project_files").select("category,filename,created_at").eq("project_id",currentProjectId).order("created_at",{ascending:true});
+  const {data,error}=await sb.from("project_files").select("id,category,filename,storage_path,created_at").eq("project_id",currentProjectId).eq("stage","stage1").order("created_at",{ascending:true});
   if(error){ setAccountMessage("Could not load file list: "+error.message,true); return; }
   for(const f of (data||[])){ uploadedCategories.add(f.category); uploadedFileNames.push(f.filename); }
-  const byCat=(cat)=>(data||[]).filter(f=>f.category===cat).map(f=>f.filename);
+  const byCat=(cat)=>(data||[]).filter(f=>f.category===cat);
   renderUploadedList("machineCadSelected",byCat("machine_cad"));
   renderUploadedList("homePhotoSelected",byCat("home_photo"));
   renderUploadedList("selectedFiles",byCat("supporting"));
+
+  const cadCheck=document.getElementById("machineModelEvidenceCheck");
+  const homeCheck=document.getElementById("homePhotoEvidenceCheck");
+  if(cadCheck) cadCheck.checked=byCat("machine_cad").length>0 || cadCheck.checked;
+  if(homeCheck) homeCheck.checked=byCat("home_photo").length>0 || homeCheck.checked;
 }
 
-function renderUploadedList(id,names){
+function renderUploadedList(id,files){
   const el=document.getElementById(id); if(!el) return;
-  if(!names.length){ el.textContent=""; return; }
-  el.innerHTML='<div class="uploaded-list">'+names.map(n=>`<div class="uploaded-file">✓ ${escapeHtml(n)}</div>`).join("")+'</div>';
+  if(!files.length){ el.textContent=""; return; }
+  const canDelete=["draft","changes_requested"].includes(currentProjectStatus);
+  el.innerHTML='<div class="uploaded-list">'+files.map(f=>{
+    const del=canDelete ? `<button type="button" class="uploaded-delete" onclick='deleteUploadedFile(${JSON.stringify(f.id)},${JSON.stringify(f.storage_path)},${JSON.stringify(f.filename)})'>Delete</button>` : "";
+    return `<div class="uploaded-file"><span class="uploaded-file-name">✓ ${escapeHtml(f.filename)}</span>${del}</div>`;
+  }).join("")+'</div>';
+}
+
+async function deleteUploadedFile(id,path,filename){
+  if(!["draft","changes_requested"].includes(currentProjectStatus)){
+    setAccountMessage("Submitted/reviewed Stage 1 files are locked.",true); return;
+  }
+  if(!confirm(`Delete "${filename}" from this questionnaire?`)) return;
+  try{
+    const {error:storageError}=await sb.storage.from("cps-project-files").remove([path]);
+    if(storageError) throw storageError;
+    const {error:metaError}=await sb.from("project_files").delete().eq("id",id).eq("project_id",currentProjectId);
+    if(metaError) throw metaError;
+    await loadProjectFiles();
+    setAccountMessage(`Deleted ${filename}.`);
+    scheduleAutosave();
+  }catch(e){
+    setAccountMessage("Could not delete file: "+(e.message||e),true);
+  }
 }
 
 async function submitStage1(){
@@ -1762,7 +1852,18 @@ async function submitStage1(){
     currentProjectStatus="submitted";
     setStage1Editability("submitted");
     setSaveStatus("Submitted","saved");
-    setAccountMessage(`Questionnaire ${data.reference} submitted successfully to Cam Post Solutions.`);
+    let notificationNote="";
+    try{
+      const {data:notifyData,error:notifyError}=await sb.functions.invoke("notify-project",{body:{action:"stage1_submitted",project_id:currentProjectId}});
+      if(notifyError || notifyData?.error){
+        console.warn("CPS submission email was not sent",notifyError||notifyData?.error);
+        notificationNote=" The project is safely in the CPS dashboard; the internal email notification could not be sent.";
+      }
+    }catch(err){
+      console.warn("CPS submission email failed",err);
+      notificationNote=" The project is safely in the CPS dashboard; the internal email notification could not be sent.";
+    }
+    setAccountMessage(`Questionnaire ${data.reference} submitted successfully to Cam Post Solutions.${notificationNote}`);
     await refreshProjectPicker(false);
     document.getElementById("projectPicker").value=currentProjectId;
     alert(`Questionnaire ${data.reference} submitted successfully. Cam Post Solutions can now review the project.`);
