@@ -5,7 +5,6 @@ on:
     branches: [main]
     paths:
       - 'index.html'
-      - 'terms.html'
       - 'logo.jpg'
       - 'CNAME'
       - '.nojekyll'
@@ -24,7 +23,7 @@ jobs:
 
       - name: Create production bundle
         run: |
-          zip -r CPS_Portal_Production_Bundle.zip index.html terms.html logo.jpg CNAME .nojekyll portal
+          zip -r CPS_Portal_Production_Bundle.zip index.html logo.jpg CNAME .nojekyll portal
 
       - name: Upload production bundle
         uses: actions/upload-artifact@v4
