@@ -70,6 +70,7 @@
  <div id="staffWorkflow" class="card hidden">
   <div class="section-title"><div><h2>CPS workflow controls</h2><div class="muted small">Use these controls to progress the project; customers do not see them.</div></div></div>
   <div class="row">
+    <button id="requestNotifyBtn" class="ghost" onclick="sendRequestNotification()">Send REQUEST email</button>
     <button id="requestChangesBtn" class="ghost" onclick="requestChanges()">Request Stage 1 changes</button>
     <button id="lockSpecBtn" class="ghost" onclick="lockSpecification()">Accept & lock specification</button>
     <button id="startDevBtn" class="primary" onclick="startDevelopment()">Price/scope agreed · Start development</button>
@@ -156,6 +157,9 @@ function renderProject(){
  const change=p.stage1_status==='changes_requested'&&p.stage1_change_request;
  document.getElementById('changeRequestBox').classList.toggle('hidden',!change);if(change){document.getElementById('changeRequestText').textContent=p.stage1_change_request;document.getElementById('changeRequestLink').href=qurl}
  document.getElementById('staffWorkflow').classList.toggle('hidden',!isStaff);document.getElementById('staffReleaseBox').classList.toggle('hidden',!isStaff);
+ const requestNotifyBtn=document.getElementById('requestNotifyBtn');
+ requestNotifyBtn.disabled=p.stage1_status!=='submitted'||!!p.stage1_notified_at;
+ requestNotifyBtn.textContent=p.stage1_notification_error?'Retry REQUEST email':(p.stage1_notified_at?'REQUEST email sent':'Send REQUEST email');
  document.getElementById('requestChangesBtn').disabled=!['submitted','reviewed'].includes(p.stage1_status);
  document.getElementById('lockSpecBtn').disabled=p.stage1_status!=='submitted';
  document.getElementById('startDevBtn').disabled=p.stage1_status!=='reviewed'||!['not_started','awaiting_commercial'].includes(p.development_status);
@@ -187,6 +191,14 @@ async function downloadReleaseFile(path,filename){
  const u=new URL(data.signedUrl);
  u.searchParams.set('download',filename||'download');
  window.open(u.toString(),'_blank','noopener');
+}
+async function sendRequestNotification(){
+ if(!currentProjectId||currentProject?.stage1_status!=='submitted')return;
+ setMsg('Sending REQUEST notification…');
+ const n=await notify('stage1_submitted');
+ await loadProject(currentProjectId);
+ if(n.ok) setMsg(n.data?.already_sent?'REQUEST email was already sent.':'REQUEST email sent to CPS Support.');
+ else setMsg('REQUEST is safely in the dashboard, but the email could not be sent: '+(n.error||'unknown error'),true);
 }
 async function requestChanges(){
  const note=prompt('What information should the customer update in Stage 1?');if(!note?.trim())return;
