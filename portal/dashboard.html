@@ -81,24 +81,35 @@ async function loadProjects(){
  projects=data||[];renderStats();renderProjects();msg(`${projects.length} project${projects.length===1?'':'s'} loaded.`);
 }
 function badge(value){
- const v=value||'—';let cls='';if(/completed|accepted|reviewed|submitted/.test(v))cls='ok';else if(/retest|blocked|not_accepted/.test(v))cls='bad';else if(/draft|not_started/.test(v))cls='warn';
+ const v=value||'—';let cls='';
+ if(/completed|accepted|reviewed|ready_for_testing/.test(v)) cls='ok';
+ else if(/retest|blocked|not_accepted/.test(v)) cls='bad';
+ else if(/draft|not_started|submitted|changes_requested|awaiting_commercial|in_development/.test(v)) cls='warn';
  return `<span class="status ${cls}">${esc(v.replaceAll('_',' '))}</span>`;
 }
 function renderStats(){
  const count=f=>projects.filter(f).length;
  document.getElementById('stats').innerHTML=[
   ['Total projects',projects.length],
-  ['Stage 1 submitted/reviewed',count(p=>['submitted','reviewed'].includes(p.stage1_status))],
-  ['Commissioning active',count(p=>['draft','retest_required'].includes(p.stage2_status))],
-  ['Ready / accepted',count(p=>p.stage2_status==='completed'||['accepted','accepted_with_limitations'].includes(p.stage3_status))]
+  ['New requests',count(p=>p.stage1_status==='submitted' && ['not_started','awaiting_commercial'].includes(p.development_status||'not_started'))],
+  ['In development',count(p=>p.development_status==='in_development')],
+  ['Testing / accepted',count(p=>p.stage2_status!=='not_started'||['accepted','accepted_with_limitations'].includes(p.stage3_status))]
  ].map(([l,n])=>`<div class="stat"><span class="muted">${l}</span><strong>${n}</strong></div>`).join('');
 }
 function projectActions(p){
-  const buttons=[`<a class="btn ghost" href="index.html?project=${encodeURIComponent(p.id)}">Project home</a>`,`<button class="ghost" onclick="toggleDetails('${p.id}')">Details</button>`];
+  const buttons=[`<button class="ghost" onclick="toggleDetails('${p.id}')">Details</button>`];
+  let primaryLabel='Project home';
 
-  if(p.stage2_status==='not_started'){
-    buttons.push(`<a class="btn primary" href="index.html?project=${encodeURIComponent(p.id)}">Manage project</a>`);
-  } else {
+  if(p.stage1_status==='submitted') primaryLabel='Review REQUEST';
+  else if(p.stage1_status==='changes_requested') primaryLabel='Waiting for customer';
+  else if(p.stage1_status==='reviewed' && (p.development_status||'not_started')==='awaiting_commercial') primaryLabel='Commercial / start development';
+  else if(p.development_status==='in_development') primaryLabel='Development / releases';
+  else if(p.development_status==='ready_for_testing') primaryLabel='Test release / project';
+  else if(p.stage1_status==='draft') primaryLabel='View draft';
+
+  buttons.push(`<a class="btn primary" href="index.html?project=${encodeURIComponent(p.id)}">${primaryLabel}</a>`);
+
+  if(p.stage2_status!=='not_started'){
     const s2Label=p.stage2_status==='completed'?'View Stage 2':'Open Stage 2';
     buttons.push(`<a class="btn ghost" href="./commissioning.html?project=${encodeURIComponent(p.id)}">${s2Label}</a>`);
   }
@@ -107,7 +118,7 @@ function projectActions(p){
     const s3Label=['accepted','accepted_with_limitations'].includes(p.stage3_status)
       ? 'View sign-off'
       : (p.stage3_status==='not_accepted'?'View rejected sign-off':'Open Stage 3');
-    buttons.push(`<a class="btn primary" href="./signoff.html?project=${encodeURIComponent(p.id)}">${s3Label}</a>`);
+    buttons.push(`<a class="btn ghost" href="./signoff.html?project=${encodeURIComponent(p.id)}">${s3Label}</a>`);
   }
 
   return buttons.join('');
@@ -118,8 +129,12 @@ function renderProjects(){
  document.getElementById('rows').innerHTML=rows.map(p=>{
   const stage1=p.stage1_data||{},caps=Array.isArray(stage1.capabilities)?stage1.capabilities:(stage1.capabilities?[stage1.capabilities]:[]);
   const s3=p.stage3_data||{};
-  return `<tr><td><strong>${esc(p.reference)}</strong><div class="muted">${esc(p.cam_system||'')}</div></td><td><strong>${esc(p.customer_company||'—')}</strong><br>${esc([p.machine_manufacturer,p.machine_model].filter(Boolean).join(' ')||'—')}<div class="muted">${esc([p.control_manufacturer,p.control_model].filter(Boolean).join(' '))}</div></td><td>${badge(p.stage1_status)}</td><td>${badge(p.stage2_status)}</td><td>${badge(p.stage3_status)}</td><td>${new Date(p.updated_at).toLocaleString()}</td><td><div class="actions">${projectActions(p)}</div></td></tr>
-  <tr id="details-${p.id}" class="details"><td colspan="7"><div class="details-box"><strong>Stage 1 scope</strong><div>${esc(stage1.project_scope||p.deliverable||'—')}</div><div style="margin-top:8px">${caps.map(c=>`<span class="pill">${esc(c)}</span>`).join('')}</div><div style="margin-top:10px"><strong>Contact:</strong> ${esc(p.customer_contact||'—')} · ${esc(p.customer_email||'—')}</div>${s3.acceptance?`<div style="margin-top:10px"><strong>Acceptance:</strong> ${esc(s3.acceptance)}${s3.customer_representative?` · ${esc(s3.customer_representative)}`:''}</div>`:''}</div></td></tr>`;
+  const requestTag=p.stage1_status==='submitted'?'<div style="margin-top:5px"><span class="status warn">REQUEST</span></div>':'';
+  const emailState=p.stage1_notified_at
+    ? `<span class="status ok">request email sent</span>`
+    : (p.stage1_notification_error ? `<span class="status bad">request email failed</span>` : (p.stage1_status==='submitted'?'<span class="status warn">request email pending</span>':''));
+  return `<tr><td><strong>${esc(p.reference)}</strong>${requestTag}<div class="muted">${esc(p.cam_system||'')}</div></td><td><strong>${esc(p.customer_company||'—')}</strong><br>${esc([p.machine_manufacturer,p.machine_model].filter(Boolean).join(' ')||'—')}<div class="muted">${esc([p.control_manufacturer,p.control_model].filter(Boolean).join(' '))}</div></td><td>${badge(p.stage1_status)}</td><td>${badge(p.stage2_status)}</td><td>${badge(p.stage3_status)}</td><td>${new Date(p.updated_at).toLocaleString()}</td><td><div class="actions">${projectActions(p)}</div></td></tr>
+  <tr id="details-${p.id}" class="details"><td colspan="7"><div class="details-box"><strong>Stage 1 scope</strong><div>${esc(stage1.project_scope||p.deliverable||'—')}</div><div style="margin-top:8px">${caps.map(c=>`<span class="pill">${esc(c)}</span>`).join('')}</div><div style="margin-top:10px"><strong>Contact:</strong> ${esc(p.customer_contact||'—')} · ${esc(p.customer_email||'—')}</div><div style="margin-top:10px"><strong>Development:</strong> ${badge(p.development_status||'not_started')}</div>${emailState?`<div style="margin-top:10px"><strong>Portal notification:</strong> ${emailState}${p.stage1_notification_error?`<div class="muted">${esc(p.stage1_notification_error)}</div>`:''}</div>`:''}${s3.acceptance?`<div style="margin-top:10px"><strong>Acceptance:</strong> ${esc(s3.acceptance)}${s3.customer_representative?` · ${esc(s3.customer_representative)}`:''}</div>`:''}</div></td></tr>`;
  }).join('');
 }
 function toggleDetails(id){document.getElementById('details-'+id).classList.toggle('show')}
@@ -144,8 +159,9 @@ sb.auth.onAuthStateChange((_e,s)=>setTimeout(()=>handleSession(s),0));
           <h3>CPS internal dashboard</h3>
           <ul>
             <li><strong>Draft:</strong> customer is still completing Stage 1.</li>
-            <li><strong>Submitted:</strong> Stage 1 is ready for CPS review.</li>
-            <li><strong>Enable commissioning:</strong> marks Stage 1 reviewed and opens Stage 2.</li>
+            <li><strong>REQUEST / Submitted:</strong> Stage 1 is ready for CPS review and commercial discussion.</li>
+            <li><strong>Lock specification:</strong> freezes the agreed Stage 1 development baseline.</li>
+            <li><strong>Start development:</strong> use after scope/price are agreed. Commissioning does not open until a test release is published.</li>
             <li><strong>Retest required:</strong> further post/simulation work or machine testing is needed.</li>
             <li><strong>Completed:</strong> Stage 2 baseline is locked and Stage 3 can proceed.</li>
             <li><strong>Accepted:</strong> final release baseline is locked.</li>
