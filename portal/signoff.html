@@ -451,7 +451,7 @@ const SUPABASE_URL="https://hfxghrzhthvmcvzxletp.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_TTAEax5Jgl-gcYKdixdxiA_Imyz7hHg";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 
-let currentStep=1,totalSteps=5,currentUser=null,currentProjectId=null,currentProjectRow=null;
+let currentStep=1,totalSteps=5,currentUser=null,currentProjectId=null,currentProjectRow=null,currentRun=null,currentRelease=null,currentSignoff=null;
 let stage1={},commission={},isCpsStaff=false,isHydrating=false,saveTimer=null,formLocked=false;
 
 function arr(v){return Array.isArray(v)?v:(v?[v]:[]);}
@@ -523,7 +523,7 @@ async function switchProject(id){if(!id){resetProject();return;}await loadProjec
 
 function resetProject(){
   isHydrating=true;document.getElementById('signoff').reset();
-  currentProjectId=null;currentProjectRow=null;stage1={};commission={};formLocked=false;
+  currentProjectId=null;currentProjectRow=null;currentRun=null;currentRelease=null;currentSignoff=null;stage1={};commission={};formLocked=false;
   document.getElementById('projectReference').textContent='No project selected';
   document.getElementById('projectStageStatus').textContent='Stage 3 not available';
   document.getElementById('projectStageStatus').className='project-status';
@@ -540,46 +540,70 @@ function resetProject(){
 }
 
 function stage3Available(){
-  return !!currentProjectRow && currentProjectRow.stage2_status==='completed' &&
-    ['draft','accepted','accepted_with_limitations'].includes(currentProjectRow.stage3_status);
+  return !!currentRun && currentRun.status==='completed' && !!currentSignoff &&
+    ['draft','accepted','accepted_with_limitations'].includes(currentSignoff.status);
 }
 
 async function loadProject(id){
   setSaveStatus('Loading…','saving');
   const {data,error}=await sb.from('projects').select('*').eq('id',id).single();
   if(error){setAccountMessage('Could not load project: '+error.message,true);setSaveStatus('Load failed');return;}
-  currentProjectRow=data;currentProjectId=data.id;stage1=data.stage1_data||{};commission=data.stage2_data||{};
-  populateProject();
-  if(data.stage3_data&&Object.keys(data.stage3_data).length)hydrateSignoff(data.stage3_data);
-  setFormLock(['accepted','accepted_with_limitations','not_accepted'].includes(data.stage3_status));
+  currentProjectRow=data;currentProjectId=data.id;stage1=data.stage1_data||{};
 
-  const available=stage3Available()||['accepted','accepted_with_limitations'].includes(data.stage3_status);
+  const requestedRun=new URLSearchParams(location.search).get('run')||data.current_commissioning_run_id||null;
+  currentRun=null;currentRelease=null;currentSignoff=null;commission={};
+  if(requestedRun){
+    const rr=await sb.from('commissioning_runs').select('*').eq('id',requestedRun).eq('project_id',id).maybeSingle();
+    if(rr.error){setAccountMessage('Could not load commissioning run: '+rr.error.message,true);return;}
+    currentRun=rr.data;
+  }
+  if(!currentRun){
+    const rr=await sb.from('commissioning_runs').select('*').eq('project_id',id).eq('status','completed').order('run_number',{ascending:false}).limit(1);
+    if(rr.error){setAccountMessage('Could not load commissioning history: '+rr.error.message,true);return;}
+    currentRun=rr.data?.[0]||null;
+  }
+  if(currentRun){
+    commission=currentRun.data||{};
+    const rel=await sb.from('project_releases').select('*').eq('id',currentRun.release_id).single();
+    if(rel.error){setAccountMessage('Could not load tested release: '+rel.error.message,true);return;}
+    currentRelease=rel.data;
+    const sr=await sb.from('signoff_records').select('*').eq('commissioning_run_id',currentRun.id).maybeSingle();
+    if(sr.error){setAccountMessage('Could not load sign-off record: '+sr.error.message,true);return;}
+    currentSignoff=sr.data;
+  }
+
+  populateProject();
+  if(currentSignoff?.data&&Object.keys(currentSignoff.data).length)hydrateSignoff(currentSignoff.data);
+  setFormLock(!currentSignoff || currentSignoff.status!=='draft');
+
+  const status=currentSignoff?.status||'not_started';
+  const available=stage3Available()||['accepted','accepted_with_limitations'].includes(status);
   document.getElementById('notReadyNotice').classList.toggle('hidden',available);
-  document.getElementById('lockedNotice').classList.toggle('hidden',!['accepted','accepted_with_limitations'].includes(data.stage3_status));
+  document.getElementById('lockedNotice').classList.toggle('hidden',!['accepted','accepted_with_limitations'].includes(status));
 
   let statusClass='project-status';
-  if(['accepted','accepted_with_limitations'].includes(data.stage3_status))statusClass+=' enabled';
-  else if(data.stage3_status==='not_accepted')statusClass+=' bad';
-  else if(data.stage3_status==='draft')statusClass+=' enabled';
+  if(['accepted','accepted_with_limitations','draft'].includes(status))statusClass+=' enabled';
+  else if(status==='not_accepted')statusClass+=' bad';
   document.getElementById('projectStageStatus').className=statusClass;
-  document.getElementById('projectStageStatus').textContent='Stage 3: '+data.stage3_status.replaceAll('_',' ');
+  document.getElementById('projectStageStatus').textContent=currentRun
+    ? `Release ${currentRelease?.revision||'—'} · Run ${currentRun.run_number} · Sign-off: ${status.replaceAll('_',' ')}`
+    : 'Stage 3 not available';
 
-  if(data.stage3_status==='draft'&&data.stage2_status==='completed'){
-    document.getElementById('projectGateMessage').textContent='Commissioning is complete. This project is ready for customer acceptance.';
+  if(status==='draft'&&currentRun?.status==='completed'){
+    document.getElementById('projectGateMessage').textContent='This exact tested release is ready for customer acceptance.';
     setSaveStatus('Saved','saved');
-  }else if(['accepted','accepted_with_limitations'].includes(data.stage3_status)){
+  }else if(['accepted','accepted_with_limitations'].includes(status)){
     document.getElementById('projectGateMessage').textContent='This release has been accepted and is stored as the project baseline.';
     setSaveStatus('Accepted','saved');
-  }else if(data.stage3_status==='not_accepted'){
-    document.getElementById('projectGateMessage').textContent='This release was not accepted. Stage 2 must be retested before Stage 3 can reopen.';
-    setSaveStatus('Retest required');
+  }else if(status==='not_accepted'){
+    document.getElementById('projectGateMessage').textContent='This release was not accepted. CPS must issue a revised release and new commissioning run.';
+    setSaveStatus('Not accepted');
   }else{
-    document.getElementById('projectGateMessage').textContent='Complete Stage 2 commissioning before customer acceptance.';
-    setSaveStatus('Waiting for Stage 2');
+    document.getElementById('projectGateMessage').textContent='Complete a commissioning run before customer acceptance.';
+    setSaveStatus('Waiting for commissioning');
   }
   setAccountMessage('Project loaded.');
 }
-
 function scopeFlags(){
   const scope=stage1.project_scope||currentProjectRow?.deliverable||'Post only';
   return {
@@ -616,7 +640,9 @@ function populateProject(){
     <dt>Machine</dt><dd>${esc([currentProjectRow?.machine_manufacturer,currentProjectRow?.machine_model].filter(Boolean).join(' ')||'—')}</dd>
     <dt>Control</dt><dd>${esc([currentProjectRow?.control_manufacturer,currentProjectRow?.control_model].filter(Boolean).join(' ')||'—')}</dd>
     <dt>CAM</dt><dd>${esc([currentProjectRow?.cam_system,stage1.cam_version].filter(Boolean).join(' ')||'—')}</dd>
-    <dt>Commissioning outcome</dt><dd><strong>${esc(commission.outcome||currentProjectRow?.stage2_status||'—')}</strong></dd>
+    <dt>Release being accepted</dt><dd><strong>${esc(currentRelease?.revision||'—')}</strong>${currentRelease?.title?' · '+esc(currentRelease.title):''}</dd>
+    <dt>Commissioning run</dt><dd>Run ${esc(currentRun?.run_number||'—')}</dd>
+    <dt>Commissioning outcome</dt><dd><strong>${esc(commission.outcome||currentRun?.status||'—')}</strong></dd>
     <dt>Commissioning date</dt><dd>${esc(commission.test_date||'—')}</dd>
   </dl>`;
 
@@ -656,8 +682,10 @@ function collect(){
   for(const [k,v] of fd.entries())o[k]=v;
   o.project_reference=currentProjectRow?.reference||o.project_reference||'';
   o.signed_in_email=currentUser?.email||'';
+  o.release_snapshot={id:currentRelease?.id||null,revision:currentRelease?.revision||null,title:currentRelease?.title||null};
+  o.commissioning_run_id=currentRun?.id||null;
   o.stage2_snapshot={
-    completed_at:currentProjectRow?.stage2_completed_at||null,
+    completed_at:currentRun?.submitted_at||currentProjectRow?.stage2_completed_at||null,
     outcome:commission.outcome||null,
     test_date:commission.test_date||null,
     post_version:commission.post_version||null
@@ -669,7 +697,7 @@ function collect(){
 function hydrateSignoff(d){
   isHydrating=true;
   for(const [k,v] of Object.entries(d||{})){
-    if(['stage2_snapshot','_meta'].includes(k))continue;
+    if(['stage2_snapshot','release_snapshot','commissioning_run_id','_meta'].includes(k))continue;
     const es=[...document.querySelectorAll(`[name="${CSS.escape(k)}"]`)];
     if(!es.length)continue;
     if(es[0].type==='checkbox')es[0].checked=v==='Yes'||v===true;
@@ -731,17 +759,18 @@ function updateNav(){
 }
 
 function scheduleAutosave(){
-  if(isHydrating||formLocked||!currentProjectId||currentProjectRow?.stage3_status!=='draft')return;
+  if(isHydrating||formLocked||!currentProjectId||currentSignoff?.status!=='draft')return;
   clearTimeout(saveTimer);setSaveStatus('Unsaved changes');
   saveTimer=setTimeout(()=>saveSignoff(true),1200);
 }
 async function saveSignoff(silent=false){
   if(!currentProjectId){if(!silent)setAccountMessage('Select a project first.',true);return false;}
   if(formLocked){if(!silent)setAccountMessage('This acceptance record is locked.');return false;}
-  if(currentProjectRow.stage3_status!=='draft'){if(!silent)setAccountMessage('Stage 3 is not open for this project.',true);return false;}
+  if(currentSignoff?.status!=='draft'){if(!silent)setAccountMessage('Stage 3 is not open for this tested release.',true);return false;}
   try{
     setSaveStatus('Saving…','saving');
-    const {error}=await sb.from('projects').update({stage3_data:collect()}).eq('id',currentProjectId);
+    const data=collect();
+    const {error}=await sb.from('signoff_records').update({data}).eq('id',currentSignoff.id);
     if(error)throw error;
     setSaveStatus('Saved just now','saved');
     if(!silent)setAccountMessage('Sign-off draft saved securely.');
@@ -750,47 +779,57 @@ async function saveSignoff(silent=false){
 }
 
 async function completeSignoff(){
-  if(formLocked)return;
+  if(formLocked||!currentSignoff||currentSignoff.status!=='draft')return;
   if(!validateStep())return;
-  const rep=document.querySelector('[name="customer_representative"]').value.trim();
+  const repName=document.querySelector('[name="customer_representative"]').value.trim();
   const dt=document.querySelector('[name="acceptance_date"]').value;
-  if(!rep||!dt){alert('Please enter the customer representative and acceptance date.');return;}
+  if(!repName||!dt){alert('Please enter the customer representative and acceptance date.');return;}
   const acceptance=document.querySelector('input[name="acceptance"]:checked')?.value;
-  const statusMap={
-    'Accepted':'accepted',
-    'Accepted with limitations':'accepted_with_limitations',
-    'Not accepted':'not_accepted'
-  };
-  const newStatus=statusMap[acceptance];
-  if(!newStatus)return;
-
-  const payload={
-    stage3_data:collect(),
-    stage3_status:newStatus,
-    stage3_completed_at:new Date().toISOString()
-  };
-  if(newStatus==='not_accepted')payload.stage2_status='retest_required';
+  const statusMap={'Accepted':'accepted','Accepted with limitations':'accepted_with_limitations','Not accepted':'not_accepted'};
+  const newStatus=statusMap[acceptance];if(!newStatus)return;
+  const data=collect(),now=new Date().toISOString();
 
   try{
     setSaveStatus('Completing…','saving');
-    const {error}=await sb.from('projects').update(payload).eq('id',currentProjectId);
-    if(error)throw error;
+    const s=await sb.from('signoff_records').update({data,status:newStatus,completed_at:now}).eq('id',currentSignoff.id);
+    if(s.error)throw s.error;
+
+    const payload={
+      stage3_data:data,stage3_status:newStatus,stage3_completed_at:now,
+      current_release_id:currentRelease.id,current_commissioning_run_id:currentRun.id,current_signoff_id:currentSignoff.id
+    };
+    if(newStatus==='not_accepted'){
+      payload.stage2_status='retest_required';
+    }else{
+      payload.accepted_release_id=currentRelease.id;
+      payload.accepted_commissioning_run_id=currentRun.id;
+      payload.accepted_signoff_id=currentSignoff.id;
+    }
+    const p=await sb.from('projects').update(payload).eq('id',currentProjectId);
+    if(p.error)throw p.error;
+
+    currentSignoff.status=newStatus;currentSignoff.data=data;currentSignoff.completed_at=now;
     currentProjectRow.stage3_status=newStatus;
-    if(newStatus==='not_accepted')currentProjectRow.stage2_status='retest_required';
     setSaveStatus(newStatus==='not_accepted'?'Not accepted':'Accepted','saved');
     setFormLock(true);
-    document.getElementById('projectStageStatus').textContent='Stage 3: '+newStatus.replaceAll('_',' ');
+    document.getElementById('projectStageStatus').textContent=`Release ${currentRelease.revision} · Run ${currentRun.run_number} · Sign-off: ${newStatus.replaceAll('_',' ')}`;
     document.getElementById('projectStageStatus').className='project-status '+(newStatus==='not_accepted'?'bad':'enabled');
     document.getElementById('lockedNotice').classList.toggle('hidden',newStatus==='not_accepted');
     document.getElementById('projectGateMessage').textContent=newStatus==='not_accepted'
-      ? 'Release not accepted. The project has returned to Stage 2 for further work / retest.'
-      : 'Release accepted. This Stage 3 record is now the project baseline.';
+      ? 'Release not accepted. CPS must issue a revised release and new commissioning run.'
+      : 'Release accepted. This exact release and commissioning run are now the project baseline.';
+
+    try{
+      await sb.functions.invoke('notify-project',{body:{
+        action:'signoff_completed',project_id:currentProjectId,release_id:currentRelease.id,
+        run_id:currentRun.id,signoff_id:currentSignoff.id
+      }});
+    }catch(e){console.warn('Sign-off notification failed',e);}
+
     setAccountMessage(newStatus==='not_accepted'
-      ? 'Sign-off saved as Not accepted. Stage 2 has been returned to retest required.'
-      : 'Customer acceptance saved. The release baseline is now locked.');
-    alert(newStatus==='not_accepted'
-      ? 'Sign-off recorded as Not accepted. The project has returned to Stage 2 for retest.'
-      : 'Customer acceptance recorded successfully.');
+      ? 'Sign-off saved as Not accepted. CPS has been notified that a revised release is required.'
+      : 'Customer acceptance saved. The tested release baseline is now locked.');
+    alert(newStatus==='not_accepted'?'Sign-off recorded as Not accepted.':'Customer acceptance recorded successfully.');
   }catch(e){setSaveStatus('Completion failed');setAccountMessage('Could not complete sign-off: '+(e.message||e),true);}
 }
 
