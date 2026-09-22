@@ -424,7 +424,7 @@
       <p class="intro">First choose what the machine fundamentally is. We will then ask what it can actually do.</p>
 
       <div class="grid">
-        <label class="field"><span class="lbl">Manufacturer <span class="req">*</span></span><input name="machine_manufacturer" required></label>
+        <label class="field"><span class="lbl">Manufacturer <span class="req">*</span></span><input name="machine_manufacturer" required oninput="updateControlManufacturerOptions()"></label>
         <label class="field"><span class="lbl">Model <span class="req">*</span></span><input name="machine_model" required></label>
         <label class="field"><span class="lbl">Serial number</span><input name="serial_number"></label>
         <label class="field"><span class="lbl">Approx. year</span><input name="machine_year"></label>
@@ -531,13 +531,14 @@
             <option>Fanuc</option>
             <option>Siemens</option>
             <option>Heidenhain</option>
-            <option>Okuma</option>
-            <option>Mazatrol / Smooth</option>
-            <option>Haas</option>
-            <option>Hurco</option>
+            <option data-oem="okuma">Okuma</option>
+            <option data-oem="mazak">Mazatrol / Smooth</option>
+            <option data-oem="haas">Haas</option>
+            <option data-oem="hurco">Hurco</option>
             <option>Mitsubishi</option>
             <option>Other</option>
           </select>
+          <span class="hint">OEM-specific controls are filtered from the machine manufacturer. Choose Other for a retrofit or unusual configuration.</span>
         </label>
         <label class="field"><span class="lbl">Exact model / version <span class="req">*</span></span><input name="control_model" placeholder="e.g. 840D sl, 31i-B5, TNC640" required></label>
         <label class="field full"><span class="lbl">Other control options / notes</span><textarea name="control_options" placeholder="Only add anything not covered by the options below, or anything unusual/unknown."></textarea></label>
@@ -1156,7 +1157,49 @@ function machineType(){
   return value("machine_type");
 }
 
+function normaliseMachineManufacturer(){
+  return String(document.querySelector('[name="machine_manufacturer"]')?.value||"")
+    .trim().toLowerCase().replace(/[^a-z0-9]+/g," ");
+}
+
+function machineOemKey(){
+  const m=normaliseMachineManufacturer();
+  if(/\bhurco\b/.test(m)) return "hurco";
+  if(/\bhaas\b/.test(m)) return "haas";
+  if(/\bokuma\b/.test(m)) return "okuma";
+  if(/\bmazak\b|\byamazaki\b/.test(m)) return "mazak";
+  return "";
+}
+
+function updateControlManufacturerOptions(){
+  const sel=document.querySelector('[name="control_manufacturer"]');
+  if(!sel) return;
+  const oem=machineOemKey();
+  let currentStillAllowed=true;
+  [...sel.options].forEach(opt=>{
+    const requiredOem=opt.dataset.oem||"";
+    const allowed=!requiredOem || requiredOem===oem;
+    opt.disabled=!allowed;
+    opt.hidden=!allowed;
+    if(opt.selected && !allowed) currentStillAllowed=false;
+  });
+  if(!currentStillAllowed) sel.value="";
+  updateConditionals();
+}
+
 function updateConditionals(){
+  const controlSelect=document.querySelector('[name="control_manufacturer"]');
+  if(controlSelect){
+    const oem=machineOemKey();
+    [...controlSelect.options].forEach(opt=>{
+      const requiredOem=opt.dataset.oem||"";
+      const allowed=!requiredOem || requiredOem===oem;
+      opt.disabled=!allowed;
+      opt.hidden=!allowed;
+      if(opt.selected && !allowed) controlSelect.value="";
+    });
+  }
+
   const projectScope = value("project_scope");
   const simulationRequired = projectScope === "Post + simulation" || projectScope === "Simulation only";
   const postRequired = projectScope !== "Simulation only";
