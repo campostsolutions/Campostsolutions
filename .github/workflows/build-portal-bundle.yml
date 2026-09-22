@@ -1,0 +1,30 @@
+name: Build CPS Portal Bundle
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'portal/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout portal
+        uses: actions/checkout@v4
+
+      - name: Create production bundle
+        run: |
+          cd portal
+          zip -r ../CPS_Portal_Production_Bundle.zip .
+
+      - name: Upload production bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: CPS-Portal-Production-Bundle
+          path: CPS_Portal_Production_Bundle.zip
+          retention-days: 30
