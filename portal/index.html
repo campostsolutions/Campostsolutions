@@ -253,7 +253,22 @@ async function releaseToCustomer(releaseId){
  }
 }
 async function notify(action,releaseId=null){
- try{const {data,error}=await sb.functions.invoke('notify-project',{body:{action,project_id:currentProjectId,release_id:releaseId}});if(error)return {ok:false,error:error.message};if(data?.error)return {ok:false,error:data.error};return {ok:true,data}}catch(e){return {ok:false,error:e.message||String(e)}}
+ try{
+   const {data,error}=await sb.functions.invoke('notify-project',{body:{action,project_id:currentProjectId,release_id:releaseId}});
+   if(error){
+     let detail=error.message||'Edge Function error';
+     try{
+       if(error.context){
+         const body=await error.context.clone().json();
+         detail=body?.error||body?.message||detail;
+         if(body?.details?.message) detail+=' – '+body.details.message;
+       }
+     }catch(_){}
+     return {ok:false,error:detail};
+   }
+   if(data?.error)return {ok:false,error:data.error};
+   return {ok:true,data};
+ }catch(e){return {ok:false,error:e.message||String(e)}}
 }
 sb.auth.onAuthStateChange((_e,s)=>setTimeout(()=>handleSession(s),0));(async()=>{const {data:{session}}=await sb.auth.getSession();await handleSession(session)})();
 </script>
