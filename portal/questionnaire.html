@@ -236,6 +236,23 @@
   tr.conditional.show{display:table-row!important}
   label.conditional.show,div.conditional.show{display:block}
 
+  @media(max-width:600px){
+    /* Mobile coolant editor: one coolant function per card. */
+    .coolant-table{display:block;width:100%;table-layout:auto!important;border-collapse:separate}
+    .coolant-table thead{display:none}
+    .coolant-table tbody{display:grid;gap:12px}
+    .coolant-table tr{display:block;border:1px solid var(--border);border-radius:12px;background:#fff;overflow:hidden}
+    .coolant-table th,.coolant-table td{display:block;width:100%!important;border:0!important;padding:10px 12px!important}
+    .coolant-table th{font-size:16px;background:#f3f6f9}
+    .coolant-table td+td{border-top:1px solid var(--border)!important}
+    .coolant-table td::before{display:block;font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+    .coolant-table td:nth-child(2)::before{content:"Used?"}
+    .coolant-table td:nth-child(3)::before{content:"ON code"}
+    .coolant-table td:nth-child(4)::before{content:"OFF code"}
+    .coolant-table input,.coolant-table select{width:100%!important;min-width:0!important;font-size:16px}
+    .cps-help-fab{right:12px;bottom:86px;padding:9px 13px;font-size:14px}
+  }
+
   .cps-help-fab{
     position:fixed;right:22px;bottom:22px;z-index:950;
     border:0;border-radius:999px;padding:11px 16px;
@@ -974,7 +991,7 @@
       <div class="section">
         <h3>Coolant functions and codes</h3>
         <div style="overflow-x:auto">
-          <table class="machine-table">
+          <table class="machine-table coolant-table">
             <thead><tr><th>Function</th><th>Used?</th><th>ON code</th><th>OFF code</th></tr></thead>
             <tbody>
               <tr><th>Flood</th><td><select name="coolant_flood_used"><option>No</option><option>Yes</option></select></td><td><input name="coolant_flood_on"></td><td><input name="coolant_flood_off"></td></tr>
