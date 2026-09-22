@@ -1,9 +1,14 @@
-name: Build CPS Portal Bundle
+name: Build CPS Production Bundle
 
 on:
   push:
     branches: [main]
     paths:
+      - 'index.html'
+      - 'terms.html'
+      - 'logo.jpg'
+      - 'CNAME'
+      - '.nojekyll'
       - 'portal/**'
   workflow_dispatch:
 
@@ -14,13 +19,12 @@ jobs:
   bundle:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout portal
+      - name: Checkout site
         uses: actions/checkout@v4
 
       - name: Create production bundle
         run: |
-          cd portal
-          zip -r ../CPS_Portal_Production_Bundle.zip .
+          zip -r CPS_Portal_Production_Bundle.zip index.html terms.html logo.jpg CNAME .nojekyll portal
 
       - name: Upload production bundle
         uses: actions/upload-artifact@v4
