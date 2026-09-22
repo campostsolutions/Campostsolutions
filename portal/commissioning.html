@@ -378,6 +378,20 @@
       <button type="button" id="finishBtn" class="primary" style="display:none" onclick="completeCommissioning()">Complete commissioning</button>
     </div>
   </form>
+  <div id="cpsFollowupPanel" class="portal-card hidden">
+    <h2>CPS follow-up · revised release</h2>
+    <p class="intro">Review the submitted commissioning result, record the CPS development response, then publish a revised post/simulation as a new release. The previous commissioning run remains locked.</p>
+    <div class="project-banner"><strong id="cpsFollowupRunLabel"></strong></div>
+    <label class="field full"><span class="lbl">CPS review / changes required</span><textarea id="cpsReviewNotes" placeholder="What failed, what was changed in the post/simulation, and anything the customer should retest."></textarea></label>
+    <div style="margin:10px 0"><button type="button" class="ghost" onclick="saveCpsReview()">Save CPS review notes</button></div>
+    <div class="grid">
+      <label class="field"><span class="lbl">New revision</span><input id="revisedReleaseRevision" placeholder="e.g. v1.1"></label>
+      <label class="field"><span class="lbl">Release title</span><input id="revisedReleaseTitle" placeholder="e.g. Retest after spindle-transfer changes"></label>
+      <label class="field full"><span class="lbl">Release notes / what to retest</span><textarea id="revisedReleaseNotes"></textarea></label>
+      <label class="field full"><span class="lbl">Revised files</span><input id="revisedReleaseFiles" type="file" multiple></label>
+    </div>
+    <div style="margin-top:12px"><button type="button" class="primary" onclick="releaseRevisedVersion()">Release revised version to customer</button></div>
+  </div>
   <footer>Cam Post Solutions Ltd · Connected Stage 2 commissioning portal alpha v5</footer>
 </div>
 </div>
@@ -387,7 +401,7 @@ const SUPABASE_URL="https://hfxghrzhthvmcvzxletp.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_TTAEax5Jgl-gcYKdixdxiA_Imyz7hHg";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 
-let currentStep=1,totalSteps=7,stage1={},currentUser=null,currentProjectId=null,currentProjectRow=null,isCpsStaff=false,commissioningLocked=false;
+let currentStep=1,totalSteps=7,stage1={},currentUser=null,currentProjectId=null,currentProjectRow=null,currentRun=null,currentRelease=null,isCpsStaff=false,commissioningLocked=false;
 let isHydrating=false,saveTimer=null,uploadedStage2Categories=new Set(),uploadedStage2Files=[];
 
 function arr(v){return Array.isArray(v)?v:(v?[v]:[]);}
@@ -459,12 +473,8 @@ async function refreshProjectPicker(){
 }
 async function switchProject(id){if(!id){resetCommissioning();return;}await loadProject(id);}
 
-function projectStageEnabled(){
-  return !!currentProjectRow && ['draft','completed','retest_required'].includes(currentProjectRow.stage2_status) && currentProjectRow.stage2_status!=='not_started';
-}
-function projectStageEditable(){
-  return !!currentProjectRow && ['draft','retest_required'].includes(currentProjectRow.stage2_status);
-}
+function projectStageEnabled(){ return !!currentRun; }
+function projectStageEditable(){ return !!currentRun && currentRun.status==='draft'; }
 function setCommissioningLock(locked){
   commissioningLocked=!!locked;
   document.querySelectorAll('#commissioning input,#commissioning select,#commissioning textarea').forEach(el=>el.disabled=commissioningLocked);
@@ -473,7 +483,7 @@ function setCommissioningLock(locked){
 function resetCommissioning(){
   isHydrating=true;
   document.getElementById('commissioning').reset();
-  stage1={};currentProjectId=null;currentProjectRow=null;uploadedStage2Categories.clear();uploadedStage2Files=[];
+  stage1={};currentProjectId=null;currentProjectRow=null;currentRun=null;currentRelease=null;uploadedStage2Categories.clear();uploadedStage2Files=[];
   document.getElementById('projectReference').textContent='No project selected';
   document.getElementById('projectStageStatus').textContent='Stage 2 not enabled';
   document.getElementById('projectStageStatus').className='project-status';
@@ -547,20 +557,51 @@ async function loadProject(id){
   const {data,error}=await sb.from('projects').select('*').eq('id',id).single();
   if(error){setAccountMessage('Could not load project: '+error.message,true);setSaveStatus('Load failed');return;}
   currentProjectRow=data;currentProjectId=data.id;stage1=data.stage1_data||{};
-  populateProject();buildAllTests();await loadStage2Files();
-  if(data.stage2_data && Object.keys(data.stage2_data).length) hydrateCommissioning(data.stage2_data);
-  setCommissioningLock(data.stage2_status==='completed');
-  const enabled=data.stage2_status!=='not_started';
-  document.getElementById('projectStageStatus').textContent=enabled?`Stage 2: ${data.stage2_status}`:'Stage 2 not enabled';
+
+  let runId=new URLSearchParams(location.search).get('run')||data.current_commissioning_run_id||null;
+  currentRun=null;currentRelease=null;
+  if(runId){
+    const runRes=await sb.from('commissioning_runs').select('*').eq('id',runId).eq('project_id',id).maybeSingle();
+    if(runRes.error){setAccountMessage('Could not load commissioning run: '+runRes.error.message,true);return;}
+    currentRun=runRes.data;
+  }
+  if(!currentRun){
+    const latest=await sb.from('commissioning_runs').select('*').eq('project_id',id).order('run_number',{ascending:false}).limit(1);
+    if(latest.error){setAccountMessage('Could not load commissioning history: '+latest.error.message,true);return;}
+    currentRun=latest.data?.[0]||null;
+  }
+  if(currentRun){
+    const rel=await sb.from('project_releases').select('*').eq('id',currentRun.release_id).single();
+    if(rel.error){setAccountMessage('Could not load release: '+rel.error.message,true);return;}
+    currentRelease=rel.data;
+  }
+
+  populateProject();buildAllTests();
+  if(currentRun){
+    await loadStage2Files();
+    if(currentRun.data && Object.keys(currentRun.data).length) hydrateCommissioning(currentRun.data);
+  }else{
+    uploadedStage2Categories.clear();uploadedStage2Files=[];
+  }
+
+  setCommissioningLock(!projectStageEditable());
+  const enabled=!!currentRun;
+  document.getElementById('projectStageStatus').textContent=enabled
+    ? `Release ${currentRelease?.revision||'—'} · Run ${currentRun.run_number}: ${currentRun.status.replaceAll('_',' ')}`
+    : 'Stage 2 not enabled';
   document.getElementById('projectStageStatus').className='project-status'+(enabled?' enabled':'');
   document.getElementById('projectGateMessage').textContent=enabled
-    ? 'Commissioning is enabled for this project. Changes are saved securely against the CPS project.'
-    : 'Cam Post Solutions must review Stage 1 and enable commissioning before machine testing is recorded.';
-  setAccountMessage(data.stage2_status==='completed'?'Completed commissioning record loaded. The Stage 2 baseline is locked.':(enabled?'Project loaded.':(isCpsStaff?'Project loaded. Review Stage 1, then use the CPS staff control above to enable commissioning.':'Project loaded, but commissioning has not yet been enabled by CPS.')));
-  setSaveStatus(enabled?'Saved':(isCpsStaff?'Ready for CPS review':'Waiting for CPS'));
+    ? (projectStageEditable()
+       ? `Testing release ${currentRelease?.revision||'—'}. This commissioning run is editable until it is submitted.`
+       : `This is the locked result for release ${currentRelease?.revision||'—'}, commissioning run ${currentRun.run_number}.`)
+    : 'Commissioning opens when Cam Post Solutions publishes a test release.';
+  setAccountMessage(enabled
+    ? (projectStageEditable()?'Commissioning run loaded.':'Submitted commissioning run loaded. The test result and evidence are locked.')
+    : 'No commissioning run exists yet.');
+  setSaveStatus(enabled?(projectStageEditable()?'Saved':'Locked'):'Waiting for release',enabled&&!projectStageEditable()?'saved':'');
   renderStaffControls();
+  renderCpsFollowup();
 }
-
 function populateProject(){
   setv('company',stage1.company||currentProjectRow?.customer_company);
   setv('machine',[stage1.machine_manufacturer||currentProjectRow?.machine_manufacturer,stage1.machine_model||currentProjectRow?.machine_model].filter(Boolean).join(' '));
@@ -570,6 +611,8 @@ function populateProject(){
   const caps=arr(stage1.capabilities);
   const sum=document.getElementById('importSummary');sum.classList.add('show');
   sum.innerHTML=`<h3>Project configuration</h3><dl>
+    <dt>Release under test</dt><dd><strong>${esc(currentRelease?.revision||'—')}</strong>${currentRelease?.title?' · '+esc(currentRelease.title):''}</dd>
+    <dt>Commissioning run</dt><dd>Run ${esc(currentRun?.run_number||'—')} · ${esc((currentRun?.status||'not started').replaceAll('_',' '))}</dd>
     <dt>Machine type</dt><dd>${esc(stage1.machine_type||'—')}</dd>
     <dt>Capabilities</dt><dd>${caps.map(x=>`<span class="pill">${esc(x)}</span>`).join('')||'—'}</dd>
     <dt>Project scope</dt><dd>${esc(stage1.project_scope||currentProjectRow?.deliverable||'—')}</dd>
@@ -741,10 +784,10 @@ async function saveCommissioning(silent=false){
   if(!projectStageEditable()){if(!silent)setAccountMessage(currentProjectRow?.stage2_status==='completed'?'Completed commissioning records are locked.':'Commissioning has not been enabled for this project.',true);return false;}
   try{
     setSaveStatus('Saving…','saving');
-    const payload={stage2_data:collect(),stage2_status:currentProjectRow.stage2_status==='not_started'?'draft':currentProjectRow.stage2_status};
-    const {error}=await sb.from('projects').update(payload).eq('id',currentProjectId);
+    const payload={data:collect()};
+    const {error}=await sb.from('commissioning_runs').update(payload).eq('id',currentRun.id);
     if(error)throw error;
-    if(currentProjectRow.stage2_status==='not_started')currentProjectRow.stage2_status='draft';
+    currentRun.data=payload.data;
     setSaveStatus('Saved just now','saved');
     if(!silent)setAccountMessage('Commissioning record saved securely.');
     return true;
@@ -758,11 +801,11 @@ async function uploadStage2Files(files,category,stateId,boxId){
   try{
     state.textContent='Uploading…';
     for(const file of [...files]){
-      const path=`${currentUser.id}/${currentProjectId}/stage2/${category}/${Date.now()}-${safeFileName(file.name)}`;
+      const path=`${currentUser.id}/${currentProjectId}/stage2/${currentRun.id}/${category}/${Date.now()}-${safeFileName(file.name)}`;
       const {error:upErr}=await sb.storage.from('cps-project-files').upload(path,file,{upsert:false,contentType:file.type||undefined});
       if(upErr)throw upErr;
       const {error:metaErr}=await sb.from('project_files').insert({
-        project_id:currentProjectId,stage:'stage2',category,filename:file.name,storage_path:path,mime_type:file.type||null,size_bytes:file.size
+        project_id:currentProjectId,commissioning_run_id:currentRun.id,stage:'stage2',category,filename:file.name,storage_path:path,mime_type:file.type||null,size_bytes:file.size
       });
       if(metaErr)throw metaErr;
     }
@@ -775,6 +818,7 @@ async function loadStage2Files(){
   const {data,error}=await sb.from('project_files')
     .select('id,category,filename,storage_path,mime_type,size_bytes,created_at')
     .eq('project_id',requestedProjectId)
+    .eq('commissioning_run_id',currentRun.id)
     .eq('stage','stage2')
     .order('created_at',{ascending:true});
   if(error){setAccountMessage('Could not load commissioning evidence: '+error.message,true);return;}
@@ -828,11 +872,11 @@ function replaceStage2File(id,oldPath,category,oldFilename){
     const file=picker.files?.[0];if(!file)return;
     try{
       setAccountMessage(`Replacing ${oldFilename}…`);
-      const newPath=`${currentUser.id}/${currentProjectId}/stage2/${category}/${Date.now()}-${safeFileName(file.name)}`;
+      const newPath=`${currentUser.id}/${currentProjectId}/stage2/${currentRun.id}/${category}/${Date.now()}-${safeFileName(file.name)}`;
       const {error:upErr}=await sb.storage.from('cps-project-files').upload(newPath,file,{upsert:false,contentType:file.type||undefined});
       if(upErr)throw upErr;
       const {error:insertErr}=await sb.from('project_files').insert({
-        project_id:currentProjectId,stage:'stage2',category,filename:file.name,
+        project_id:currentProjectId,commissioning_run_id:currentRun.id,stage:'stage2',category,filename:file.name,
         storage_path:newPath,mime_type:file.type||null,size_bytes:file.size
       });
       if(insertErr){
@@ -883,31 +927,154 @@ function updateOutcome(){
   const ready=out==='Ready for sign-off'&&validateEvidence(false);
   document.getElementById('stage3Ready').classList.toggle('hidden',!ready);
   const link=document.getElementById('stage3Link');
-  if(link&&currentProjectId) link.href='./signoff.html?project='+encodeURIComponent(currentProjectId);
+  if(link&&currentProjectId) link.href='./signoff.html?project='+encodeURIComponent(currentProjectId)+'&run='+encodeURIComponent(currentRun?.id||'');
 }
 async function completeCommissioning(){
-  if(!projectStageEditable()){alert('This commissioning record is locked or not currently editable.');return;}
-  if(!validateEvidence())return;
+  if(!projectStageEditable()){alert('This commissioning run is locked or not currently editable.');return;}
   const out=document.querySelector('input[name="outcome"]:checked')?.value;
   if(!out){alert('Please select a commissioning outcome first.');return;}
+  if(out!=='Blocked' && !validateEvidence())return;
+
   const data=collect();
-  const nextStatus=out==='Ready for sign-off'?'completed':'retest_required';
+  const runStatus=out==='Ready for sign-off'?'completed':out==='Blocked'?'blocked':'retest_required';
+  const projectStage2=runStatus==='completed'?'completed':'retest_required';
   try{
-    setSaveStatus('Completing…','saving');
-    const payload={
-      stage2_data:data,stage2_status:nextStatus,stage2_completed_at:new Date().toISOString()
+    setSaveStatus('Submitting…','saving');
+    const now=new Date().toISOString();
+    const runUpdate=await sb.from('commissioning_runs').update({data,status:runStatus,submitted_at:now}).eq('id',currentRun.id);
+    if(runUpdate.error)throw runUpdate.error;
+
+    let signoffId=null;
+    if(runStatus==='completed'){
+      const existing=await sb.from('signoff_records').select('*').eq('commissioning_run_id',currentRun.id).maybeSingle();
+      if(existing.error)throw existing.error;
+      if(existing.data) signoffId=existing.data.id;
+      else{
+        const created=await sb.from('signoff_records').insert({
+          project_id:currentProjectId,release_id:currentRun.release_id,commissioning_run_id:currentRun.id,status:'draft'
+        }).select('*').single();
+        if(created.error)throw created.error;
+        signoffId=created.data.id;
+      }
+    }
+
+    const projectPayload={
+      stage2_data:data,stage2_status:projectStage2,stage2_completed_at:now,
+      current_release_id:currentRun.release_id,current_commissioning_run_id:currentRun.id,
+      current_signoff_id:signoffId,
+      stage3_status:runStatus==='completed'?'draft':'not_started',
+      stage3_data:{},stage3_completed_at:null
     };
-    if(out==='Ready for sign-off')payload.stage3_status='draft';
-    const {error}=await sb.from('projects').update(payload).eq('id',currentProjectId);
-    if(error)throw error;
-    currentProjectRow.stage2_status=nextStatus;
-    if(out==='Ready for sign-off')currentProjectRow.stage3_status='draft';
-    document.getElementById('projectStageStatus').textContent='Stage 2: '+nextStatus;
-    setSaveStatus('Commissioning saved','saved');
-    setAccountMessage(out==='Ready for sign-off'?'Commissioning completed. Stage 3 sign-off is now enabled.':'Commissioning saved as requiring further work / retest.');
+    const p=await sb.from('projects').update(projectPayload).eq('id',currentProjectId);
+    if(p.error)throw p.error;
+
+    currentRun.status=runStatus;currentRun.data=data;currentRun.submitted_at=now;
+    currentProjectRow.stage2_status=projectStage2;
+    currentProjectRow.stage3_status=runStatus==='completed'?'draft':'not_started';
+    setCommissioningLock(true);
+    await notifyCommissioningSubmitted(out);
+    renderCpsFollowup();
+    document.getElementById('projectStageStatus').textContent=`Release ${currentRelease?.revision||'—'} · Run ${currentRun.run_number}: ${runStatus.replaceAll('_',' ')}`;
+    setSaveStatus('Submitted','saved');
+    setAccountMessage(runStatus==='completed'
+      ? 'Commissioning submitted and locked. Stage 3 sign-off is now available.'
+      : 'Commissioning submitted and locked. Cam Post Solutions can review this run and issue a revised release.');
     updateOutcome();
-    alert(out==='Ready for sign-off'?'Commissioning completed and saved to the CPS project. Stage 3 is now enabled.':'Commissioning record saved. Further work or retest is required before sign-off.');
-  }catch(e){setSaveStatus('Completion failed');setAccountMessage('Could not complete commissioning: '+(e.message||e),true);}
+    alert(runStatus==='completed'
+      ? 'Commissioning submitted. The tested release is now ready for sign-off.'
+      : 'Commissioning submitted. This run is now locked and CPS has been notified.');
+  }catch(e){
+    setSaveStatus('Submission failed');
+    setAccountMessage('Could not submit commissioning: '+(e.message||e),true);
+  }
+}
+
+async function notifyCommissioningSubmitted(outcome){
+  try{
+    const {data,error}=await sb.functions.invoke('notify-project',{body:{
+      action:'commissioning_submitted',project_id:currentProjectId,release_id:currentRun.release_id,
+      run_id:currentRun.id,outcome
+    }});
+    if(error)console.warn('Commissioning notification failed',error);
+    else if(data?.error)console.warn('Commissioning notification failed',data.error);
+  }catch(e){console.warn('Commissioning notification failed',e);}
+}
+
+function renderCpsFollowup(){
+  const box=document.getElementById('cpsFollowupPanel');
+  if(!box)return;
+  const show=isCpsStaff&&currentRun&&['retest_required','blocked'].includes(currentRun.status);
+  box.classList.toggle('hidden',!show);
+  if(!show)return;
+  document.getElementById('cpsFollowupRunLabel').textContent=`Release ${currentRelease?.revision||'—'} · Run ${currentRun.run_number} · ${currentRun.status.replaceAll('_',' ')}`;
+  document.getElementById('cpsReviewNotes').value=currentRun.cps_review_notes||'';
+}
+async function saveCpsReview(){
+  if(!isCpsStaff||!currentRun)return;
+  const notes=document.getElementById('cpsReviewNotes').value.trim();
+  const now=new Date().toISOString();
+  const {error}=await sb.from('commissioning_runs').update({
+    cps_review_notes:notes||null,cps_reviewed_at:now,cps_reviewed_by:currentUser.id
+  }).eq('id',currentRun.id);
+  if(error)return setAccountMessage('Could not save CPS review: '+error.message,true);
+  currentRun.cps_review_notes=notes||null;
+  setAccountMessage('CPS review notes saved.');
+}
+async function releaseRevisedVersion(){
+  if(!isCpsStaff||!currentRun||!['retest_required','blocked'].includes(currentRun.status))return;
+  const revision=document.getElementById('revisedReleaseRevision').value.trim();
+  const title=document.getElementById('revisedReleaseTitle').value.trim();
+  const notes=document.getElementById('revisedReleaseNotes').value.trim();
+  const files=[...document.getElementById('revisedReleaseFiles').files];
+  if(!revision)return alert('Enter the new release revision.');
+  if(!files.length)return alert('Choose at least one revised release file.');
+  if(!confirm(`Release ${revision} to the customer and create a fresh commissioning run?`))return;
+
+  try{
+    setAccountMessage('Uploading revised release…');
+    const rel=await sb.from('project_releases').insert({
+      project_id:currentProjectId,revision,title:title||null,release_notes:notes||null,status:'draft'
+    }).select('*').single();
+    if(rel.error)throw rel.error;
+
+    for(const file of files){
+      const cat=/\.cps$/i.test(file.name)?'post':/\.(f3d|machine|mch|md)$/i.test(file.name)?'simulation':/\.(pdf|txt|docx?)$/i.test(file.name)?'release_notes':'test_package';
+      const path=`${currentProjectRow.owner_user_id}/${currentProjectId}/release/${rel.data.id}/${cat}/${Date.now()}-${safeFileName(file.name)}`;
+      const up=await sb.storage.from('cps-project-files').upload(path,file,{upsert:false,contentType:file.type||undefined});
+      if(up.error)throw up.error;
+      const meta=await sb.from('project_files').insert({
+        project_id:currentProjectId,release_id:rel.data.id,stage:'release',category:cat,
+        filename:file.name,storage_path:path,mime_type:file.type||null,size_bytes:file.size
+      });
+      if(meta.error)throw meta.error;
+    }
+
+    const released=await sb.from('project_releases').update({status:'released',released_at:new Date().toISOString()}).eq('id',rel.data.id);
+    if(released.error)throw released.error;
+
+    const maxRows=await sb.from('commissioning_runs').select('run_number').eq('project_id',currentProjectId).order('run_number',{ascending:false}).limit(1);
+    if(maxRows.error)throw maxRows.error;
+    const nextRun=(maxRows.data?.[0]?.run_number||0)+1;
+    const newRun=await sb.from('commissioning_runs').insert({
+      project_id:currentProjectId,release_id:rel.data.id,run_number:nextRun,status:'draft'
+    }).select('*').single();
+    if(newRun.error)throw newRun.error;
+
+    const p=await sb.from('projects').update({
+      current_release_id:rel.data.id,current_commissioning_run_id:newRun.data.id,current_signoff_id:null,
+      development_status:'ready_for_testing',stage2_status:'draft',stage2_data:{},stage2_completed_at:null,
+      stage3_status:'not_started',stage3_data:{},stage3_completed_at:null
+    }).eq('id',currentProjectId);
+    if(p.error)throw p.error;
+
+    try{
+      await sb.functions.invoke('notify-project',{body:{action:'release_ready',project_id:currentProjectId,release_id:rel.data.id}});
+    }catch(e){console.warn('Release email failed',e);}
+
+    location.href='commissioning.html?project='+encodeURIComponent(currentProjectId)+'&run='+encodeURIComponent(newRun.data.id);
+  }catch(e){
+    setAccountMessage('Could not release revised version: '+(e.message||e),true);
+  }
 }
 
 document.getElementById('commissioning').addEventListener('input',scheduleAutosave);
