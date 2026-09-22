@@ -182,6 +182,10 @@ async function loadProject(id){
  currentProject=data;document.getElementById('app').classList.remove('hidden');renderProject();
  await loadReleases();
  await loadProjectFilesLibrary();
+ const requestedSection=new URLSearchParams(location.search).get('section');
+ if(requestedSection==='files' && isStaff){
+   setTimeout(()=>document.getElementById('projectFilesCard')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
+ }
  setMsg('Project loaded.');
 }
 function renderStaffNextAction(){
