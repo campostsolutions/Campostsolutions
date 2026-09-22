@@ -327,7 +327,7 @@
     <div class="toolbar">
       <span id="saveStatus" class="save-state">Sign in to save</span>
       <button class="ghost" type="button" onclick="saveProjectNow(false)">Save now</button>
-      <span class="small">Offline Word form available from CPS on request.</span>
+      <a class="offline-link" href="./questionnaire-offline.docx">Offline Word form</a>
     </div>
   </div>
 
@@ -998,3 +998,847 @@
       <div class="section">
         <label class="field"><span class="lbl">Anything unusual or machine-specific we need to support?</span><textarea name="special_requirements" placeholder="Special M-codes, spindle handover behaviour, B-axis rules, probing conventions, etc."></textarea></label>
       </div>
+    </section>
+
+    <!-- 9 -->
+    <section class="step" data-step="9">
+      <h2>9. Files & evidence</h2>
+      <p class="intro">The more proven information we receive, the less we need to infer.</p>
+      <div class="conditional" id="simulationEvidenceNotice">
+        <div class="notice critical"><strong>Required for simulation:</strong> a suitable CAD model of the machine must be uploaded before machine-simulation development can start.</div>
+        <div class="upload" style="margin:14px 0 18px;border-color:#a63d40;background:#fff7f7">
+          <strong>Machine CAD model – required</strong>
+          <p class="small">Upload the machine CAD model here. This is mandatory when “Post + simulation” or “Simulation only” is selected.</p>
+          <input type="file" id="machineCadFile" onchange="machineCadSelected(this)" accept=".step,.stp,.x_t,.x_b,.iges,.igs,.sat,.jt,.sldprt,.sldasm,.ipt,.iam,.f3d" style="margin-top:8px">
+          <div id="machineCadSelected" class="small" style="margin-top:10px"></div>
+        </div>
+      </div>
+      <div class="upload" style="margin:14px 0 18px;border-color:#4f7f2d;background:#f7fbf3">
+        <strong>Machine at home / reference position – strongly requested</strong>
+        <p class="small">Please upload a clear photograph showing the machine in its normal home/reference position. For machines with rotary axes, also upload photographs showing each rotary axis at 0° using the supporting-files area below.</p>
+        <input type="file" id="homePhotoFile" onchange="homePhotoSelected(this)" accept="image/*" style="margin-top:8px">
+        <div id="homePhotoSelected" class="small" style="margin-top:10px"></div>
+      </div>
+
+      <div class="checkgrid">
+        <label class="check"><input type="checkbox" name="evidence" value="Programming manual">Programming manual</label>
+        <label class="check"><input type="checkbox" name="evidence" value="Operating manual">Operating manual</label>
+        <label class="check"><input type="checkbox" name="evidence" value="Control manual">Control programming manual</label>
+        <label class="check"><input type="checkbox" name="evidence" value="Machine drawings">Machine / axis drawings</label>
+        <label class="check"><input type="checkbox" name="evidence" value="Proven NC programs">Proven NC programs</label>
+        <label class="check"><input type="checkbox" name="evidence" value="Existing post">Existing post processor</label>
+        <label class="check"><input type="checkbox" name="evidence" value="CAM project">CAM project</label>
+        <label class="check"><input type="checkbox" id="machineModelEvidenceCheck" name="evidence" value="3D models">3D machine models</label>
+        <label class="check"><input type="checkbox" name="evidence" value="Photos/video">Photos / video</label>
+        <label class="check"><input type="checkbox" id="homePhotoEvidenceCheck" name="evidence" value="Home position photo">Machine in home/reference position</label>
+        <label class="check"><input type="checkbox" name="evidence" value="Rotary zero photos">Rotary axis/axes at 0°</label>
+        <label class="check"><input type="checkbox" name="evidence" value="Part transfer sample">Proven part-transfer program</label>
+        <label class="check"><input type="checkbox" name="evidence" value="Multi-channel sample">Proven multi-channel program</label>
+        <label class="check"><input type="checkbox" name="evidence" value="5-axis sample">Proven 3+2 / simultaneous program</label>
+      </div>
+
+      <div class="section">
+        <div class="upload">
+          <strong>Attach supporting files</strong>
+          <p class="small">Use this area for machine photographs, rotary-zero photographs, manuals, drawings, proven NC programs, existing posts and machine models. Files selected here are uploaded securely to your private CPS project record.</p>
+          <input type="file" id="supportFiles" multiple onchange="listSelectedFiles(this)" style="margin-top:8px">
+          <div id="selectedFiles" class="small" style="margin-top:10px"></div>
+          <p class="small" style="margin-top:14px"><strong>No internet on the shop floor?</strong> Download the <a href="./questionnaire-offline.docx">offline Word questionnaire</a>, complete it locally, then upload the completed document here later.</p>
+        </div>
+        <label class="field" style="margin-top:16px"><span class="lbl">Files supplied / links / notes</span><textarea name="file_notes"></textarea></label>
+      </div>
+
+      <div class="conditional" id="multiEvidence">
+        <div class="notice warning"><strong>Recommended evidence:</strong> please provide a proven program showing a complete spindle transfer and/or multi-channel synchronisation.</div>
+      </div>
+      <div class="conditional" id="fiveAxisEvidence">
+        <div class="notice warning"><strong>Recommended evidence:</strong> please provide a proven 3+2 or simultaneous rotary program and, where available, a machine/control description of TCP or tilted workplane behaviour.</div>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="step" data-step="10">
+      <h2>10. Review & submit</h2>
+      <p class="intro">Review the key information before sending it to Cam Post Solutions.</p>
+      <div id="summary" class="summary"></div>
+      <div class="section">
+        <label class="field"><span class="lbl">Anything else we should know?</span><textarea name="final_notes"></textarea></label>
+      </div>
+
+      <div class="section">
+        <h3>Information readiness</h3>
+        <p>This preview shows how the live CPS portal could highlight missing evidence before development starts.</p>
+        <div id="readiness" class="status-list"></div>
+      </div>
+
+      <div class="section">
+        <h3>Later workflow</h3>
+        <div class="stage-ribbon">
+          <div class="stage-card"><strong>Stage 2 · Commissioning</strong><small>Generated test checklist based on machine configuration: retracts, tool change, rotary positioning, TCP, spindle transfer and multi-channel features as applicable.</small></div>
+          <div class="stage-card"><strong>Stage 3 · Sign-off</strong><small>Record tested functions, outstanding limitations, post version, test date and customer acceptance before release.</small></div>
+          <div class="stage-card"><strong>Project record</strong><small>Keep the original machine data, evidence, commissioning results and sign-off together for future updates.</small></div>
+        </div>
+      </div>
+
+
+      <div class="section">
+        <h3>Next stage: commissioning</h3>
+        <p class="small">After CPS completes development and releases files for testing, commissioning will become available from your project home page.</p>
+        <a class="commission-link" href="index.html">Return to project home</a>
+      </div>
+      <div class="notice">Your questionnaire is saved securely to your CPS project.</div>
+    </section>
+
+    <div class="nav">
+      <button type="button" id="prevBtn" class="secondary" onclick="changeStep(-1)">Back</button>
+      <button type="button" id="nextBtn" class="primary" onclick="changeStep(1)">Next</button>
+      <button type="button" id="submitBtn" class="primary" style="display:none" onclick="submitStage1()">Submit questionnaire</button>
+    </div>
+  </form>
+  </div>
+  <footer>Cam Post Solutions Ltd · Customer Portal</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = "https://hfxghrzhthvmcvzxletp.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_TTAEax5Jgl-gcYKdixdxiA_Imyz7hHg";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let currentUser = null;
+let currentProjectId = null;
+let currentProjectStatus = "draft";
+let currentProjectRow = null;
+let formLocked = false;
+let saveTimer = null;
+let isHydrating = false;
+let uploadedCategories = new Set();
+let uploadedFileNames = [];
+let currentStep = 1;
+const totalSteps = 10;
+
+function value(name){
+  const els = [...document.querySelectorAll(`[name="${name}"]`)];
+  if(!els.length) return "";
+  if(els[0].type === "radio") return els.find(e=>e.checked)?.value || "";
+  if(els[0].type === "checkbox") return els.filter(e=>e.checked).map(e=>e.value);
+  return els[0].value;
+}
+
+function machineType(){
+  return value("machine_type");
+}
+
+function updateConditionals(){
+  const projectScope = value("project_scope");
+  const simulationRequired = projectScope === "Post + simulation" || projectScope === "Simulation only";
+  const postRequired = projectScope !== "Simulation only";
+  toggle("simulationRequirement", simulationRequired);
+  toggle("simulationEvidenceNotice", simulationRequired);
+  toggle("machineModelRequiredMark", simulationRequired);
+  toggle("postWorkType", postRequired && !!projectScope);
+
+  const type = machineType();
+  const caps = value("capabilities");
+  const capabilities = Array.isArray(caps) ? caps : (caps ? [caps] : []);
+  const rotaryAxes = value("rotary_axes");
+  const rot = Array.isArray(rotaryAxes) ? rotaryAxes : (rotaryAxes ? [rotaryAxes] : []);
+
+  const isTurning = type === "Turning centre / lathe";
+  const isMill = type === "Milling / machining centre";
+  const isSwiss = type === "Swiss / sliding-head";
+  const millTurning = isMill && capabilities.includes("Turning on mill");
+  const hasTurning = isTurning || isSwiss || millTurning;
+  const hasSubCapability = capabilities.includes("Sub spindle");
+  const spindleCountEl = document.querySelector('[name="spindle_count"]');
+  if(spindleCountEl){
+    const twoOpt=[...spindleCountEl.options].find(o=>o.value==="2");
+    const manyOpt=[...spindleCountEl.options].find(o=>o.value==="More than 2");
+    if(twoOpt) twoOpt.disabled=!hasSubCapability;
+    if(manyOpt) manyOpt.disabled=!hasSubCapability;
+    if(!hasSubCapability){
+      spindleCountEl.value="1";
+    } else if(spindleCountEl.value==="1"){
+      spindleCountEl.value="2";
+    }
+  }
+  const hasSub = hasSubCapability && (!spindleCountEl || spindleCountEl.value!=="1");
+  syncTurretSpindleAccess(hasSub);
+
+  // Part transfer requires a secondary spindle. If the sub-spindle capability is removed,
+  // clear an impossible transfer selection rather than leaving contradictory saved data.
+  if(!hasSubCapability){
+    const transferCb=document.querySelector('[name="capabilities"][value="Part transfer"]');
+    if(transferCb) transferCb.checked=false;
+  }
+
+  const hasDriven = capabilities.includes("Driven tooling");
+  const hasY = capabilities.includes("Y-axis");
+  const hasBHead = capabilities.includes("B-axis head");
+  const hasMultiTurret = capabilities.includes("Multiple turrets");
+  const hasChannels = capabilities.includes("Multiple channels");
+  const hasTransfer = hasSub && !!document.querySelector('[name="capabilities"][value="Part transfer"]:checked');
+  const hasPartsCatcher = capabilities.includes("Parts catcher");
+  const hasTailstock = capabilities.includes("Tailstock / steady");
+  const hasProbing = capabilities.includes("Probing");
+  const indexed = capabilities.includes("5-axis positioning");
+  const simultaneous = capabilities.includes("Simultaneous 5-axis") || capabilities.includes("Simultaneous milling");
+  const hasRotaryCapability = isMill && (capabilities.includes("4-axis") || indexed || capabilities.includes("Simultaneous 5-axis") || millTurning);
+
+  toggle("turnCapabilities", isTurning);
+  toggle("millCapabilities", isMill);
+  toggle("swissCapabilities", isSwiss);
+
+  toggle("millConfig", hasRotaryCapability || hasBHead);
+  toggle("turningConfig", isTurning);
+  toggle("millTurningConfig", millTurning);
+  toggle("swissConfig", isSwiss);
+
+  toggle("axisA", rot.includes("A"));
+  toggle("axisB", rot.includes("B"));
+  toggle("axisC", rot.includes("C"));
+  toggle("A_limit_row", rot.includes("A"));
+  toggle("B_limit_row", rot.includes("B") || hasBHead);
+  toggle("C_limit_row", rot.includes("C") || capabilities.includes("C-axis") || millTurning);
+
+  const nonStandard = value("A_about") === "Non-standard / nutating" || value("B_about") === "Non-standard / nutating" || value("C_about") === "Non-standard / nutating";
+  toggle("vectorBlock", nonStandard);
+
+  toggle("subRpmField", hasSub);
+  toggle("guideBushField", capabilities.includes("Guide bush") || capabilities.includes("Non-guide-bush mode"));
+  toggle("channelCountField", hasChannels);
+  toggle("channelAssignmentField", hasChannels);
+
+  // Turret count and individual carrier cards.
+  const turretCount = document.querySelector('[name="turret_count"]');
+  if(turretCount){
+    if(hasMultiTurret && Number(turretCount.value) < 2) turretCount.value = "2";
+    if(!hasMultiTurret && turretCount.value !== "1") turretCount.value = "1";
+    const tc = Number(turretCount.value || 1);
+    toggle("turret2Card", tc >= 2);
+    toggle("turret3Card", tc >= 3);
+    toggleCarrierPark("turret1Park", false);
+    toggleCarrierPark("turret2Park", false);
+    toggleCarrierPark("turret3Park", false);
+    toggleCarrierPark("turret1Park", value("turret1_position") === "Lower");
+    toggleCarrierPark("turret2Park", tc >= 2 && value("turret2_position") === "Lower");
+    toggleCarrierPark("turret3Park", tc >= 3 && value("turret3_position") === "Lower");
+  }
+
+  toggle("rotarySafety", hasRotaryCapability || hasBHead || rot.length > 0);
+  toggle("turningSafety", hasTurning);
+  toggle("transferSafety", hasTransfer);
+  toggle("partsCatcherSafety", hasPartsCatcher);
+  toggle("tailstockSafety", hasTailstock);
+
+  toggle("multiEvidence", hasTransfer || hasChannels || isSwiss);
+  toggle("fiveAxisEvidence", indexed || simultaneous);
+
+  // Required machining features: show only what is relevant to the machine selected.
+  setFeatureVisibility('.feature-turning', hasTurning);
+  setFeatureVisibility('.feature-milling', isMill || hasDriven || hasBHead || isSwiss);
+  setFeatureVisibility('.feature-indexed', indexed || hasBHead);
+  setFeatureVisibility('.feature-simultaneous', simultaneous);
+  setFeatureVisibility('.feature-polar', hasTurning && (hasDriven || capabilities.includes("C-axis") || millTurning));
+  setFeatureVisibility('.feature-backwork', hasSub || isSwiss);
+  setFeatureVisibility('.feature-probing', hasProbing);
+
+  const ctrl = value("control_manufacturer");
+  toggle("siemensBlock", ctrl === "Siemens");
+  toggle("fanucBlock", ctrl === "Fanuc");
+  toggle("heidenhainBlock", ctrl === "Heidenhain");
+  toggle("okumaBlock", ctrl === "Okuma");
+  toggle("mazakBlock", ctrl === "Mazatrol / Smooth");
+  toggle("haasBlock", ctrl === "Haas");
+  toggle("hurcoBlock", ctrl === "Hurco");
+  toggle("mitsubishiBlock", ctrl === "Mitsubishi");
+}
+
+function setFeatureVisibility(selector,visible){
+  document.querySelectorAll(selector).forEach(el=>{
+    el.classList.toggle("show",!!visible);
+    el.style.display=visible ? "flex" : "none";
+    el.querySelectorAll("input,select,textarea").forEach(control=>{
+      control.disabled=!visible;
+      if(!visible && control.type==="checkbox") control.checked=false;
+    });
+  });
+}
+
+function toggle(id,on){
+  const el=document.getElementById(id);
+  if(!el) return;
+  const visible=!!on;
+  el.classList.toggle("show",visible);
+  if(el.matches("label.field.conditional, div.conditional")){
+    el.style.display=visible ? "block" : "none";
+  } else if(el.matches("tr.conditional")){
+    el.style.display=visible ? "table-row" : "none";
+  }
+  el.querySelectorAll("input,select,textarea,button").forEach(control=>{
+    control.disabled=!visible;
+  });
+}
+
+function toggleCarrierPark(id,on){
+  const el=document.getElementById(id);
+  if(!el) return;
+  const visible=!!on;
+  el.hidden=!visible;
+  toggle(id,visible);
+}
+
+function syncTurretSpindleAccess(hasSubSpindle){
+  ["turret1Access","turret2Access","turret3Access"].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel) return;
+    [...sel.options].forEach(opt=>{
+      if(opt.value==="Sub only" || opt.value==="Main and sub"){
+        opt.disabled=!hasSubSpindle;
+        opt.hidden=!hasSubSpindle;
+      }
+    });
+    if(!hasSubSpindle && (sel.value==="Sub only" || sel.value==="Main and sub")){
+      sel.value="Main only";
+    }
+  });
+}
+
+function validateCurrent(){
+  const step = document.querySelector(`.step[data-step="${currentStep}"]`);
+  const req = [...step.querySelectorAll("[required]")];
+  for(const el of req){
+    if(el.type==="radio"){
+      if(!step.querySelector(`[name="${el.name}"]:checked`)){
+        el.focus(); alert("Please complete the required fields on this page."); return false;
+      }
+    } else if(!el.value.trim()){
+      el.focus(); alert("Please complete the required fields on this page."); return false;
+    }
+  }
+  if(currentStep===9){
+    const scope = value("project_scope");
+    const simulationRequired = scope === "Post + simulation" || scope === "Simulation only";
+    const evidence = value("evidence");
+    const ev = Array.isArray(evidence) ? evidence : (evidence ? [evidence] : []);
+    if(simulationRequired){
+      const cadInput=document.getElementById("machineCadFile");
+      const hasCadFile = (cadInput && cadInput.files && cadInput.files.length > 0) || uploadedCategories.has("machine_cad") || uploadedFileNames.some(n => /\.(step|stp|x_t|x_b|iges|igs|sat|jt|sldprt|sldasm|ipt|iam|f3d)$/i.test(n));
+      if(!hasCadFile){
+        if(cadInput) cadInput.focus();
+        alert("Machine simulation requires a CAD model of the machine. Please upload the machine CAD model before continuing.");
+        return false;
+      }
+      if(!ev.includes("3D models")){
+        const cb=document.getElementById("machineModelEvidenceCheck");
+        if(cb) cb.checked=true;
+      }
+    }
+  }
+  return true;
+}
+
+function changeStep(delta){
+  if(delta>0 && !validateCurrent()) return;
+  const next = currentStep + delta;
+  if(next<1 || next>totalSteps) return;
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove("active");
+  currentStep = next;
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.add("active");
+  updateConditionals();
+  if(currentStep===10) buildSummary();
+  updateNav();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function updateNav(){
+  document.getElementById("prevBtn").disabled = currentStep===1;
+  document.getElementById("nextBtn").style.display = currentStep===totalSteps ? "none":"inline-block";
+  document.getElementById("submitBtn").style.display = currentStep===totalSteps ? "inline-block":"none";
+  const pct=Math.round((currentStep/totalSteps)*100);
+  document.getElementById("progressBar").style.width=pct+"%";
+  document.getElementById("progressText").textContent=`Step ${currentStep} of ${totalSteps}`;
+  document.getElementById("progressPct").textContent=pct+"%";
+}
+
+function formDataObject(){
+  const fd = new FormData(document.getElementById("questionnaire"));
+  const obj={};
+  for(const [k,v] of fd.entries()){
+    if(obj[k]!==undefined){
+      if(!Array.isArray(obj[k])) obj[k]=[obj[k]];
+      obj[k].push(v);
+    } else obj[k]=v;
+  }
+  // Remove duplicate values caused by equivalent options in different
+  // machine-type branches. Disabled hidden controls are already excluded by FormData.
+  for(const [k,v] of Object.entries(obj)){
+    if(Array.isArray(v)) obj[k]=[...new Set(v)];
+  }
+
+  // Remove values that are impossible for the selected configuration.
+  const caps=Array.isArray(obj.capabilities) ? obj.capabilities : (obj.capabilities ? [obj.capabilities] : []);
+  if(!caps.includes("Sub spindle")){
+    obj.spindle_count="1";
+    delete obj.sub_spindle_rpm;
+    ["turret1_access","turret2_access","turret3_access"].forEach(k=>{
+      if(obj[k]==="Sub only" || obj[k]==="Main and sub") obj[k]="Main only";
+    });
+  }
+  [1,2,3].forEach(n=>{
+    if(obj[`turret${n}_position`]!=="Lower") delete obj[`turret${n}_park`];
+  });
+  const tc=Number(obj.turret_count||1);
+  if(tc<2){
+    Object.keys(obj).filter(k=>k.startsWith("turret2_")||k.startsWith("turret3_")).forEach(k=>delete obj[k]);
+  } else if(tc<3){
+    Object.keys(obj).filter(k=>k.startsWith("turret3_")).forEach(k=>delete obj[k]);
+  }
+
+  obj._meta={
+    generated:new Date().toISOString(),
+    form_version:"CPS Customer Portal v5"
+  };
+  return obj;
+}
+
+function buildSummary(){
+  const d=formDataObject();
+  const pills = arr => (Array.isArray(arr)?arr:[arr]).filter(Boolean).map(x=>`<span class="pill">${escapeHtml(x)}</span>`).join("");
+  document.getElementById("summary").innerHTML=`
+    <h3>Project snapshot</h3>
+    <dl>
+      <dt>Customer</dt><dd>${escapeHtml(d.company||"—")}</dd>
+      <dt>Contact</dt><dd>${escapeHtml(d.contact||"—")}</dd>
+      <dt>CAM</dt><dd>${escapeHtml([d.cam_system,d.cam_version].filter(Boolean).join(" ")||"—")}</dd>
+      <dt>Machine</dt><dd>${escapeHtml([d.machine_manufacturer,d.machine_model].filter(Boolean).join(" ")||"—")}</dd>
+      <dt>Machine type</dt><dd>${escapeHtml(d.machine_type||"—")}</dd>
+      <dt>Capabilities</dt><dd>${pills(d.capabilities||[])||"—"}</dd>
+      <dt>Control</dt><dd>${escapeHtml([d.control_manufacturer,d.control_model].filter(Boolean).join(" ")||"—")}</dd>
+      <dt>Deliverable</dt><dd>${escapeHtml(d.project_scope||"—")}</dd>
+      <dt>Post work</dt><dd>${pills(d.project_type||[])||"—"}</dd>
+      <dt>Required features</dt><dd>${pills(d.features||[])||"—"}</dd>
+      <dt>Evidence available</dt><dd>${pills(d.evidence||[])||"—"}</dd>
+    </dl>`;
+  buildReadiness(d);
+}
+
+function buildReadiness(d){
+  const ev = Array.isArray(d.evidence) ? d.evidence : (d.evidence ? [d.evidence] : []);
+  const caps = Array.isArray(d.capabilities) ? d.capabilities : (d.capabilities ? [d.capabilities] : []);
+  const rot = Array.isArray(d.rotary_axes) ? d.rotary_axes : (d.rotary_axes ? [d.rotary_axes] : []);
+  const type = d.machine_type || "";
+  const rows = [];
+
+  function add(label, ok, missing){
+    rows.push(`<div class="status-row"><span>${escapeHtml(label)}</span><span class="${ok ? "status-ok":"status-warn"}">${ok ? "✓ Received / entered" : "⚠ " + escapeHtml(missing)}</span></div>`);
+  }
+
+  const simulationRequired = d.project_scope === "Post + simulation" || d.project_scope === "Simulation only";
+  if(simulationRequired){
+    add("Machine CAD model for simulation", ev.includes("3D machine model"), "REQUIRED before simulation development can start");
+  }
+
+  add("Programming manual or proven NC", ev.includes("Programming manual") || ev.includes("Proven NC programs"), "Recommended before development");
+  add("Machine home/reference information", !!(d.X_home || d.Y_home || d.Z_home || ev.includes("Home position photo")), "Home position/photo missing");
+
+  const rotaryMachine = rot.length > 0 || caps.includes("4-axis") || caps.includes("5-axis positioning") || caps.includes("Simultaneous 5-axis") || caps.includes("B-axis head");
+  if(rotaryMachine){
+    add("Rotary zero evidence", ev.includes("Rotary zero photos") || !!(d.A_min_config || d.B_min_config || d.C_min_config), "Rotary zero/limits not confirmed");
+  }
+
+  const fiveAxis = caps.includes("5-axis positioning") || caps.includes("Simultaneous 5-axis") || caps.includes("Simultaneous milling");
+  if(fiveAxis){
+    add("5-axis / workplane example", ev.includes("5-axis sample") || !!d.tcp, "Proven 3+2 / 5-axis example recommended");
+  }
+
+  if(caps.includes("Part transfer")){
+    add("Part-transfer example", ev.includes("Part transfer sample") || !!d.transfer_sequence, "Proven transfer example recommended");
+  }
+
+  if(caps.includes("Multiple channels") || type === "Swiss / sliding-head"){
+    add("Multi-channel synchronisation example", ev.includes("Multi-channel sample") || !!d.channel_assignment, "Proven channel-sync program recommended");
+  }
+
+  document.getElementById("readiness").innerHTML = rows.join("");
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
+}
+
+function setAuthMessage(message, error=false){
+  const el=document.getElementById("authMessage");
+  if(!el) return;
+  el.textContent=message||"";
+  el.classList.toggle("error",!!error);
+}
+
+function setAccountMessage(message, error=false){
+  const el=document.getElementById("accountMessage");
+  if(!el) return;
+  el.textContent=message||"";
+  el.classList.toggle("error",!!error);
+}
+
+function setSaveStatus(text,state=""){
+  const el=document.getElementById("saveStatus");
+  if(!el) return;
+  el.textContent=text;
+  el.className="save-state"+(state?" "+state:"");
+}
+
+async function sendSignInEmail(){
+  const email=document.getElementById("loginEmail").value.trim();
+  if(!email){ setAuthMessage("Enter your email address first.",true); return; }
+  setAuthMessage("Sending sign-in email…");
+  const options={shouldCreateUser:true};
+  if(location.protocol.startsWith("http")) options.emailRedirectTo=location.href.split("#")[0].split("?")[0];
+  const {error}=await sb.auth.signInWithOtp({email,options});
+  if(error){ setAuthMessage(error.message,true); return; }
+  document.getElementById("otpPanel").style.display="block";
+  setAuthMessage("Email sent. Enter the sign-in code from your email below.");
+}
+
+async function verifyOtpCode(){
+  const email=document.getElementById("loginEmail").value.trim();
+  const token=document.getElementById("loginOtp").value.replace(/\D/g,"");
+  if(!email || !token){ setAuthMessage("Enter the email address and sign-in code.",true); return; }
+  setAuthMessage("Checking code…");
+  const {error}=await sb.auth.verifyOtp({email,token,type:"email"});
+  if(error){ setAuthMessage(error.message,true); return; }
+  setAuthMessage("");
+}
+
+async function signOutPortal(){
+  await sb.auth.signOut();
+  currentUser=null; currentProjectId=null; uploadedCategories.clear(); uploadedFileNames=[];
+  document.getElementById("portalApp").style.display="none";
+  document.getElementById("signedInPanel").style.display="none";
+  document.getElementById("signedOutPanel").style.display="block";
+  setSaveStatus("Sign in to save");
+}
+
+async function handleSession(session){
+  if(!session?.user){
+    document.getElementById("portalApp").style.display="none";
+    document.getElementById("signedInPanel").style.display="none";
+    document.getElementById("signedOutPanel").style.display="block";
+    return;
+  }
+  currentUser=session.user;
+  document.getElementById("signedOutPanel").style.display="none";
+  document.getElementById("signedInPanel").style.display="block";
+  document.getElementById("portalApp").style.display="block";
+  document.getElementById("signedInEmail").textContent=currentUser.email||"";
+  const emailField=document.querySelector('[name="email"]');
+  if(emailField && !emailField.value) emailField.value=currentUser.email||"";
+  setSaveStatus("Loading…","saving");
+  await refreshProjectPicker(true);
+}
+
+async function refreshProjectPicker(loadLatest=false){
+  if(!currentUser) return;
+  const {data,error}=await sb.from("projects")
+    .select("id,reference,customer_company,machine_model,stage1_status,updated_at")
+    .order("updated_at",{ascending:false});
+  if(error){ setAccountMessage("Could not load questionnaires: "+error.message,true); return; }
+  const picker=document.getElementById("projectPicker");
+  picker.innerHTML='<option value="">New questionnaire</option>';
+  for(const p of (data||[])){
+    const label=[p.reference,p.customer_company,p.machine_model].filter(Boolean).join(" · ")+` (${p.stage1_status})`;
+    const opt=document.createElement("option"); opt.value=p.id; opt.textContent=label; picker.appendChild(opt);
+  }
+  const requested=new URLSearchParams(location.search).get("project");
+  if(requested && (data||[]).some(p=>p.id===requested)){
+    picker.value=requested;
+    await loadProject(requested);
+  } else if(loadLatest && data && data.length){
+    picker.value=data[0].id;
+    await loadProject(data[0].id);
+  } else if(!currentProjectId){
+    newQuestionnaire(false);
+  }
+}
+
+function resetQuestionnaireForm(){
+  isHydrating=true;
+  document.getElementById("questionnaire").reset();
+  currentStep=1;
+  document.querySelectorAll(".step").forEach(s=>s.classList.remove("active"));
+  document.querySelector('.step[data-step="1"]').classList.add("active");
+  document.getElementById("machineCadSelected").textContent="";
+  document.getElementById("homePhotoSelected").textContent="";
+  document.getElementById("selectedFiles").textContent="";
+  uploadedCategories.clear(); uploadedFileNames=[];
+  const emailField=document.querySelector('[name="email"]');
+  if(emailField && currentUser) emailField.value=currentUser.email||"";
+  updateConditionals(); updateNav();
+  isHydrating=false;
+}
+
+function newQuestionnaire(clearPicker=true){
+  currentProjectId=null; currentProjectStatus="draft";
+  resetQuestionnaireForm();
+  document.getElementById("projectReference").textContent="New questionnaire";
+  if(clearPicker) document.getElementById("projectPicker").value="";
+  setAccountMessage("New questionnaire. It will receive a CPS reference when first saved.");
+  setSaveStatus("Not saved yet");
+}
+
+async function switchProject(id){
+  if(!id){ newQuestionnaire(false); return; }
+  await loadProject(id);
+}
+
+function setStage1Editability(status){
+  formLocked = ['submitted','reviewed'].includes(status);
+  document.querySelectorAll('#questionnaire input,#questionnaire select,#questionnaire textarea').forEach(el=>{ el.disabled=formLocked; });
+  document.getElementById('submitBtn').disabled=formLocked;
+  const saveBtn=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Save now');
+  if(saveBtn) saveBtn.disabled=formLocked;
+}
+function hydrateForm(d){
+  const form=document.getElementById("questionnaire");
+  isHydrating=true;
+  form.reset();
+  for(const [k,v] of Object.entries(d||{})){
+    if(k==="_meta") continue;
+    const els=[...form.querySelectorAll(`[name="${CSS.escape(k)}"]`)];
+    if(!els.length) continue;
+    const vals=Array.isArray(v)?v:[v];
+    els.forEach(el=>{
+      if(el.type==="checkbox"||el.type==="radio") el.checked=vals.includes(el.value);
+      else el.value=vals[0]??"";
+    });
+  }
+  updateConditionals();
+  setStage1Editability(currentProjectStatus);
+  isHydrating=false;
+}
+
+async function loadProject(id){
+  setSaveStatus("Loading…","saving");
+  const {data,error}=await sb.from("projects").select("*").eq("id",id).single();
+  if(error){ setAccountMessage("Could not load questionnaire: "+error.message,true); setSaveStatus("Load failed"); return; }
+  currentProjectId=data.id; currentProjectRow=data; currentProjectStatus=data.stage1_status||"draft";
+  hydrateForm(data.stage1_data||{});
+  document.getElementById("projectReference").textContent=data.reference||"Questionnaire";
+  document.getElementById("projectPicker").value=id;
+  await loadProjectFiles();
+  setStage1Editability(currentProjectStatus);
+  if(currentProjectStatus==="changes_requested"){
+    setAccountMessage("CPS has requested changes: "+(data.stage1_change_request||"Please update the questionnaire and resubmit."));
+    setSaveStatus("Changes requested");
+  } else if(currentProjectStatus==="submitted"){
+    setAccountMessage("Submitted to Cam Post Solutions for review. The questionnaire is read-only until CPS requests changes.");
+    setSaveStatus("Submitted","saved");
+  } else if(currentProjectStatus==="reviewed"){
+    setAccountMessage("This Stage 1 specification is locked as the agreed development baseline.");
+    setSaveStatus("Specification locked","saved");
+  } else {
+    setAccountMessage("Draft loaded.");
+    setSaveStatus("Saved","saved");
+  }
+}
+
+function projectPayload(statusOverride=null){
+  const d=formDataObject();
+  return {
+    customer_company:d.company||null,
+    customer_contact:d.contact||null,
+    customer_email:d.email||currentUser?.email||null,
+    machine_manufacturer:d.machine_manufacturer||null,
+    machine_model:d.machine_model||null,
+    control_manufacturer:d.control_manufacturer||null,
+    control_model:d.control_model||null,
+    cam_system:d.cam_system||null,
+    deliverable:d.project_scope||null,
+    stage1_status:statusOverride||currentProjectStatus||"draft",
+    stage1_data:d
+  };
+}
+
+async function ensureProject(){
+  if(currentProjectId) return currentProjectId;
+  if(!currentUser) throw new Error("Please sign in first.");
+  setSaveStatus("Creating project…","saving");
+  const payload=projectPayload("draft");
+  const {data,error}=await sb.from("projects").insert(payload).select("id,reference,stage1_status").single();
+  if(error) throw error;
+  currentProjectId=data.id; currentProjectStatus=data.stage1_status;
+  document.getElementById("projectReference").textContent=data.reference;
+  await refreshProjectPicker(false);
+  document.getElementById("projectPicker").value=currentProjectId;
+  return currentProjectId;
+}
+
+function scheduleAutosave(){
+  if(isHydrating || formLocked || !currentUser) return;
+  clearTimeout(saveTimer);
+  setSaveStatus("Unsaved changes");
+  saveTimer=setTimeout(()=>saveProjectNow(true),1200);
+}
+
+async function saveProjectNow(silent=false){
+  if(!currentUser){ if(!silent) setAccountMessage("Sign in before saving.",true); return false; }
+  if(formLocked){ if(!silent) setAccountMessage("This questionnaire is currently read-only.",true); return false; }
+  try{
+    setSaveStatus("Saving…","saving");
+    await ensureProject();
+    const payload=projectPayload(currentProjectStatus);
+    const {error}=await sb.from("projects").update(payload).eq("id",currentProjectId);
+    if(error) throw error;
+    setSaveStatus("Saved just now","saved");
+    if(!silent) setAccountMessage("Questionnaire saved securely.");
+    return true;
+  }catch(e){
+    console.error(e);
+    setSaveStatus("Save failed");
+    setAccountMessage("Could not save: "+(e.message||e),true);
+    return false;
+  }
+}
+
+function safeFileName(name){
+  return name.replace(/[^a-zA-Z0-9._-]+/g,"_").slice(0,160);
+}
+
+async function uploadFiles(files,category,displayId){
+  if(!files || !files.length) return;
+  if(!currentUser){ setAccountMessage("Sign in before uploading files.",true); return; }
+  if(formLocked){ setAccountMessage("This questionnaire is currently read-only.",true); return; }
+  const display=document.getElementById(displayId);
+  try{
+    await ensureProject();
+    if(display) display.textContent="Uploading…";
+    for(const file of [...files]){
+      const path=`${currentUser.id}/${currentProjectId}/stage1/${category}/${Date.now()}-${safeFileName(file.name)}`;
+      const {error:uploadError}=await sb.storage.from("cps-project-files").upload(path,file,{upsert:false,contentType:file.type||undefined});
+      if(uploadError) throw uploadError;
+      const {error:metaError}=await sb.from("project_files").insert({
+        project_id:currentProjectId, stage:"stage1", category,
+        filename:file.name, storage_path:path, mime_type:file.type||null, size_bytes:file.size
+      });
+      if(metaError) throw metaError;
+      uploadedCategories.add(category); uploadedFileNames.push(file.name);
+    }
+    await loadProjectFiles();
+    setAccountMessage("File upload complete.");
+    scheduleAutosave();
+  }catch(e){
+    console.error(e);
+    if(display) display.textContent="Upload failed: "+(e.message||e);
+    setAccountMessage("File upload failed: "+(e.message||e),true);
+  }
+}
+
+async function loadProjectFiles(){
+  uploadedCategories.clear(); uploadedFileNames=[];
+  if(!currentProjectId) return;
+  const {data,error}=await sb.from("project_files").select("category,filename,created_at").eq("project_id",currentProjectId).order("created_at",{ascending:true});
+  if(error){ setAccountMessage("Could not load file list: "+error.message,true); return; }
+  for(const f of (data||[])){ uploadedCategories.add(f.category); uploadedFileNames.push(f.filename); }
+  const byCat=(cat)=>(data||[]).filter(f=>f.category===cat).map(f=>f.filename);
+  renderUploadedList("machineCadSelected",byCat("machine_cad"));
+  renderUploadedList("homePhotoSelected",byCat("home_photo"));
+  renderUploadedList("selectedFiles",byCat("supporting"));
+}
+
+function renderUploadedList(id,names){
+  const el=document.getElementById(id); if(!el) return;
+  if(!names.length){ el.textContent=""; return; }
+  el.innerHTML='<div class="uploaded-list">'+names.map(n=>`<div class="uploaded-file">✓ ${escapeHtml(n)}</div>`).join("")+'</div>';
+}
+
+async function submitStage1(){
+  if(!validateCurrent()) return;
+  if(!currentUser){ setAccountMessage("Sign in before submitting.",true); return; }
+  const ok=await saveProjectNow(true); if(!ok) return;
+  try{
+    const payload=projectPayload("submitted");
+    payload.stage1_submitted_at=new Date().toISOString();
+    const {data,error}=await sb.from("projects").update(payload).eq("id",currentProjectId).select("reference").single();
+    if(error) throw error;
+    currentProjectStatus="submitted";
+    setStage1Editability("submitted");
+    setSaveStatus("Submitted","saved");
+    setAccountMessage(`Questionnaire ${data.reference} submitted successfully to Cam Post Solutions.`);
+    await refreshProjectPicker(false);
+    document.getElementById("projectPicker").value=currentProjectId;
+    alert(`Questionnaire ${data.reference} submitted successfully. Cam Post Solutions can now review the project.`);
+  }catch(e){
+    setAccountMessage("Submission failed: "+(e.message||e),true);
+  }
+}
+
+async function homePhotoSelected(input){
+  if(input.files && input.files.length){
+    const cb=document.getElementById("homePhotoEvidenceCheck"); if(cb) cb.checked=true;
+    await uploadFiles(input.files,"home_photo","homePhotoSelected");
+  }
+}
+
+async function machineCadSelected(input){
+  if(input.files && input.files.length){
+    const cb=document.getElementById("machineModelEvidenceCheck"); if(cb) cb.checked=true;
+    await uploadFiles(input.files,"machine_cad","machineCadSelected");
+  }
+}
+
+async function listSelectedFiles(input){
+  if(input.files && input.files.length){
+    const names=[...input.files].map(f=>f.name);
+    const cadExt=/\.(step|stp|x_t|x_b|iges|igs|sat|jt|sldprt|sldasm|ipt|iam|f3d)$/i;
+    if(names.some(n=>cadExt.test(n))){ const cb=document.getElementById("machineModelEvidenceCheck"); if(cb) cb.checked=true; }
+    await uploadFiles(input.files,"supporting","selectedFiles");
+  }
+}
+
+document.getElementById("questionnaire").addEventListener("input",scheduleAutosave);
+document.getElementById("questionnaire").addEventListener("change",scheduleAutosave);
+
+sb.auth.onAuthStateChange((_event,session)=>{ setTimeout(()=>handleSession(session),0); });
+(async()=>{
+  updateConditionals(); updateNav();
+  const {data:{session}}=await sb.auth.getSession();
+  await handleSession(session);
+})();
+window.addEventListener("pageshow", updateConditionals);
+</script>
+
+<button class="cps-help-fab" type="button" onclick="openCpsHelp()">? Help</button>
+<div id="cpsHelpOverlay" class="cps-help-overlay" onclick="if(event.target===this)closeCpsHelp()">
+  <div class="cps-help-modal" role="dialog" aria-modal="true" aria-labelledby="cpsHelpTitle">
+    <div class="cps-help-head">
+      <h2 id="cpsHelpTitle">CPS Portal Help</h2>
+      <button type="button" class="cps-help-close" onclick="closeCpsHelp()">Close</button>
+    </div>
+    <div class="cps-help-body">
+      
+          <h3>Customer – Stage 1</h3>
+          <ul>
+            <li>Sign in with your email code and choose or create the correct CPS project.</li>
+            <li>Your answers save automatically. You can sign out and return later.</li>
+            <li>Complete the machine, control, CAM, kinematics, safety and required-feature sections.</li>
+            <li>If simulation is required, a machine CAD model is mandatory.</li>
+            <li>Upload manuals, proven NC, a machine-at-home photo and other requested evidence.</li>
+            <li>Submit Stage 1 when complete. CPS must review it before commissioning starts.</li>
+          </ul>
+          <h3>CPS staff</h3>
+          <p>Review submitted Stage 1 information in the internal dashboard before enabling commissioning. Do not progress while safety-critical machine information is assumed or contradictory.</p>
+        
+      <div class="cps-help-actions">
+        <a class="cps-help-primary" href="./help.html#customer" target="_blank">Open full guide</a>
+        <a class="cps-help-secondary" href="./help.html" target="_blank">Customer & staff guides</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function openCpsHelp(){document.getElementById('cpsHelpOverlay').classList.add('show');}
+function closeCpsHelp(){document.getElementById('cpsHelpOverlay').classList.remove('show');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCpsHelp();});
+</script>
+
+</body>
+</html>
