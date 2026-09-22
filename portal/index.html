@@ -181,8 +181,19 @@ async function loadReleases(){
  if(ids.length){const f=await sb.from('project_files').select('id,release_id,filename,storage_path,category,size_bytes').eq('project_id',currentProjectId).eq('stage','release').in('release_id',ids);if(f.error)return setMsg('Could not load release files: '+f.error.message,true);files=f.data||[]}
  const box=document.getElementById('releaseList');if(!releases.length){box.innerHTML='<p class="muted">No releases available yet.</p>';return}
  box.innerHTML=releases.map(r=>{
-  const rf=files.filter(f=>f.release_id===r.id);const staffButtons=isStaff&&r.status==='draft'?`<button class="primary" onclick="releaseToCustomer('${r.id}')">Release to customer</button>`:'';
-  return `<div class="release ${r.status}"><div class="row space"><div><strong>${esc(r.revision)}</strong> ${r.title?'· '+esc(r.title):''}<div>${badge(human(r.status),r.status==='released'?'ok':'warn')}</div></div><div>${staffButtons}</div></div>${r.release_notes?`<p>${esc(r.release_notes).replaceAll('\n','<br>')}</p>`:''}<div class="files">${rf.length?rf.map(f=>`<div class="file"><span>📄 ${esc(f.filename)}</span><button class="ghost" onclick="downloadReleaseFile('${esc(f.storage_path)}','${esc(f.filename)}')">Download</button></div>`).join(''):'<span class="muted small">No files uploaded.</span>'}</div></div>`;
+  const rf=files.filter(f=>f.release_id===r.id);
+  let staffButtons='';
+  if(isStaff&&r.status==='draft'){
+    staffButtons=`<button class="primary" onclick="releaseToCustomer('${r.id}')">Release to customer</button>`;
+  }else if(isStaff&&r.status==='released'){
+    const label=r.notified_at?'Email customer again':(r.notification_error?'Retry customer email':'Email customer');
+    staffButtons=`<button class="ghost" onclick="retryReleaseNotification('${r.id}')">${label}</button>`;
+  }
+  const emailState=r.notified_at
+    ? `<span class="status ok">customer email sent</span>`
+    : (r.notification_error?`<span class="status bad">email failed</span>`:'');
+  const emailDetail=r.notification_error?`<div class="muted small" style="margin-top:4px">${esc(r.notification_error)}</div>`:'';
+  return `<div class="release ${r.status}"><div class="row space"><div><strong>${esc(r.revision)}</strong> ${r.title?'· '+esc(r.title):''}<div>${badge(human(r.status),r.status==='released'?'ok':'warn')} ${emailState}</div>${emailDetail}</div><div>${staffButtons}</div></div>${r.release_notes?`<p>${esc(r.release_notes).replaceAll('\n','<br>')}</p>`:''}<div class="files">${rf.length?rf.map(f=>`<div class="file"><span>📄 ${esc(f.filename)}</span><button class="ghost" onclick="downloadReleaseFile('${esc(f.storage_path)}','${esc(f.filename)}')">Download</button></div>`).join(''):'<span class="muted small">No files uploaded.</span>'}</div></div>`;
  }).join('');
 }
 async function downloadReleaseFile(path,filename){
@@ -191,6 +202,23 @@ async function downloadReleaseFile(path,filename){
  const u=new URL(data.signedUrl);
  u.searchParams.set('download',filename||'download');
  window.open(u.toString(),'_blank','noopener');
+}
+async function retryReleaseNotification(releaseId){
+ const notice=document.getElementById('releaseNotice');
+ notice.classList.remove('hidden','warn');
+ notice.innerHTML='<strong>Sending customer email…</strong>';
+ const n=await notify('release_ready',releaseId);
+ await loadReleases();
+ const currentNotice=document.getElementById('releaseNotice');
+ currentNotice.classList.remove('hidden','warn');
+ if(n.ok){
+   currentNotice.innerHTML='<strong>Customer notified.</strong> The release email has been sent successfully.';
+   setMsg('Customer release email sent.');
+ }else{
+   currentNotice.classList.add('warn');
+   currentNotice.innerHTML='<strong>Customer email was not sent.</strong> '+esc(n.error||'Unknown email error');
+   setMsg('Customer email could not be sent: '+(n.error||'unknown error'),true);
+ }
 }
 async function sendRequestNotification(){
  if(!currentProjectId||currentProject?.stage1_status!=='submitted')return;
