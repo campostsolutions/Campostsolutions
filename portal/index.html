@@ -20,14 +20,14 @@
 
 <div class="card">
  <div id="signedOut">
-  <h2 style="margin-top:0">Sign in</h2><p class="muted">Use the email address associated with your CPS project.</p>
+  <h2 style="margin-top:0">Sign in</h2><p class="muted">Sign in with your email address. If you are new to Cam Post Solutions, you can start a new machine questionnaire after signing in. If you already have a CPS project, use the same email address to continue it.</p>
   <div class="login"><label>Email address<input id="loginEmail" type="email" autocomplete="email"></label><button class="primary" onclick="sendCode()">Send sign-in email</button></div>
   <div id="otpRow" class="login hidden" style="margin-top:12px"><label>Sign-in code<input id="loginCode" inputmode="numeric" maxlength="10" autocomplete="one-time-code"></label><button class="primary" onclick="verifyCode()">Verify code</button></div>
   <div id="authMsg" class="message"></div>
  </div>
  <div id="signedIn" class="hidden">
-  <div class="row space"><div><strong>Signed in as <span id="who"></span></strong><span id="staffBadge" class="status hidden">CPS staff</span><div id="msg" class="message"></div></div><div class="row"><a id="staffDash" class="btn ghost hidden" href="dashboard.html">CPS dashboard</a><button class="ghost" onclick="signOut()">Sign out</button></div></div>
-  <label style="display:block;margin-top:14px">Project<select id="projectPicker" onchange="loadProject(this.value)"><option value="">Select project…</option></select></label>
+  <div class="row space"><div><strong>Signed in as <span id="who"></span></strong><span id="staffBadge" class="status hidden">CPS staff</span><div id="msg" class="message"></div></div><div class="row"><a class="btn primary" href="questionnaire.html">Start new questionnaire</a><a id="staffDash" class="btn ghost hidden" href="dashboard.html">CPS dashboard</a><button class="ghost" onclick="signOut()">Sign out</button></div></div>
+  <label style="display:block;margin-top:14px">Existing project<select id="projectPicker" onchange="loadProject(this.value)"><option value="">Select existing project…</option></select></label><div id="noProjects" class="callout hidden"><strong>No projects yet.</strong><br>This email address is not linked to a CPS project yet. Start by completing the machine questionnaire.<div style="margin-top:10px"><a class="btn primary" href="questionnaire.html">Start new questionnaire</a></div></div>
  </div>
 </div>
 
@@ -114,12 +114,15 @@ async function handleSession(session){
 async function loadProjects(){
  const {data,error}=await sb.from('projects').select('id,reference,customer_company,machine_manufacturer,machine_model,stage1_status,stage2_status,stage3_status,development_status,updated_at').order('updated_at',{ascending:false});
  if(error)return setMsg('Could not load projects: '+error.message,true);
- const p=document.getElementById('projectPicker');p.innerHTML='<option value="">Select project…</option>';
+ const p=document.getElementById('projectPicker');p.innerHTML='<option value="">Select existing project…</option>';
  for(const x of data||[]){const o=document.createElement('option');o.value=x.id;o.textContent=[x.reference,x.customer_company,[x.machine_manufacturer,x.machine_model].filter(Boolean).join(' ')].filter(Boolean).join(' · ');p.appendChild(o)}
+ const noProjects=document.getElementById('noProjects');
+ noProjects.classList.toggle('hidden',!!data?.length);
  const req=new URLSearchParams(location.search).get('project');
  if(req&&(data||[]).some(x=>x.id===req)){p.value=req;await loadProject(req)}
  else if(data?.length===1){p.value=data[0].id;await loadProject(data[0].id)}
- else setMsg('Choose a project.');
+ else if(!data?.length){setMsg('No existing CPS projects are linked to this email yet. Start a new questionnaire to create one.');}
+ else setMsg('Choose an existing project, or start a new questionnaire.');
 }
 async function loadProject(id){
  if(!id){document.getElementById('app').classList.add('hidden');return}
