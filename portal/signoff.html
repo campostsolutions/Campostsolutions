@@ -234,6 +234,7 @@
   .scope-box{border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:#fbfcfe}
   .scope-box strong{display:block}
   @media(max-width:800px){.login-row,.release-scope{grid-template-columns:1fr}.account-row{align-items:flex-start;flex-direction:column}}
+@media(max-width:600px){.nav{flex-direction:column-reverse;gap:10px}.nav button{width:100%}.test-table{min-width:680px}}
   @media print{
     .portal-card,.topbar,.nav,.stage-ribbon,.account-actions{display:none!important}
     body{background:#fff}.shell{max-width:none;padding:0}.panel{box-shadow:none;border:0}.step{display:block!important;page-break-inside:avoid}
@@ -425,7 +426,7 @@
     <label class="field"><span class="lbl">Position / role</span><input name="customer_position"></label>
     <label class="field"><span class="lbl">Customer company</span><input name="customer_company" id="customerCompany"></label>
     <label class="field"><span class="lbl">Acceptance date <span class="req">*</span></span><input name="acceptance_date" type="date"></label>
-    <label class="field"><span class="lbl">Cam Post Solutions representative</span><input name="cps_representative"></label>
+    <label class="field" id="cpsRepresentativeField" style="display:none"><span class="lbl">Cam Post Solutions representative</span><input name="cps_representative"></label>
     <label class="field"><span class="lbl">CPS project/reference</span><input name="project_reference" id="projectReferenceInput" readonly></label>
     <label class="field"><span class="lbl">Signed-in email</span><input name="signed_in_email" id="signedInEmailRecord" readonly></label>
     <label class="field full"><span class="lbl">Final comments</span><textarea name="final_comments"></textarea></label>
@@ -497,6 +498,12 @@ async function handleSession(session){
   document.getElementById('signedInEmailRecord').value=currentUser.email||'';
   document.getElementById('staffBadge').style.display=isCpsStaff?'inline-block':'none';
   document.getElementById('dashboardLink').style.display=isCpsStaff?'inline-block':'none';
+  const cpsRepField=document.getElementById('cpsRepresentativeField');
+  if(cpsRepField){
+    cpsRepField.style.display=isCpsStaff?'block':'none';
+    const cpsRepInput=cpsRepField.querySelector('input');
+    if(cpsRepInput)cpsRepInput.disabled=!isCpsStaff;
+  }
   await refreshProjectPicker();
 }
 
