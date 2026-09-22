@@ -84,7 +84,7 @@
 <script>
 const SUPABASE_URL="https://hfxghrzhthvmcvzxletp.supabase.co", SUPABASE_PUBLISHABLE_KEY="sb_publishable_TTAEax5Jgl-gcYKdixdxiA_Imyz7hHg";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
-let currentUser=null,currentProjectId=null,currentProject=null,isStaff=false,releases=[];
+let currentUser=null,currentProjectId=null,currentProject=null,isStaff=false,releases=[],commissioningRuns=[];
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 function setMsg(t,e=false){const x=document.getElementById('msg');x.textContent=t||'';x.classList.toggle('error',e)}
@@ -178,10 +178,17 @@ async function loadReleases(){
  let query=sb.from('project_releases').select('*').eq('project_id',currentProjectId).order('created_at',{ascending:false});
  const {data,error}=await query;if(error)return setMsg('Could not load releases: '+error.message,true);releases=data||[];
  const ids=releases.map(r=>r.id);let files=[];
- if(ids.length){const f=await sb.from('project_files').select('id,release_id,filename,storage_path,category,size_bytes').eq('project_id',currentProjectId).eq('stage','release').in('release_id',ids);if(f.error)return setMsg('Could not load release files: '+f.error.message,true);files=f.data||[]}
+ commissioningRuns=[];
+ if(ids.length){
+   const f=await sb.from('project_files').select('id,release_id,filename,storage_path,category,size_bytes').eq('project_id',currentProjectId).eq('stage','release').in('release_id',ids);if(f.error)return setMsg('Could not load release files: '+f.error.message,true);files=f.data||[];
+   const runs=await sb.from('commissioning_runs').select('id,release_id,run_number,status,submitted_at,cps_review_notes').eq('project_id',currentProjectId).in('release_id',ids).order('run_number',{ascending:true});
+   if(runs.error)return setMsg('Could not load commissioning history: '+runs.error.message,true);
+   commissioningRuns=runs.data||[];
+ }
  const box=document.getElementById('releaseList');if(!releases.length){box.innerHTML='<p class="muted">No releases available yet.</p>';return}
  box.innerHTML=releases.map(r=>{
   const rf=files.filter(f=>f.release_id===r.id);
+  const run=commissioningRuns.find(x=>x.release_id===r.id);
   let staffButtons='';
   if(isStaff&&r.status==='draft'){
     staffButtons=`<button class="primary" onclick="releaseToCustomer('${r.id}')">Release to customer</button>`;
@@ -193,7 +200,9 @@ async function loadReleases(){
     ? `<span class="status ok">customer email sent</span>`
     : (r.notification_error?`<span class="status bad">email failed</span>`:'');
   const emailDetail=r.notification_error?`<div class="muted small" style="margin-top:4px">${esc(r.notification_error)}</div>`:'';
-  return `<div class="release ${r.status}"><div class="row space"><div><strong>${esc(r.revision)}</strong> ${r.title?'· '+esc(r.title):''}<div>${badge(human(r.status),r.status==='released'?'ok':'warn')} ${emailState}</div>${emailDetail}</div><div>${staffButtons}</div></div>${r.release_notes?`<p>${esc(r.release_notes).replaceAll('\n','<br>')}</p>`:''}<div class="files">${rf.length?rf.map(f=>`<div class="file"><span>📄 ${esc(f.filename)}</span><button class="ghost" onclick="downloadReleaseFile('${esc(f.storage_path)}','${esc(f.filename)}')">Download</button></div>`).join(''):'<span class="muted small">No files uploaded.</span>'}</div></div>`;
+  const runState=run ? `<span class="status ${run.status==='completed'?'ok':run.status==='draft'?'warn':run.status==='blocked'?'bad':'bad'}">Run ${run.run_number}: ${human(run.status)}</span>` : '';
+  const runLink=run ? `<a class="btn ghost" href="commissioning.html?project=${encodeURIComponent(currentProjectId)}&run=${encodeURIComponent(run.id)}">${run.status==='draft'?'Open commissioning':'View commissioning'}</a>` : '';
+  return `<div class="release ${r.status}"><div class="row space"><div><strong>${esc(r.revision)}</strong> ${r.title?'· '+esc(r.title):''}<div>${badge(human(r.status),r.status==='released'?'ok':'warn')} ${emailState} ${runState}</div>${emailDetail}</div><div class="row">${runLink}${staffButtons}</div></div>${r.release_notes?`<p>${esc(r.release_notes).replaceAll('\n','<br>')}</p>`:''}<div class="files">${rf.length?rf.map(f=>`<div class="file"><span>📄 ${esc(f.filename)}</span><button class="ghost" onclick="downloadReleaseFile('${esc(f.storage_path)}','${esc(f.filename)}')">Download</button></div>`).join(''):'<span class="muted small">No files uploaded.</span>'}</div></div>`;
  }).join('');
 }
 async function downloadReleaseFile(path,filename){
@@ -258,26 +267,55 @@ async function createDraftRelease(){
  }catch(e){setMsg('Upload failed: '+(e.message||e),true)}
 }
 async function releaseToCustomer(releaseId){
- if(!confirm('Make this release visible to the customer and open commissioning?'))return;
+ if(!confirm('Make this release visible to the customer and create a fresh commissioning run?'))return;
  const notice=document.getElementById('releaseNotice');
  notice.classList.remove('hidden','warn');
- notice.innerHTML='<strong>Publishing release…</strong> Files are being made available and the customer notification is being attempted.';
- let nextS2=currentProject.stage2_status==='not_started'?'draft':currentProject.stage2_status;
- const {error:rerr}=await sb.from('project_releases').update({status:'released',released_at:new Date().toISOString()}).eq('id',releaseId);
- if(rerr){notice.classList.add('warn');notice.innerHTML='<strong>Release failed.</strong> '+esc(rerr.message);return setMsg(rerr.message,true);}
- const {error:perr}=await sb.from('projects').update({development_status:'ready_for_testing',stage2_status:nextS2}).eq('id',currentProjectId);
- if(perr){notice.classList.add('warn');notice.innerHTML='<strong>Release files published, but project status could not be updated.</strong> '+esc(perr.message);return setMsg(perr.message,true);}
- const n=await notify('release_ready',releaseId);
- await loadProject(currentProjectId);
- const newNotice=document.getElementById('releaseNotice');
- newNotice.classList.remove('hidden','warn');
- if(n.ok){
-   newNotice.innerHTML='<strong>Release published.</strong> The customer has been notified by email and can now download the files and begin commissioning.';
-   setMsg('Release published and customer notification sent.');
- }else{
-   newNotice.classList.add('warn');
-   newNotice.innerHTML='<strong>Release published, but the notification email was not sent.</strong> '+esc(n.error||'Unknown email error')+'. The files are still available in the customer portal.';
-   setMsg('Release published. Email notification could not be sent: '+(n.error||'unknown error'),true);
+ notice.innerHTML='<strong>Publishing release…</strong> Creating a new commissioning run and notifying the customer.';
+ try{
+   const {error:rerr}=await sb.from('project_releases').update({status:'released',released_at:new Date().toISOString()}).eq('id',releaseId);
+   if(rerr)throw rerr;
+
+   let {data:run,error:runLookupErr}=await sb.from('commissioning_runs').select('*').eq('release_id',releaseId).maybeSingle();
+   if(runLookupErr)throw runLookupErr;
+   if(!run){
+     const {data:maxRows,error:maxErr}=await sb.from('commissioning_runs').select('run_number').eq('project_id',currentProjectId).order('run_number',{ascending:false}).limit(1);
+     if(maxErr)throw maxErr;
+     const nextRun=(maxRows?.[0]?.run_number||0)+1;
+     const created=await sb.from('commissioning_runs').insert({project_id:currentProjectId,release_id:releaseId,run_number:nextRun,status:'draft'}).select('*').single();
+     if(created.error)throw created.error;
+     run=created.data;
+   }
+
+   const {error:perr}=await sb.from('projects').update({
+     current_release_id:releaseId,
+     current_commissioning_run_id:run.id,
+     current_signoff_id:null,
+     development_status:'ready_for_testing',
+     stage2_status:'draft',
+     stage2_data:{},
+     stage2_completed_at:null,
+     stage3_status:'not_started',
+     stage3_data:{},
+     stage3_completed_at:null
+   }).eq('id',currentProjectId);
+   if(perr)throw perr;
+
+   const n=await notify('release_ready',releaseId);
+   await loadProject(currentProjectId);
+   const newNotice=document.getElementById('releaseNotice');
+   newNotice.classList.remove('hidden','warn');
+   if(n.ok){
+     newNotice.innerHTML='<strong>Release published.</strong> Commissioning Run '+run.run_number+' has been created and the customer has been notified.';
+     setMsg('Release published and new commissioning run created.');
+   }else{
+     newNotice.classList.add('warn');
+     newNotice.innerHTML='<strong>Release published and commissioning opened, but the notification email was not sent.</strong> '+esc(n.error||'Unknown email error');
+     setMsg('Release published; customer email failed.',true);
+   }
+ }catch(e){
+   notice.classList.add('warn');
+   notice.innerHTML='<strong>Release failed.</strong> '+esc(e.message||e);
+   setMsg('Could not publish release: '+(e.message||e),true);
  }
 }
 async function notify(action,releaseId=null){
