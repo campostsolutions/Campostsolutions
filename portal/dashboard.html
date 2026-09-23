@@ -179,9 +179,9 @@ async function reopenProject(id){
  const p=projects.find(x=>x.id===id);
  if(!p||!p.archived_at)return;
  if(!confirm('Reopen '+p.reference+' and return it to the active Projects list? The completed sign-off and all project history will remain unchanged.'))return;
- const {error}=await sb.from('projects').update({archived_at:null}).eq('id',id);
+ const {error}=await sb.from('projects').update({archived_at:null,development_status:'in_development'}).eq('id',id);
  if(error)return msg('Could not reopen project: '+error.message,true);
- msg(p.reference+' reopened.');await loadProjects();
+ msg(p.reference+' reopened and returned to development.');await loadProjects();
 }
 function toggleDetails(id){document.getElementById('details-'+id).classList.toggle('show')}
 async function enableCommissioning(id){
