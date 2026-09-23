@@ -471,13 +471,20 @@ async function loadReleases(){
         <strong>${pending?'Protection generation required':'Protected post ready'}</strong>
         <div style="margin-top:10px;display:grid;gap:10px">
           <div><strong>1 · Source post</strong><div class="muted small">Use the internal source .cps shown above. Download it first if you do not already have that exact file locally.</div></div>
-          <div><strong>2 · Generate protected post</strong><div class="muted small">Open the CPS Post Expiry Tool on your PC and enter:</div>
-            <div class="small" style="margin-top:6px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:#fff">
-              <strong>Written for:</strong> ${esc(r.protection_provider||'—')}<br>
-              <strong>Support email:</strong> ${esc(r.protection_support_email||'—')}<br>
-              <strong>Expiry date:</strong> ${esc(expiry)}<br>
-              <strong>Force expired test:</strong> ${r.protection_force_expired?'Yes':'No'}
+          <div><strong>2 · Open in CPS Trial Post Generator</strong>
+            <div class="muted small">Download the CPS Job file and open it in <strong>CPS Trial Post Generator v1.5+</strong>. The customer, machine, project reference, provider, expiry and test mode are filled in automatically.</div>
+            <div class="row" style="margin-top:8px">
+              <button class="ghost" onclick="downloadCpsJobs('${r.id}')">Download CPS Job</button>
+              <span class="muted small">If the source .cps is in the same folder, the generator selects it automatically.</span>
             </div>
+            <details style="margin-top:8px"><summary class="small" style="cursor:pointer">Show job settings</summary>
+              <div class="small" style="margin-top:6px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:#fff">
+                <strong>Written for:</strong> ${esc(r.protection_provider||'—')}<br>
+                <strong>Support email:</strong> ${esc(r.protection_support_email||'—')}<br>
+                <strong>Expiry date:</strong> ${esc(expiry)}<br>
+                <strong>Force expired test:</strong> ${r.protection_force_expired?'Yes':'No'}
+              </div>
+            </details>
           </div>
           <div><strong>3 · Upload generated protected post</strong><div class="muted small">Choose the newly generated/encrypted .cps below. <strong>Do not upload the original source .cps here.</strong></div>
             <div class="row" style="margin-top:8px">
@@ -583,6 +590,54 @@ async function createDraftRelease(){
   document.getElementById('releaseFileState').textContent=mode==='timed'?'Draft protected release created. Generate the encrypted post and upload it to the draft release below.':'Draft release created.';
   await loadReleases();
  }catch(e){setMsg('Upload failed: '+(e.message||e),true)}
+}
+async function downloadCpsJobs(releaseId){
+ if(!isStaff)return;
+ const r=releases.find(x=>x.id===releaseId);
+ if(!r||r.protection_mode!=='timed')return setMsg('Protected release not found.',true);
+ const q=await sb.from('project_files')
+   .select('id,filename')
+   .eq('project_id',currentProjectId)
+   .eq('release_id',releaseId)
+   .eq('stage','release')
+   .eq('category','post_source')
+   .order('created_at',{ascending:true});
+ if(q.error)return setMsg('Could not create CPS Job: '+q.error.message,true);
+ const sources=q.data||[];
+ if(!sources.length)return setMsg('No internal source .cps is recorded for this release.',true);
+ const machine=[currentProject?.machine_manufacturer,currentProject?.machine_model].filter(Boolean).join(' ');
+ const control=[currentProject?.control_manufacturer,currentProject?.control_model].filter(Boolean).join(' ');
+ const base={
+   format:'cpsjob',
+   version:1,
+   created_by:'CPS Portal',
+   created_at:new Date().toISOString(),
+   project_id:currentProjectId,
+   release_id:releaseId,
+   project_reference:currentProject?.reference||'',
+   customer:currentProject?.customer_company||'',
+   machine,
+   control,
+   cam_system:currentProject?.cam_system||'',
+   release_revision:r.revision||'',
+   release_title:r.title||'',
+   provider:r.protection_provider||'Cam Post Solutions',
+   support_email:r.protection_support_email||'support@campostsolutions.co.uk',
+   expiry_date:r.protection_expires_on||'',
+   force_expired:!!r.protection_force_expired,
+   generation_options:{encrypt:true,popup:true,nc_header:true}
+ };
+ const trigger=(source,index)=>{
+   const job={...base,source_filename:source.filename,source_index:index+1,source_count:sources.length};
+   const blob=new Blob([JSON.stringify(job,null,2)+'\n'],{type:'application/json'});
+   const url=URL.createObjectURL(blob);
+   const stem=source.filename.replace(/\.cps$/i,'');
+   const name=safeName(`${base.project_reference}-${base.release_revision}-${stem}.cpsjob`);
+   const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),1500);
+ };
+ sources.forEach((source,index)=>setTimeout(()=>trigger(source,index),index*180));
+ setMsg(sources.length===1?'CPS Job downloaded. Open it in CPS Trial Post Generator v1.5+.':`${sources.length} CPS Job files downloaded — one for each source post.`);
 }
 async function uploadProtectedPost(releaseId){
  if(!isStaff)return;
