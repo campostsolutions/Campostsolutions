@@ -8,7 +8,7 @@
 *{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}.shell{max-width:1250px;margin:auto;padding:28px 18px 60px}
 .mast{background:#fff;border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px}.brand{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:16px 26px;border-top:4px solid #5c8b2f}.brand img{width:140px;height:auto;clip-path:inset(0 0 5px 0);margin-bottom:-5px}.brand span{font-weight:600;color:#445064}.hero{background:linear-gradient(115deg,#0b315f,#0d63c8);color:#fff;padding:22px 28px}.hero h1{margin:0 0 5px}.hero p{margin:0;color:#e5f0ff}
 .card{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:20px 22px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat{border:1px solid var(--border);border-radius:12px;padding:14px}.stat strong{display:block;font-size:28px}.muted{color:var(--muted)}input,select{width:100%;padding:11px 12px;border:1px solid #cfd7e3;border-radius:10px;font:inherit}button,a.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}button.primary,a.primary{background:var(--accent);color:#fff}button.ghost,a.ghost{background:#fff;border:1px solid var(--border);color:var(--text)}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.space{justify-content:space-between}.login{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}.message{font-size:13px;color:var(--muted);margin-top:8px}.message.error{color:var(--danger);font-weight:700}
-table{width:100%;border-collapse:collapse}th,td{padding:11px 9px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.status{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:700;background:#eef3f8;margin:1px 2px}.status.ok{background:#e9f8ef;color:var(--ok)}.status.warn{background:#fff6e9;color:var(--warn)}.status.bad{background:#fff0f0;color:var(--danger)}.actions{display:flex;gap:6px;flex-wrap:wrap}.details{display:none;background:#f8fafc}.details.show{display:table-row}.details-box{padding:14px}.pill{display:inline-block;background:#eef3f8;border-radius:999px;padding:5px 9px;font-size:12px;margin:2px} 
+table{width:100%;border-collapse:collapse}th,td{padding:11px 9px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.status{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:700;background:#eef3f8;margin:1px 2px}.status.ok{background:#e9f8ef;color:var(--ok)}.status.warn{background:#fff6e9;color:var(--warn)}.status.bad{background:#fff0f0;color:var(--danger)}.actions{display:flex;gap:6px;flex-wrap:wrap}.details{display:none;background:#f8fafc}.details.show{display:table-row}.details-box{padding:14px}.pill{display:inline-block;background:#eef3f8;border-radius:999px;padding:5px 9px;font-size:12px;margin:2px}.archive-card{padding:0;overflow:hidden}.archive-card summary{cursor:pointer;list-style:none;padding:18px 22px;font-weight:800;font-size:18px;display:flex;justify-content:space-between;align-items:center;gap:12px}.archive-card summary::-webkit-details-marker{display:none}.archive-card summary:after{content:'▾';color:var(--muted);font-size:14px}.archive-card[open] summary:after{content:'▴'}.archive-card .archive-inner{border-top:1px solid var(--border);padding:0 22px 18px}.archive-meta{font-size:12px;color:var(--muted);margin-top:5px} 
 @media(max-width:900px){.grid{grid-template-columns:1fr 1fr}table{font-size:13px}}@media(max-width:650px){.brand{flex-direction:column;align-items:flex-start}.grid{grid-template-columns:1fr}.login{grid-template-columns:1fr}.tablewrap{overflow:auto}}
 
   .cps-help-fab{
@@ -55,6 +55,13 @@ table{width:100%;border-collapse:collapse}th,td{padding:11px 9px;border-bottom:1
  <div class="grid" id="stats"></div>
  <div class="card"><div class="row space"><div><h2 style="margin:0">Projects</h2><div class="muted">Open Project Home for workflow actions, or use Project files to jump straight to the internal customer-file library.</div></div><div style="min-width:260px"><input id="filter" placeholder="Search customer, machine or reference…" oninput="renderProjects()"></div></div></div>
  <div class="card tablewrap"><table><thead><tr><th>Project</th><th>Customer / machine</th><th>Stage 1</th><th>Stage 2</th><th>Stage 3</th><th>Updated</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div>
+ <details class="card archive-card" id="archiveSection">
+   <summary><span>Archived projects</span><span class="status" id="archiveCount">0</span></summary>
+   <div class="archive-inner tablewrap">
+     <p class="muted" style="margin:14px 0 6px">Completed sign-off projects stay here with their releases, evidence, project files and support-period history.</p>
+     <table><thead><tr><th>Project</th><th>Customer / machine</th><th>Stage 3</th><th>Archived</th><th>Support</th><th>Actions</th></tr></thead><tbody id="archiveRows"></tbody></table>
+   </div>
+ </details>
 </div>
 </div>
 <script>
@@ -83,7 +90,9 @@ async function loadProjects(){
  const files=await sb.from('project_files').select('project_id').eq('stage','project');
  if(files.error)console.warn('Could not load Project files counts',files.error);
  else for(const f of files.data||[])projectFileCounts[f.project_id]=(projectFileCounts[f.project_id]||0)+1;
- renderStats();renderProjects();msg(`${projects.length} project${projects.length===1?'':'s'} loaded.`);
+ renderStats();renderProjects();
+ const activeCount=projects.filter(p=>!p.archived_at).length,archiveCount=projects.length-activeCount;
+ msg(`${activeCount} active · ${archiveCount} archived`);
 }
 function badge(value){
  const v=value||'—';let cls='';
@@ -93,15 +102,16 @@ function badge(value){
  return `<span class="status ${cls}">${esc(v.replaceAll('_',' '))}</span>`;
 }
 function renderStats(){
- const count=f=>projects.filter(f).length;
+ const active=projects.filter(p=>!p.archived_at);
+ const count=f=>active.filter(f).length;
  document.getElementById('stats').innerHTML=[
-  ['Total projects',projects.length],
+  ['Active projects',active.length],
   ['New requests',count(p=>p.stage1_status==='submitted' && ['not_started','awaiting_commercial'].includes(p.development_status||'not_started'))],
   ['In development',count(p=>p.development_status==='in_development')],
-  ['Testing / accepted',count(p=>p.stage2_status!=='not_started'||['accepted','accepted_with_limitations'].includes(p.stage3_status))]
+  ['Testing / sign-off',count(p=>p.stage2_status!=='not_started' && !['accepted','accepted_with_limitations'].includes(p.stage3_status))]
  ].map(([l,n])=>`<div class="stat"><span class="muted">${l}</span><strong>${n}</strong></div>`).join('');
 }
-function projectActions(p){
+function projectActions(p,archived=false){
   const buttons=[`<button class="ghost" onclick="toggleDetails('${p.id}')">Details</button>`];
   let primaryLabel='Project home';
 
@@ -127,22 +137,51 @@ function projectActions(p){
       : (p.stage3_status==='not_accepted'?'View rejected sign-off':'Open Stage 3');
     buttons.push(`<a class="btn ghost" href="./signoff.html?project=${encodeURIComponent(p.id)}">${s3Label}</a>`);
   }
+  if(archived) buttons.push(`<button class="ghost" onclick="reopenProject('${p.id}')">Reopen project</button>`);
 
   return buttons.join('');
 }
-function renderProjects(){
- const q=document.getElementById('filter').value.trim().toLowerCase();
- const rows=projects.filter(p=>!q||[p.reference,p.customer_company,p.machine_manufacturer,p.machine_model,p.control_manufacturer,p.cam_system].join(' ').toLowerCase().includes(q));
- document.getElementById('rows').innerHTML=rows.map(p=>{
+function supportSummary(p){
+ const end=p.support_extension_end||p.support_period_end;
+ if(!p.delivery_date||!end)return 'Not started';
+ const days=Math.ceil((new Date(end).getTime()-Date.now())/86400000);
+ if(days<0)return 'Expired';
+ if(days===0)return 'Ends today';
+ return days+' day'+(days===1?'':'s')+' remaining';
+}
+function projectRow(p,archived=false){
   const stage1=p.stage1_data||{},caps=Array.isArray(stage1.capabilities)?stage1.capabilities:(stage1.capabilities?[stage1.capabilities]:[]);
   const s3=p.stage3_data||{};
   const requestTag=p.stage1_status==='submitted'?'<div style="margin-top:5px"><span class="status warn">REQUEST</span></div>':'';
   const emailState=p.stage1_notified_at
     ? `<span class="status ok">request email sent</span>`
     : (p.stage1_notification_error ? `<span class="status bad">request email failed</span>` : (p.stage1_status==='submitted'?'<span class="status warn">request email pending</span>':''));
-  return `<tr><td><strong>${esc(p.reference)}</strong>${requestTag}<div class="muted">${esc(p.cam_system||'')}</div></td><td><strong>${esc(p.customer_company||'—')}</strong><br>${esc([p.machine_manufacturer,p.machine_model].filter(Boolean).join(' ')||'—')}<div class="muted">${esc([p.control_manufacturer,p.control_model].filter(Boolean).join(' '))}</div></td><td>${badge(p.stage1_status)}</td><td>${badge(p.stage2_status)}</td><td>${badge(p.stage3_status)}</td><td>${new Date(p.updated_at).toLocaleString()}</td><td><div class="actions">${projectActions(p)}</div></td></tr>
+  if(archived){
+    const archivedDate=p.archived_at?new Date(p.archived_at).toLocaleDateString('en-GB'):'—';
+    const support=supportSummary(p);
+    const supportCls=support==='Expired'?'bad':support==='Not started'?'':'ok';
+    return `<tr><td><strong>${esc(p.reference)}</strong><div class="muted">${esc(p.cam_system||'')}</div></td><td><strong>${esc(p.customer_company||'—')}</strong><br>${esc([p.machine_manufacturer,p.machine_model].filter(Boolean).join(' ')||'—')}<div class="muted">${esc([p.control_manufacturer,p.control_model].filter(Boolean).join(' '))}</div></td><td>${badge(p.stage3_status)}</td><td>${archivedDate}</td><td><span class="status ${supportCls}">${esc(support)}</span></td><td><div class="actions">${projectActions(p,true)}</div></td></tr>
+    <tr id="details-${p.id}" class="details"><td colspan="6"><div class="details-box"><strong>Stage 1 scope</strong><div>${esc(stage1.project_scope||p.deliverable||'—')}</div><div style="margin-top:8px">${caps.map(c=>`<span class="pill">${esc(c)}</span>`).join('')}</div><div style="margin-top:10px"><strong>Contact:</strong> ${esc(p.customer_contact||'—')} · ${esc(p.customer_email||'—')}</div><div style="margin-top:10px"><strong>Accepted:</strong> ${p.stage3_completed_at?new Date(p.stage3_completed_at).toLocaleString('en-GB'):'—'}</div>${s3.acceptance?`<div style="margin-top:10px"><strong>Acceptance:</strong> ${esc(s3.acceptance)}${s3.customer_representative?` · ${esc(s3.customer_representative)}`:''}</div>`:''}</div></td></tr>`;
+  }
+  return `<tr><td><strong>${esc(p.reference)}</strong>${requestTag}<div class="muted">${esc(p.cam_system||'')}</div></td><td><strong>${esc(p.customer_company||'—')}</strong><br>${esc([p.machine_manufacturer,p.machine_model].filter(Boolean).join(' ')||'—')}<div class="muted">${esc([p.control_manufacturer,p.control_model].filter(Boolean).join(' '))}</div></td><td>${badge(p.stage1_status)}</td><td>${badge(p.stage2_status)}</td><td>${badge(p.stage3_status)}</td><td>${new Date(p.updated_at).toLocaleString()}</td><td><div class="actions">${projectActions(p,false)}</div></td></tr>
   <tr id="details-${p.id}" class="details"><td colspan="7"><div class="details-box"><strong>Stage 1 scope</strong><div>${esc(stage1.project_scope||p.deliverable||'—')}</div><div style="margin-top:8px">${caps.map(c=>`<span class="pill">${esc(c)}</span>`).join('')}</div><div style="margin-top:10px"><strong>Contact:</strong> ${esc(p.customer_contact||'—')} · ${esc(p.customer_email||'—')}</div><div style="margin-top:10px"><strong>Development:</strong> ${badge(p.development_status||'not_started')}</div>${emailState?`<div style="margin-top:10px"><strong>Portal notification:</strong> ${emailState}${p.stage1_notification_error?`<div class="muted">${esc(p.stage1_notification_error)}</div>`:''}</div>`:''}${s3.acceptance?`<div style="margin-top:10px"><strong>Acceptance:</strong> ${esc(s3.acceptance)}${s3.customer_representative?` · ${esc(s3.customer_representative)}`:''}</div>`:''}</div></td></tr>`;
- }).join('');
+}
+function renderProjects(){
+ const q=document.getElementById('filter').value.trim().toLowerCase();
+ const match=p=>!q||[p.reference,p.customer_company,p.machine_manufacturer,p.machine_model,p.control_manufacturer,p.cam_system].join(' ').toLowerCase().includes(q);
+ const active=projects.filter(p=>!p.archived_at&&match(p));
+ const archived=projects.filter(p=>p.archived_at&&match(p));
+ document.getElementById('rows').innerHTML=active.length?active.map(p=>projectRow(p,false)).join(''):'<tr><td colspan="7" class="muted">No active projects match this search.</td></tr>';
+ document.getElementById('archiveRows').innerHTML=archived.length?archived.map(p=>projectRow(p,true)).join(''):'<tr><td colspan="6" class="muted">No archived projects match this search.</td></tr>';
+ document.getElementById('archiveCount').textContent=projects.filter(p=>p.archived_at).length;
+}
+async function reopenProject(id){
+ const p=projects.find(x=>x.id===id);
+ if(!p||!p.archived_at)return;
+ if(!confirm('Reopen '+p.reference+' and return it to the active Projects list? The completed sign-off and all project history will remain unchanged.'))return;
+ const {error}=await sb.from('projects').update({archived_at:null}).eq('id',id);
+ if(error)return msg('Could not reopen project: '+error.message,true);
+ msg(p.reference+' reopened.');await loadProjects();
 }
 function toggleDetails(id){document.getElementById('details-'+id).classList.toggle('show')}
 async function enableCommissioning(id){
