@@ -620,7 +620,20 @@ async function uploadProtectedPost(releaseId){
  }catch(e){if(state)state.textContent='Upload failed: '+(e.message||e);setMsg('Protected post upload failed: '+(e.message||e),true);}
 }
 async function releaseToCustomer(releaseId){
- if(!confirm('Make this release visible to the customer and create a fresh commissioning run?'))return;
+ const release=releases.find(x=>x.id===releaseId);
+ if(!release)return setMsg('Release not found. Refresh the page and try again.',true);
+ if(release.protection_mode==='timed'){
+   if(release.protection_status!=='ready')return setMsg('This protected release is not ready. Upload the generated protected .cps first.',true);
+   const check=await sb.from('project_files').select('category').eq('project_id',currentProjectId).eq('release_id',releaseId).eq('stage','release').in('category',['post_source','post']);
+   if(check.error)return setMsg('Could not verify protected release files: '+check.error.message,true);
+   const sourceCount=(check.data||[]).filter(x=>x.category==='post_source').length;
+   const protectedCount=(check.data||[]).filter(x=>x.category==='post').length;
+   if(!sourceCount||protectedCount<sourceCount)return setMsg('Protected post verification failed. Every internal source .cps needs a generated protected .cps before publishing.',true);
+ }
+ const protectionText=release.protection_mode==='timed'
+   ? `\n\nProtected trial post expires: ${release.protection_expires_on||'date not set'}${release.protection_force_expired?' (FORCED EXPIRED TEST BUILD)':''}`
+   : '';
+ if(!confirm('Make this release visible to the customer and create a fresh commissioning run?'+protectionText))return;
  const notice=document.getElementById('releaseNotice');
  notice.classList.remove('hidden','warn');
  notice.innerHTML='<strong>Publishing release…</strong> Creating a new commissioning run and notifying the customer.';
