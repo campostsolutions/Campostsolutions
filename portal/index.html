@@ -469,11 +469,22 @@ async function loadReleases(){
       const pending=r.protection_status!=='ready';
       protectionPanel=`<div class="staff-box" style="margin-top:12px">
         <strong>${pending?'Protection generation required':'Protected post ready'}</strong>
-        <div class="muted small" style="margin-top:4px">Provider: ${esc(r.protection_provider||'—')} · Support: ${esc(r.protection_support_email||'—')} · Expiry: ${esc(expiry)}</div>
-        <div class="row" style="margin-top:10px">
-          <button class="ghost" onclick="copyProtectionSettings('${r.id}')">Copy protection settings</button>
-          <input id="protectedPost-${r.id}" type="file" accept=".cps" multiple style="max-width:330px">
-          <button class="ghost" onclick="uploadProtectedPost('${r.id}')">${pending?'Upload generated protected post':'Add another protected post'}</button>
+        <div style="margin-top:10px;display:grid;gap:10px">
+          <div><strong>1 · Source post</strong><div class="muted small">Use the internal source .cps shown above. Download it first if you do not already have that exact file locally.</div></div>
+          <div><strong>2 · Generate protected post</strong><div class="muted small">Open the CPS Post Expiry Tool on your PC and enter:</div>
+            <div class="small" style="margin-top:6px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:#fff">
+              <strong>Written for:</strong> ${esc(r.protection_provider||'—')}<br>
+              <strong>Support email:</strong> ${esc(r.protection_support_email||'—')}<br>
+              <strong>Expiry date:</strong> ${esc(expiry)}<br>
+              <strong>Force expired test:</strong> ${r.protection_force_expired?'Yes':'No'}
+            </div>
+          </div>
+          <div><strong>3 · Upload generated protected post</strong><div class="muted small">Choose the newly generated/encrypted .cps below. <strong>Do not upload the original source .cps here.</strong></div>
+            <div class="row" style="margin-top:8px">
+              <input id="protectedPost-${r.id}" type="file" accept=".cps" multiple style="max-width:330px">
+              <button class="ghost" onclick="uploadProtectedPost('${r.id}')">${pending?'Upload generated protected post':'Add another protected post'}</button>
+            </div>
+          </div>
         </div>
         <div id="protectedState-${r.id}" class="message">${pending?`Protected output required before this release can be published. ${customerPosts.length} of ${sourcePosts.length} protected post file(s) uploaded.`:`${customerPosts.length} protected post file(s) ready.`}</div>
       </div>`;
@@ -572,25 +583,6 @@ async function createDraftRelease(){
   document.getElementById('releaseFileState').textContent=mode==='timed'?'Draft protected release created. Generate the encrypted post and upload it to the draft release below.':'Draft release created.';
   await loadReleases();
  }catch(e){setMsg('Upload failed: '+(e.message||e),true)}
-}
-async function copyProtectionSettings(releaseId){
- const r=releases.find(x=>x.id===releaseId);if(!r)return;
- const source=await sb.from('project_files').select('filename').eq('project_id',currentProjectId).eq('release_id',releaseId).eq('stage','release').eq('category','post_source');
- const names=(source.data||[]).map(x=>x.filename).join(', ')||'—';
- const lines=[
-   'CPS protected trial post',
-   'Project: '+(currentProject?.reference||''),
-   'Customer: '+(currentProject?.customer_company||''),
-   'Machine: '+[currentProject?.machine_manufacturer,currentProject?.machine_model].filter(Boolean).join(' '),
-   'Release: '+r.revision,
-   'Provider: '+(r.protection_provider||''),
-   'Support email: '+(r.protection_support_email||''),
-   'Expiry date: '+(r.protection_expires_on||''),
-   'Force expired test: '+(r.protection_force_expired?'Yes':'No'),
-   'Source post(s): '+names
- ];
- try{await navigator.clipboard.writeText(lines.join('\n'));setMsg('Protection settings copied.');}
- catch(e){setMsg('Could not copy protection settings: '+(e.message||e),true);}
 }
 async function uploadProtectedPost(releaseId){
  if(!isStaff)return;
