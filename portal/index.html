@@ -442,10 +442,14 @@ async function loadReleases(){
  const box=document.getElementById('releaseList');if(!releases.length){box.innerHTML='<p class="muted">No releases available yet.</p>';return}
  box.innerHTML=releases.map(r=>{
   const rf=files.filter(f=>f.release_id===r.id);
+  const sourcePosts=rf.filter(f=>f.category==='post_source');
+  const customerPosts=rf.filter(f=>f.category==='post');
   const run=commissioningRuns.find(x=>x.release_id===r.id);
+  const protectedRelease=r.protection_mode==='timed';
+  const protectionReady=!protectedRelease||r.protection_status==='ready';
   let staffButtons='';
   if(isStaff&&r.status==='draft'){
-    staffButtons=`<button class="primary" onclick="releaseToCustomer('${r.id}')">Release to customer</button>`;
+    if(protectionReady)staffButtons=`<button class="primary" onclick="releaseToCustomer('${r.id}')">Release to customer</button>`;
   }else if(isStaff&&r.status==='released'){
     const label=r.notified_at?'Email customer again':(r.notification_error?'Retry customer email':'Email customer');
     staffButtons=`<button class="ghost" onclick="retryReleaseNotification('${r.id}')">${label}</button>`;
@@ -456,7 +460,31 @@ async function loadReleases(){
   const emailDetail=r.notification_error?`<div class="muted small" style="margin-top:4px">${esc(r.notification_error)}</div>`:'';
   const runState=run ? `<span class="status ${run.status==='completed'?'ok':run.status==='draft'?'warn':run.status==='blocked'?'bad':'bad'}">Run ${run.run_number}: ${human(run.status)}</span>` : '';
   const runLink=run ? `<a class="btn ghost" href="commissioning.html?project=${encodeURIComponent(currentProjectId)}&run=${encodeURIComponent(run.id)}">${run.status==='draft'?'Open commissioning':'View commissioning'}</a>` : '';
-  return `<div class="release ${r.status}"><div class="row space"><div><strong>${esc(r.revision)}</strong> ${r.title?'· '+esc(r.title):''}<div>${badge(human(r.status),r.status==='released'?'ok':'warn')} ${emailState} ${runState}</div>${emailDetail}</div><div class="row">${runLink}${staffButtons}</div></div>${r.release_notes?`<p>${esc(r.release_notes).replaceAll('\n','<br>')}</p>`:''}<div class="files">${rf.length?rf.map(f=>`<div class="file"><span>📄 ${esc(f.filename)}</span><button class="ghost" onclick="downloadReleaseFile('${esc(f.storage_path)}','${esc(f.filename)}')">Download</button></div>`).join(''):'<span class="muted small">No files uploaded.</span>'}</div></div>`;
+  let protectionBadges='';
+  let protectionPanel='';
+  if(protectedRelease){
+    const expiry=r.protection_expires_on?formatDateUK(r.protection_expires_on+'T12:00:00'):'—';
+    protectionBadges=`<span class="status ${r.protection_status==='ready'?'ok':'warn'}">protected trial post</span> <span class="status">expires ${esc(expiry)}</span> ${r.protection_force_expired?'<span class="status bad">FORCED EXPIRED TEST</span>':''}`;
+    if(isStaff&&r.status==='draft'){
+      const pending=r.protection_status!=='ready';
+      protectionPanel=`<div class="staff-box" style="margin-top:12px">
+        <strong>${pending?'Protection generation required':'Protected post ready'}</strong>
+        <div class="muted small" style="margin-top:4px">Provider: ${esc(r.protection_provider||'—')} · Support: ${esc(r.protection_support_email||'—')} · Expiry: ${esc(expiry)}</div>
+        <div class="row" style="margin-top:10px">
+          <button class="ghost" onclick="copyProtectionSettings('${r.id}')">Copy protection settings</button>
+          <input id="protectedPost-${r.id}" type="file" accept=".cps" multiple style="max-width:330px">
+          <button class="ghost" onclick="uploadProtectedPost('${r.id}')">${pending?'Upload generated protected post':'Add another protected post'}</button>
+        </div>
+        <div id="protectedState-${r.id}" class="message">${pending?`Protected output required before this release can be published. ${customerPosts.length} of ${sourcePosts.length} protected post file(s) uploaded.`:`${customerPosts.length} protected post file(s) ready.`}</div>
+      </div>`;
+    }
+  }
+  const filesHtml=rf.length?rf.map(f=>{
+    const source=f.category==='post_source';
+    const label=source?' <span class="status warn">internal source</span>':(protectedRelease&&f.category==='post'?' <span class="status ok">protected post</span>':'');
+    return `<div class="file"><span>📄 ${esc(f.filename)}${label}</span><button class="ghost" onclick="downloadReleaseFile('${esc(f.storage_path)}','${esc(f.filename)}')">Download</button></div>`;
+  }).join(''):'<span class="muted small">No files uploaded.</span>';
+  return `<div class="release ${r.status}"><div class="row space"><div><strong>${esc(r.revision)}</strong> ${r.title?'· '+esc(r.title):''}<div>${badge(human(r.status),r.status==='released'?'ok':'warn')} ${protectionBadges} ${emailState} ${runState}</div>${emailDetail}</div><div class="row">${runLink}${staffButtons}</div></div>${r.release_notes?`<p>${esc(r.release_notes).replaceAll('\n','<br>')}</p>`:''}<div class="files">${filesHtml}</div>${protectionPanel}</div>`;
  }).join('');
 }
 async function downloadReleaseFile(path,filename){
@@ -510,19 +538,86 @@ async function startDevelopment(){
 }
 async function createDraftRelease(){
  const rev=document.getElementById('releaseRevision').value.trim(),title=document.getElementById('releaseTitle').value.trim(),notes=document.getElementById('releaseNotes').value.trim(),files=[...document.getElementById('releaseFiles').files];
+ const mode=document.getElementById('releaseProtectionMode')?.value||'none';
  if(!rev)return setMsg('Enter a release revision.',true);if(!files.length)return setMsg('Choose at least one release file.',true);
- const {data:r,error}=await sb.from('project_releases').insert({project_id:currentProjectId,revision:rev,title:title||null,release_notes:notes||null}).select('*').single();if(error)return setMsg('Could not create release: '+error.message,true);
+ let protection={protection_mode:'none',protection_status:'not_required',protection_provider:null,protection_support_email:null,protection_expiry_days:null,protection_expires_on:null,protection_force_expired:false};
+ if(mode==='timed'){
+   const sourcePosts=files.filter(f=>/\.cps$/i.test(f.name));
+   if(!sourcePosts.length)return setMsg('A protected release needs at least one source .cps file.',true);
+   const provider=document.getElementById('releaseProtectionProvider').value;
+   const preset=document.getElementById('releaseProtectionPreset').value;
+   const expiresOn=selectedProtectionExpiry();
+   if(!expiresOn)return setMsg('Choose the protected post expiry date.',true);
+   protection={
+     protection_mode:'timed',
+     protection_status:'pending_generation',
+     protection_provider:provider,
+     protection_support_email:protectionSupportEmail(provider),
+     protection_expiry_days:preset==='custom'?null:Number(preset),
+     protection_expires_on:expiresOn,
+     protection_force_expired:document.getElementById('releaseProtectionForceExpired').checked
+   };
+ }
+ const {data:r,error}=await sb.from('project_releases').insert({project_id:currentProjectId,revision:rev,title:title||null,release_notes:notes||null,...protection}).select('*').single();if(error)return setMsg('Could not create release: '+error.message,true);
  document.getElementById('releaseFileState').textContent='Uploading…';
  try{
   for(const file of files){
-   const cat=/\.cps$/i.test(file.name)?'post':/\.(f3d|machine|mch|md)$/i.test(file.name)?'simulation':/\.(pdf|txt|docx?)$/i.test(file.name)?'release_notes':'test_package';
+   const cat=/\.cps$/i.test(file.name)?(mode==='timed'?'post_source':'post'):/\.(f3d|machine|mch|md)$/i.test(file.name)?'simulation':/\.(pdf|txt|docx?)$/i.test(file.name)?'release_notes':'test_package';
    const path=`${currentProject.owner_user_id}/${currentProjectId}/release/${r.id}/${cat}/${Date.now()}-${safeName(file.name)}`;
    const up=await sb.storage.from('cps-project-files').upload(path,file,{upsert:false,contentType:file.type||undefined});if(up.error)throw up.error;
    const meta=await sb.from('project_files').insert({project_id:currentProjectId,release_id:r.id,stage:'release',category:cat,filename:file.name,storage_path:path,mime_type:file.type||null,size_bytes:file.size});if(meta.error)throw meta.error;
   }
-  document.getElementById('releaseRevision').value='';document.getElementById('releaseTitle').value='';document.getElementById('releaseNotes').value='';document.getElementById('releaseFiles').value='';document.getElementById('releaseFileState').textContent='Draft release created.';
+  document.getElementById('releaseRevision').value='';document.getElementById('releaseTitle').value='';document.getElementById('releaseNotes').value='';document.getElementById('releaseFiles').value='';
+  document.getElementById('releaseProtectionMode').value='none';document.getElementById('releaseProtectionForceExpired').checked=false;updateReleaseProtectionUI();
+  document.getElementById('releaseFileState').textContent=mode==='timed'?'Draft protected release created. Generate the encrypted post and upload it to the draft release below.':'Draft release created.';
   await loadReleases();
  }catch(e){setMsg('Upload failed: '+(e.message||e),true)}
+}
+async function copyProtectionSettings(releaseId){
+ const r=releases.find(x=>x.id===releaseId);if(!r)return;
+ const source=await sb.from('project_files').select('filename').eq('project_id',currentProjectId).eq('release_id',releaseId).eq('stage','release').eq('category','post_source');
+ const names=(source.data||[]).map(x=>x.filename).join(', ')||'—';
+ const lines=[
+   'CPS protected trial post',
+   'Project: '+(currentProject?.reference||''),
+   'Customer: '+(currentProject?.customer_company||''),
+   'Machine: '+[currentProject?.machine_manufacturer,currentProject?.machine_model].filter(Boolean).join(' '),
+   'Release: '+r.revision,
+   'Provider: '+(r.protection_provider||''),
+   'Support email: '+(r.protection_support_email||''),
+   'Expiry date: '+(r.protection_expires_on||''),
+   'Force expired test: '+(r.protection_force_expired?'Yes':'No'),
+   'Source post(s): '+names
+ ];
+ try{await navigator.clipboard.writeText(lines.join('\n'));setMsg('Protection settings copied.');}
+ catch(e){setMsg('Could not copy protection settings: '+(e.message||e),true);}
+}
+async function uploadProtectedPost(releaseId){
+ if(!isStaff)return;
+ const r=releases.find(x=>x.id===releaseId);
+ if(!r||r.protection_mode!=='timed'||r.status!=='draft')return;
+ const input=document.getElementById('protectedPost-'+releaseId),state=document.getElementById('protectedState-'+releaseId);
+ const files=[...(input?.files||[])];
+ if(!files.length)return setMsg('Choose the generated protected .cps file first.',true);
+ if(files.some(f=>!/\.cps$/i.test(f.name)))return setMsg('Only generated .cps files can be uploaded as protected posts.',true);
+ try{
+   if(state)state.textContent='Uploading protected post…';
+   for(const file of files){
+     const path=`${currentProject.owner_user_id}/${currentProjectId}/release/${releaseId}/post/${Date.now()}-${safeName(file.name)}`;
+     const up=await sb.storage.from('cps-project-files').upload(path,file,{upsert:false,contentType:file.type||undefined});if(up.error)throw up.error;
+     const meta=await sb.from('project_files').insert({project_id:currentProjectId,release_id:releaseId,stage:'release',category:'post',filename:file.name,storage_path:path,mime_type:file.type||null,size_bytes:file.size});if(meta.error)throw meta.error;
+   }
+   const counts=await sb.from('project_files').select('category').eq('project_id',currentProjectId).eq('release_id',releaseId).eq('stage','release').in('category',['post_source','post']);
+   if(counts.error)throw counts.error;
+   const sourceCount=(counts.data||[]).filter(x=>x.category==='post_source').length;
+   const protectedCount=(counts.data||[]).filter(x=>x.category==='post').length;
+   const ready=sourceCount>0&&protectedCount>=sourceCount;
+   const upd=await sb.from('project_releases').update({protection_status:ready?'ready':'pending_generation',protected_at:ready?new Date().toISOString():null}).eq('id',releaseId);
+   if(upd.error)throw upd.error;
+   if(input)input.value='';
+   setMsg(ready?'Protected post ready for release.':`Protected post uploaded (${protectedCount} of ${sourceCount}).`);
+   await loadReleases();
+ }catch(e){if(state)state.textContent='Upload failed: '+(e.message||e);setMsg('Protected post upload failed: '+(e.message||e),true);}
 }
 async function releaseToCustomer(releaseId){
  if(!confirm('Make this release visible to the customer and create a fresh commissioning run?'))return;
