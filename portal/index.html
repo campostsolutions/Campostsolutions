@@ -82,7 +82,38 @@
     <label>Revision<input id="releaseRevision" placeholder="e.g. v1.0"></label>
     <label>Title<input id="releaseTitle" placeholder="e.g. Initial machine test"></label>
     <label style="grid-column:1/-1">Release notes<textarea id="releaseNotes" placeholder="What changed / what should be tested"></textarea></label>
-    <label style="grid-column:1/-1">Release files<input id="releaseFiles" type="file" multiple></label>
+    <label>Post protection
+      <select id="releaseProtectionMode" onchange="updateReleaseProtectionUI()">
+        <option value="none">Normal release</option>
+        <option value="timed">Protected trial / commissioning post</option>
+      </select>
+    </label>
+    <div id="releaseProtectionFields" class="callout hidden" style="grid-column:1/-1;margin:0">
+      <strong>Protected trial / commissioning post</strong>
+      <p class="muted small">The source .cps stays internal to CPS. Generate the encrypted post with the CPS Post Expiry tool, then upload the generated protected .cps to the draft release before it can be published.</p>
+      <div class="grid2">
+        <label>Post written for
+          <select id="releaseProtectionProvider" onchange="updateReleaseProtectionUI()">
+            <option>Cam Post Solutions</option>
+            <option>Arkance</option>
+            <option>CadCAM Cnc</option>
+          </select>
+        </label>
+        <label>Support email<input id="releaseProtectionEmail" readonly></label>
+        <label>Trial period
+          <select id="releaseProtectionPreset" onchange="updateReleaseProtectionUI()">
+            <option value="7">7 days</option>
+            <option value="14">14 days</option>
+            <option value="30" selected>30 days</option>
+            <option value="60">60 days</option>
+            <option value="custom">Custom date</option>
+          </select>
+        </label>
+        <label id="releaseProtectionCustomLabel" class="hidden">Expiry date<input id="releaseProtectionCustomDate" type="date"></label>
+      </div>
+      <label class="row" style="margin-top:10px;font-weight:700"><input id="releaseProtectionForceExpired" type="checkbox" style="width:auto"> Force expired test build</label>
+    </div>
+    <label style="grid-column:1/-1">Release files<input id="releaseFiles" type="file" multiple><span class="muted small">For a protected release, any .cps selected here is stored as the internal source post and is never customer-visible.</span></label>
    </div>
    <div id="releaseFileState" class="upload-list"></div>
    <div class="row" style="margin-top:12px"><button class="primary" onclick="createDraftRelease()">Create draft release</button></div>
@@ -141,6 +172,22 @@ function human(s){return String(s||'').replaceAll('_',' ')}
 function safeName(n){return n.replace(/[^a-zA-Z0-9._-]+/g,'_').slice(0,160)}
 function formatBytes(bytes){const n=Number(bytes||0);if(n<1024)return n+' B';const u=['KB','MB','GB','TB'];let v=n/1024,i=0;while(v>=1024&&i<u.length-1){v/=1024;i++}return v.toFixed(v>=10?0:1)+' '+u[i]}
 function formatDateUK(value){if(!value)return '—';return new Date(value).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}
+function isoLocalDate(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`;}
+function protectionSupportEmail(provider){return provider==='Arkance'?'post.development@arkance.world':'support@campostsolutions.co.uk';}
+function updateReleaseProtectionUI(){
+ const mode=document.getElementById('releaseProtectionMode')?.value||'none';
+ const fields=document.getElementById('releaseProtectionFields');
+ if(fields)fields.classList.toggle('hidden',mode!=='timed');
+ const provider=document.getElementById('releaseProtectionProvider')?.value||'Cam Post Solutions';
+ const email=document.getElementById('releaseProtectionEmail');if(email)email.value=protectionSupportEmail(provider);
+ const preset=document.getElementById('releaseProtectionPreset')?.value||'30';
+ document.getElementById('releaseProtectionCustomLabel')?.classList.toggle('hidden',preset!=='custom');
+}
+function selectedProtectionExpiry(){
+ const preset=document.getElementById('releaseProtectionPreset')?.value||'30';
+ if(preset==='custom')return document.getElementById('releaseProtectionCustomDate')?.value||'';
+ const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+Number(preset));return isoLocalDate(d);
+}
 const PROJECT_FILE_CATEGORIES={customer_email:'Customer email / completed forms',manuals:'Manuals / technical documents',sample_nc:'Sample / proven NC',cam_projects:'CAM projects / archives',machine_models:'Machine models / simulation',photos_video:'Photos / screenshots / video',commercial_scope:'Commercial / scope notes',other:'Other'};
 
 async function sendCode(){
