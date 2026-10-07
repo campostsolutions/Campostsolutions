@@ -1,0 +1,37 @@
+name: CPS Portal Keepalive
+
+on:
+  schedule:
+    # Three low-volume external requests per day.
+    # Times are UTC; exact wall-clock time is not important for the keepalive.
+    - cron: "17 6,12,18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  keepalive:
+    name: Ping Supabase keepalive
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Read CPS Portal keepalive row
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          response="$(curl --fail-with-body --silent --show-error \
+            --retry 3 \
+            --retry-delay 5 \
+            --max-time 30 \
+            'https://hfxghrzhthvmcvzxletp.supabase.co/rest/v1/cps_keepalive?select=id&limit=1' \
+            -H 'apikey: sb_publishable_TTAEax5Jgl-gcYKdixdxiA_Imyz7hHg')"
+
+          echo "Supabase keepalive response: $response"
+
+          if [[ "$response" != *'"id":1'* ]]; then
+            echo "Unexpected keepalive response."
+            exit 1
+          fi
