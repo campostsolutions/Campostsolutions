@@ -1710,6 +1710,7 @@ function resetQuestionnaireForm(){
 
 function newQuestionnaire(clearPicker=true){
   currentProjectId=null; currentProjectStatus="draft";
+  setStage1Editability("draft");
   resetQuestionnaireForm();
   document.getElementById("projectReference").textContent="New questionnaire";
   if(clearPicker) document.getElementById("projectPicker").value="";
