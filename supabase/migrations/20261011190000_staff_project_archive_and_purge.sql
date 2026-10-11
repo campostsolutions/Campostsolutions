@@ -39,6 +39,15 @@ begin
     raise exception 'CPS staff access required';
   end if;
 
+  if not exists (
+    select 1
+    from public.projects
+    where id = p_project_id
+      and archived_at is not null
+  ) then
+    return false;
+  end if;
+
   -- Sign-offs reference commissioning runs and releases with RESTRICT, so remove
   -- them first. The project delete then cascades its remaining relational data.
   delete from public.signoff_records
@@ -49,7 +58,10 @@ begin
     and archived_at is not null;
 
   get diagnostics v_deleted_count = row_count;
-  return v_deleted_count = 1;
+  if v_deleted_count <> 1 then
+    raise exception 'Archived project purge failed';
+  end if;
+  return true;
 end;
 $$;
 
