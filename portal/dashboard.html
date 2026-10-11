@@ -9,6 +9,7 @@
 .mast{background:#fff;border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px}.brand{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:16px 26px;border-top:4px solid #5c8b2f}.brand img{width:140px;height:auto;clip-path:inset(0 0 5px 0);margin-bottom:-5px}.brand span{font-weight:600;color:#445064}.hero{background:linear-gradient(115deg,#0b315f,#0d63c8);color:#fff;padding:22px 28px}.hero h1{margin:0 0 5px}.hero p{margin:0;color:#e5f0ff}
 .card{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:20px 22px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat{border:1px solid var(--border);border-radius:12px;padding:14px}.stat strong{display:block;font-size:28px}.muted{color:var(--muted)}input,select{width:100%;padding:11px 12px;border:1px solid #cfd7e3;border-radius:10px;font:inherit}button,a.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}button.primary,a.primary{background:var(--accent);color:#fff}button.ghost,a.ghost{background:#fff;border:1px solid var(--border);color:var(--text)}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.space{justify-content:space-between}.login{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}.message{font-size:13px;color:var(--muted);margin-top:8px}.message.error{color:var(--danger);font-weight:700}
 table{width:100%;border-collapse:collapse}th,td{padding:11px 9px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.status{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:700;background:#eef3f8;margin:1px 2px}.status.ok{background:#e9f8ef;color:var(--ok)}.status.warn{background:#fff6e9;color:var(--warn)}.status.bad{background:#fff0f0;color:var(--danger)}.actions{display:flex;gap:6px;flex-wrap:wrap}.details{display:none;background:#f8fafc}.details.show{display:table-row}.details-box{padding:14px}.pill{display:inline-block;background:#eef3f8;border-radius:999px;padding:5px 9px;font-size:12px;margin:2px}.archive-card{padding:0;overflow:hidden}.archive-card summary{cursor:pointer;list-style:none;padding:18px 22px;font-weight:800;font-size:18px;display:flex;justify-content:space-between;align-items:center;gap:12px}.archive-card summary::-webkit-details-marker{display:none}.archive-card summary:after{content:'▾';color:var(--muted);font-size:14px}.archive-card[open] summary:after{content:'▴'}.archive-card .archive-inner{border-top:1px solid var(--border);padding:0 22px 18px}.archive-meta{font-size:12px;color:var(--muted);margin-top:5px} 
+.danger-button{background:#fff0f0!important;color:var(--danger)!important;border:1px solid #e8b9b9!important}
 @media(max-width:900px){.grid{grid-template-columns:1fr 1fr}table{font-size:13px}}@media(max-width:650px){.brand{flex-direction:column;align-items:flex-start}.grid{grid-template-columns:1fr}.login{grid-template-columns:1fr}.tablewrap{overflow:auto}}
 
   .cps-help-fab{
@@ -58,7 +59,7 @@ table{width:100%;border-collapse:collapse}th,td{padding:11px 9px;border-bottom:1
  <details class="card archive-card" id="archiveSection">
    <summary><span>Archived projects</span><span class="status" id="archiveCount">0</span></summary>
    <div class="archive-inner tablewrap">
-     <p class="muted" style="margin:14px 0 6px">Completed sign-off projects stay here with their releases, evidence, project files and support-period history.</p>
+     <p class="muted" style="margin:14px 0 6px">Archived projects are hidden from the active list but retain their questionnaires, files and history. Restore a project or permanently delete an archived project from here.</p>
      <table><thead><tr><th>Project</th><th>Customer / machine</th><th>Stage 3</th><th>Archived</th><th>Support</th><th>Actions</th></tr></thead><tbody id="archiveRows"></tbody></table>
    </div>
  </details>
@@ -137,7 +138,12 @@ function projectActions(p,archived=false){
       : (p.stage3_status==='not_accepted'?'View rejected sign-off':'Open Stage 3');
     buttons.push(`<a class="btn ghost" href="./signoff.html?project=${encodeURIComponent(p.id)}">${s3Label}</a>`);
   }
-  if(archived) buttons.push(`<button class="ghost" onclick="reopenProject('${p.id}')">Reopen project</button>`);
+  if(archived){
+    buttons.push(`<button class="ghost" onclick="reopenProject('${p.id}')">Restore to active</button>`);
+    buttons.push(`<button class="danger-button" onclick="permanentlyDeleteProject('${p.id}')">Permanently delete</button>`);
+  } else {
+    buttons.push(`<button class="ghost" onclick="archiveProject('${p.id}')">Archive</button>`);
+  }
 
   return buttons.join('');
 }
@@ -178,10 +184,39 @@ function renderProjects(){
 async function reopenProject(id){
  const p=projects.find(x=>x.id===id);
  if(!p||!p.archived_at)return;
- if(!confirm('Reopen '+p.reference+' and return it to the active Projects list? The completed sign-off and all project history will remain unchanged.'))return;
- const {error}=await sb.from('projects').update({archived_at:null,development_status:'in_development'}).eq('id',id);
+ if(!confirm('Restore '+p.reference+' to the active Projects list? Its status, sign-off and history will remain unchanged.'))return;
+ const {error}=await sb.from('projects').update({archived_at:null}).eq('id',id);
  if(error)return msg('Could not reopen project: '+error.message,true);
- msg(p.reference+' reopened and returned to development.');await loadProjects();
+ msg(p.reference+' restored to the active Projects list.');await loadProjects();
+}
+async function archiveProject(id){
+ const p=projects.find(x=>x.id===id);
+ if(!p||p.archived_at)return;
+ if(!confirm('Archive '+p.reference+'? It will leave the active Projects list but keep its questionnaire, files and project history. You can restore it later.'))return;
+ const {error}=await sb.from('projects').update({archived_at:new Date().toISOString()}).eq('id',id);
+ if(error)return msg('Could not archive project: '+error.message,true);
+ msg(p.reference+' archived. Its records and files have been retained.');await loadProjects();
+}
+async function permanentlyDeleteProject(id){
+ const p=projects.find(x=>x.id===id);
+ if(!p||!p.archived_at)return;
+ const typed=prompt(`Permanently delete ${p.reference}? This removes the project, questionnaire, releases, sign-off history and all attached files. This cannot be undone.\n\nType ${p.reference} to continue.`);
+ if(typed!==p.reference)return;
+ msg('Checking project files…');
+ const {data:files,error:fileError}=await sb.from('project_files').select('storage_path').eq('project_id',id);
+ if(fileError)return msg('Could not list project files; nothing was deleted. '+fileError.message,true);
+ const paths=[...new Set((files||[]).map(f=>f.storage_path).filter(Boolean))];
+ if(paths.length>1000)return msg('This project has more than 1,000 stored files. Nothing was deleted; contact CPS support for a managed purge.',true);
+ if(paths.length){
+   msg(`Removing ${paths.length} stored file${paths.length===1?'':'s'}…`);
+   const {error:storageError}=await sb.storage.from('cps-project-files').remove(paths);
+   if(storageError)return msg('Storage cleanup failed. The project record is still archived. Check its files before retrying. '+storageError.message,true);
+ }
+ msg('Removing project records…');
+ const {data:deleted,error}=await sb.rpc('cps_purge_archived_project',{p_project_id:id});
+ if(error)return msg('The stored files were removed, but the project record could not be deleted. It remains archived; contact CPS support before retrying. '+error.message,true);
+ if(!deleted)return msg('No archived project was deleted. Refresh the dashboard and try again.',true);
+ msg(p.reference+' and its stored files were permanently deleted.');await loadProjects();
 }
 function toggleDetails(id){document.getElementById('details-'+id).classList.toggle('show')}
 async function enableCommissioning(id){
