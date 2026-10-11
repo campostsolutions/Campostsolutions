@@ -118,13 +118,15 @@ ul{margin-top:7px}
 
       <div class="step"><div class="num">8</div><div><h3>Stage 3 acceptance</h3><p>Stage 3 identifies the exact final post/simulation revision, known limitations, customer representative and acceptance result.</p><p><strong>Accepted</strong> and <strong>Accepted with limitations</strong> lock the release baseline. <strong>Not accepted</strong> returns the project to Stage 2 as Retest required.</p></div></div>
 
-      <div class="step"><div class="num">9</div><div><h3>After acceptance</h3><p>Use the accepted record as the baseline for future support. <strong>Accepted</strong> or <strong>Accepted with limitations</strong> automatically moves the project from the active CPS dashboard into the collapsed <strong>Archived projects</strong> section. Archiving does not remove any releases, evidence, Project files or sign-off history, and the 90-day support period still runs from the original Delivery Date, not from acceptance or a later revision.</p><p>If further work is genuinely required, CPS staff can use <strong>Reopen project</strong> to return it to the active dashboard without changing the accepted baseline.</p></div></div>
+      <div class="step"><div class="num">9</div><div><h3>After acceptance</h3><p>Use the accepted record as the baseline for future support. <strong>Accepted</strong> or <strong>Accepted with limitations</strong> automatically moves the project from the active CPS dashboard into the collapsed <strong>Archived projects</strong> section. Archiving does not remove any releases, evidence, Project files or sign-off history, and the 90-day support period still runs from the original Delivery Date, not from acceptance or a later revision.</p><p>If further work is genuinely required, CPS staff can use <strong>Restore to active</strong> to return the project to the active dashboard without changing its status or accepted baseline.</p></div></div>
 
       <div class="callout"><strong>Storage:</strong> customer/project records and uploads are stored in the private CPS Supabase project store. GitHub should contain the portal/web code only, not customer machine data.</div>
 
       <h3>Internal good practice</h3>
       <ul>
         <li>Use the portal/dashboard to change stage status rather than manually editing database rows.</li>
+        <li>Use <strong>Archive</strong> for enquiries or projects that are no longer viable. This hides them from the active list but retains all project data and files; archived projects can be restored later.</li>
+        <li>Use <strong>Permanently delete</strong> only from the Archived projects section when the record and all attached files should be erased. The action requires typing the project reference and cannot be undone.</li>
         <li>Do not overwrite an accepted baseline to represent a later revision.</li>
         <li>Keep customer actions separate from CPS actions in commissioning notes.</li>
         <li>Do not mark untested functionality as proven.</li>
