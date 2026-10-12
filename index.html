@@ -125,26 +125,48 @@
       .steps { grid-template-columns: 1fr; }
       .card, .contact-panel { padding: 22px; }
     }
-  </style>
+  
+/* Shared CPS site navigation */
+.cps-header{background:#101820;color:#fff;position:relative;z-index:20}
+.cps-header .cps-header-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:76px}
+.cps-header .cps-brand{display:inline-flex;align-items:center;gap:11px;color:#fff;text-decoration:none;font-size:.96rem;font-weight:800;letter-spacing:.02em;white-space:nowrap}
+.cps-header .cps-brand img{width:49px;height:44px;padding:4px;object-fit:contain;border-radius:7px;background:#fff}
+.cps-header .cps-menu{position:static}
+.cps-header .cps-menu>summary{display:none}
+.cps-header .cps-links{display:flex;align-items:center;gap:22px}
+.cps-header .cps-links>a,.cps-header .cps-services>summary{color:#eaf0f3;text-decoration:none;font-weight:600;font-size:.93rem;white-space:nowrap;cursor:pointer}
+.cps-header .cps-links>a:hover,.cps-header .cps-services>summary:hover,.cps-header .cps-links a:focus-visible{color:#9bd49e}
+.cps-header .cps-portal{border:1px solid #80919b;border-radius:8px;padding:8px 12px}
+.cps-header .cps-services{position:relative}
+.cps-header .cps-services>summary{list-style:none}
+.cps-header .cps-services>summary::-webkit-details-marker{display:none}
+.cps-header .cps-services>summary span{margin-left:3px}
+.cps-header .cps-submenu{position:absolute;top:calc(100% + 13px);left:0;width:260px;display:flex;flex-direction:column;padding:8px;background:#fff;border:1px solid #dce4e8;border-radius:12px;box-shadow:0 16px 36px #10182030}
+.cps-header .cps-submenu a{display:block;padding:9px 12px;border-radius:7px;color:#202b33;text-decoration:none;font-size:.9rem;font-weight:600;line-height:1.35}
+.cps-header .cps-submenu a:hover,.cps-header .cps-submenu a:focus-visible{background:#edf5ef;color:#103b55}
+.cps-header :focus-visible{outline:3px solid #91d398;outline-offset:3px}
+@media(max-width:900px){
+.cps-header .cps-header-inner{min-height:68px;flex-wrap:nowrap;padding:10px 0}
+.cps-header .cps-brand{font-size:.85rem}
+.cps-header .cps-brand img{width:43px;height:39px}
+.cps-header .cps-menu>summary{display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none;color:#fff;font-weight:700;border:1px solid #80919b;border-radius:8px;padding:7px 12px}
+.cps-header .cps-menu>summary::-webkit-details-marker{display:none}
+.cps-header .cps-menu-label{font-size:.88rem}
+.cps-header .cps-links{position:absolute;left:0;right:0;top:100%;background:#101820;display:none;flex-direction:column;align-items:stretch;gap:0;padding:12px max(18px,calc((100vw - 1120px)/2));border-top:1px solid #394b55;box-shadow:0 12px 22px #10182033}
+.cps-header .cps-menu[open] .cps-links{display:flex}
+.cps-header .cps-links>a,.cps-header .cps-services>summary{display:block;padding:11px 8px;font-size:.95rem}
+.cps-header .cps-portal{margin-top:6px;text-align:center}
+.cps-header .cps-submenu{position:static;width:auto;box-shadow:none;margin:0 0 8px 10px;padding:4px;background:#172b37;border-color:#394b55}
+.cps-header .cps-submenu a{color:#eaf0f3}
+.cps-header .cps-submenu a:hover,.cps-header .cps-submenu a:focus-visible{color:#103b55}
+}
+</style>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Organization","name":"Cam Post Solutions Ltd","url":"https://www.campostsolutions.co.uk/","description":"UK CNC post processor development, machine simulation and CAM support specialists.","areaServed":{"@type":"Country","name":"United Kingdom"}}
 </script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="container nav">
-      <nav class="navlinks" aria-label="Main navigation">
-        <a href="#services">Services</a>
-        <a href="complex-cnc-post-processors.html">Complex CNC</a>
-        <a href="turn-mill-post-processors.html">Turn-Mill</a>
-        <a href="swiss-cnc-post-processors.html">Swiss-Type</a>
-        <a href="five-axis-post-processors.html">Five-Axis</a>
-        <a href="#about">About</a>
-        <a href="#contact">Contact</a>
-        <a class="portal" href="portal/">Customer Portal</a>
-      </nav>
-    </div>
-  </header>
+  <header class="cps-header"><div class="container cps-header-inner"><a class="cps-brand" href="/" aria-label="Cam Post Solutions home"><img src="/logo.jpg" alt="">CAM POST SOLUTIONS</a><details class="cps-menu"><summary aria-label="Toggle navigation"><span class="cps-menu-label">Menu</span><span class="cps-hamburger" aria-hidden="true">☰</span></summary><nav class="cps-links" aria-label="Main navigation"><a href="/">Home</a><details class="cps-services"><summary>Services <span aria-hidden="true">⌄</span></summary><div class="cps-submenu"><a href="/#services">All services</a><a href="/complex-cnc-post-processors.html">Complex CNC overview</a><a href="/turn-mill-post-processors.html">Turn-Mill &amp; Multi-Tasking</a><a href="/swiss-cnc-post-processors.html">Swiss-Type CNC</a><a href="/five-axis-post-processors.html">Five-Axis &amp; Simulation</a></div></details><a href="/#about">About</a><a href="/#contact">Contact</a><a class="cps-portal" href="/portal/">Customer Portal</a></nav></details></div></header>
 
   <main>
     <section class="hero" id="home">
