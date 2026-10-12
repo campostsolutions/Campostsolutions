@@ -87,6 +87,8 @@
     .experience-stat strong { display: block; color: var(--blue); font-size: 2rem; line-height: 1.1; }
     .experience-stat span { color: var(--muted); }
     .contact-panel { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 28px; padding: 32px; background: var(--navy); color: var(--white); border-radius: 18px; }
+    .contact-actions { display: flex; flex-direction: column; gap: 12px; min-width: 190px; }
+    .contact-actions .button { text-align: center; }
     .portal-cta { display: flex; align-items: center; justify-content: space-between; gap: 22px; margin-top: 24px; padding: 24px 28px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
     .portal-cta h3 { margin: 0 0 4px; color: var(--navy); }
     .portal-cta p { margin: 0; color: var(--muted); }
@@ -299,13 +301,16 @@
         <div class="contact-panel">
           <div>
             <h2>Have a post or simulation requirement?</h2>
-            <p>Tell us about the machine, control, CAM system and what you need to achieve. We’ll let you know what information we need to assess the work and propose a clear next step.</p>
+            <p>Tell us about the machine, control, CAM system and what you need to achieve. We’ll let you know what information we need to assess the work and propose a clear next step. Prefer to talk first? Book an introductory call.</p>
             <div class="contact-details">
               <a href="mailto:support@campostsolutions.co.uk">support@campostsolutions.co.uk</a>
               <a href="tel:+447976527042">+44 7976 527042</a>
             </div>
           </div>
-          <a class="button primary" href="mailto:support@campostsolutions.co.uk?subject=Cam%20Post%20Solutions%20enquiry">Send an enquiry</a>
+          <div class="contact-actions">
+            <a class="button primary" href="https://bookings.cloud.microsoft/book/CamPostSolutions@campostsolutions.co.uk/?ismsaljsauthenabled" target="_blank" rel="noopener noreferrer">Book an introductory call</a>
+            <a class="button secondary" href="mailto:support@campostsolutions.co.uk?subject=Cam%20Post%20Solutions%20enquiry">Send an email enquiry</a>
+          </div>
         </div>
       </div>
     </section>
