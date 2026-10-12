@@ -980,7 +980,7 @@
         <label class="check feature-conditional feature-polar"><input type="checkbox" name="features" value="Polar interpolation">Polar interpolation</label>
         <label class="check feature-conditional feature-polar"><input type="checkbox" name="features" value="Cylindrical interpolation">Cylindrical interpolation</label>
         <label class="check feature-conditional feature-backwork"><input type="checkbox" name="features" value="Back working">Back working</label>
-        <label class="check feature-conditional feature-probing"><input type="checkbox" name="features" value="Probing" onchange="updateConditionals()">Fusion probing</label>
+        <input type="checkbox" name="features" value="Probing" id="probingFeatureFlag" hidden>
         <label class="check"><input type="checkbox" name="features" value="Special automation">Other machine-specific automation</label>
       </div>
 
@@ -1448,12 +1448,16 @@ function updateConditionals(){
   toggle("multiEvidence", hasTransfer || hasChannels || isSwiss);
   toggle("fiveAxisEvidence", indexed || simultaneous);
 
-  const probingFeature=document.querySelector('[name="features"][value="Probing"]');
-  const probingRequested=hasProbing && !!probingFeature?.checked;
+  const probingRequired=hasProbing && value("probing_required")==="Yes";
+  const probingFeatureFlag=document.getElementById("probingFeatureFlag");
+  if(probingFeatureFlag){
+    probingFeatureFlag.checked=probingRequired;
+    probingFeatureFlag.disabled=!hasProbing;
+  }
   toggle("probingBlock", hasProbing);
-  toggle("probingDetails", probingRequested && value("probing_required")==="Yes");
-  toggle("probingEvidence", probingRequested && value("probing_required")==="Yes");
-  setFeatureVisibility('.probing-evidence-option', probingRequested && value("probing_required")==="Yes");
+  toggle("probingDetails", probingRequired);
+  toggle("probingEvidence", probingRequired);
+  setFeatureVisibility('.probing-evidence-option', probingRequired);
 
   // Required machining features: show only what is relevant to the machine selected.
   setFeatureVisibility('.feature-turning', hasTurning);
@@ -1462,13 +1466,6 @@ function updateConditionals(){
   setFeatureVisibility('.feature-simultaneous', simultaneous);
   setFeatureVisibility('.feature-polar', hasTurning && (hasDriven || capabilities.includes("C-axis") || millTurning));
   setFeatureVisibility('.feature-backwork', hasSub || isSwiss);
-  setFeatureVisibility('.feature-probing', hasProbing);
-
-  const currentProbeFeature=document.querySelector('[name="features"][value="Probing"]');
-  const currentProbeRequired=hasProbing && !!currentProbeFeature?.checked && value("probing_required")==="Yes";
-  toggle("probingDetails", currentProbeRequired);
-  toggle("probingEvidence", currentProbeRequired);
-  setFeatureVisibility('.probing-evidence-option', currentProbeRequired);
 
   const ctrl = value("control_manufacturer");
   toggle("siemensBlock", ctrl === "Siemens");
@@ -1646,6 +1643,7 @@ function buildSummary(){
       <dt>Deliverable</dt><dd>${escapeHtml(d.project_scope||"—")}</dd>
       <dt>Post work</dt><dd>${pills(d.project_type||[])||"—"}</dd>
       <dt>Required features</dt><dd>${pills(d.features||[])||"—"}</dd>
+      ${d.probing_required==="Yes"?`<dt>Fusion probing</dt><dd><strong>Required</strong>${d.probe_system?" · "+escapeHtml(d.probe_system):""}${d.probe_functions?"<br>"+pills(d.probe_functions):""}</dd>`:""}
       <dt>Evidence available</dt><dd>${pills(d.evidence||[])||"—"}</dd>
     </dl>`;
   buildReadiness(d);
@@ -1686,6 +1684,12 @@ function buildReadiness(d){
 
   if(caps.includes("Multiple channels") || type === "Swiss / sliding-head"){
     add("Multi-channel synchronisation example", ev.includes("Multi-channel sample") || !!d.channel_assignment, "Proven channel-sync program recommended");
+  }
+
+  if(d.probing_required==="Yes"){
+    add("Proven probing NC program", ev.includes("Proven probing program"), "Required for probing development");
+    add("Probing cycle / macro documentation", ev.includes("Probing cycle manual") || !!d.probe_macro_package, "Required for probing development");
+    add("Probe setup / calibration information", ev.includes("Probe setup/calibration") || d.probe_calibrated==="Yes", "Recommended before machine proving");
   }
 
   document.getElementById("readiness").innerHTML = rows.join("");
