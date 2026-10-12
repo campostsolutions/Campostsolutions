@@ -980,9 +980,87 @@
         <label class="check feature-conditional feature-polar"><input type="checkbox" name="features" value="Polar interpolation">Polar interpolation</label>
         <label class="check feature-conditional feature-polar"><input type="checkbox" name="features" value="Cylindrical interpolation">Cylindrical interpolation</label>
         <label class="check feature-conditional feature-backwork"><input type="checkbox" name="features" value="Back working">Back working</label>
-        <label class="check feature-conditional feature-probing"><input type="checkbox" name="features" value="Probing">Probing</label>
+        <label class="check feature-conditional feature-probing"><input type="checkbox" name="features" value="Probing" onchange="updateConditionals()">Fusion probing</label>
         <label class="check"><input type="checkbox" name="features" value="Special automation">Other machine-specific automation</label>
       </div>
+
+      <div class="conditional" id="probingBlock">
+        <div class="section">
+          <h3>On-machine probing</h3>
+          <p class="intro">The machine has probing capability. Please confirm whether Fusion needs to generate probing cycles as part of this project.</p>
+          <div class="grid">
+            <label class="field"><span class="lbl">Is Fusion probing required as part of this project?</span>
+              <select name="probing_required" onchange="updateConditionals()">
+                <option>No</option>
+                <option>Yes</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="conditional" id="probingDetails">
+            <div class="notice warning" style="margin-top:14px"><strong>Machine verification required:</strong> probing cycles, work-offset changes, protected moves and failure behaviour must be verified against the machine/control probing package and proven NC before release.</div>
+            <div class="grid" style="margin-top:14px">
+              <label class="field"><span class="lbl">Probe manufacturer / system</span><input name="probe_system" placeholder="e.g. Renishaw OMP60, Blum, Heidenhain touch probe"></label>
+              <label class="field"><span class="lbl">Probe hardware required</span>
+                <select name="probe_hardware">
+                  <option>Unknown / please confirm</option>
+                  <option>Spindle workpiece probe</option>
+                  <option>Tool setter</option>
+                  <option>Workpiece probe and tool setter</option>
+                  <option>Other</option>
+                </select>
+              </label>
+              <label class="field"><span class="lbl">Controller probing package / macro set</span><input name="probe_macro_package" placeholder="e.g. Renishaw Inspection Plus, control OEM cycles, custom macros"></label>
+              <label class="field"><span class="lbl">Probe calibrated and in normal production use?</span>
+                <select name="probe_calibrated"><option>Unknown</option><option>Yes</option><option>No</option></select>
+              </label>
+              <label class="field"><span class="lbl">3+2 / indexed probing required?</span>
+                <select name="probe_indexed"><option>Unknown</option><option>No</option><option>Yes</option></select>
+              </label>
+              <label class="field"><span class="lbl">Work offsets probing may set / update</span><input name="probe_work_offsets" placeholder="e.g. G54-G59, G54.1 P1-P48, datum table"></label>
+              <label class="field"><span class="lbl">Out-of-tolerance / probing failure behaviour</span>
+                <select name="probe_failure_action">
+                  <option>Unknown / please confirm</option>
+                  <option>Stop / alarm</option>
+                  <option>Warning / message</option>
+                  <option>Continue</option>
+                  <option>Customer-specific behaviour</option>
+                </select>
+              </label>
+              <label class="field"><span class="lbl">Inspection results required</span>
+                <select name="probe_results">
+                  <option>Unknown / please confirm</option>
+                  <option>Not required</option>
+                  <option>Display on control only</option>
+                  <option>Write results file</option>
+                  <option>Import results back into Fusion</option>
+                  <option>Other</option>
+                </select>
+              </label>
+              <label class="field"><span class="lbl">Probe ON / OFF or preparation commands</span><input name="probe_on_off_commands" placeholder="If applicable"></label>
+              <label class="field full"><span class="lbl">Protected positioning / spindle orientation / clearance requirements</span><textarea name="probe_positioning_requirements" placeholder="Any required safe approach, spindle orientation, probe activation or retract behaviour."></textarea></label>
+            </div>
+
+            <div style="margin-top:16px">
+              <span class="lbl">Fusion probing functions required</span>
+              <div class="checkgrid" style="margin-top:8px">
+                <label class="check"><input type="checkbox" name="probe_functions" value="Set/update work offset">Set / update work offset</label>
+                <label class="check"><input type="checkbox" name="probe_functions" value="Part/stock position">Locate part / stock position</label>
+                <label class="check"><input type="checkbox" name="probe_functions" value="Feature measurement">Measure holes / bosses / walls / channels</label>
+                <label class="check"><input type="checkbox" name="probe_functions" value="Angular/rotation setting">Angular / rotation setting</label>
+                <label class="check"><input type="checkbox" name="probe_functions" value="Probe Geometry">Probe Geometry / dimensional checks</label>
+                <label class="check"><input type="checkbox" name="probe_functions" value="Inspect Surface">Inspect Surface</label>
+                <label class="check"><input type="checkbox" name="probe_functions" value="Tool wear update">Update tool wear / offsets</label>
+                <label class="check"><input type="checkbox" name="probe_functions" value="Part alignment">Part alignment</label>
+                <label class="check"><input type="checkbox" name="probe_functions" value="Results/reporting">Results / inspection reporting</label>
+              </div>
+            </div>
+
+            <label class="field" style="margin-top:16px"><span class="lbl">Other probing requirements / conventions</span><textarea name="probe_notes" placeholder="Anything else CPS should reproduce from the existing machine probing workflow."></textarea></label>
+          </div>
+        </div>
+      </div>
+
       <div class="section">
         <h3>Canned cycles</h3>
         <div class="checkgrid">
@@ -1064,6 +1142,9 @@
         <label class="check"><input type="checkbox" name="evidence" value="Part transfer sample">Proven part-transfer program</label>
         <label class="check"><input type="checkbox" name="evidence" value="Multi-channel sample">Proven multi-channel program</label>
         <label class="check"><input type="checkbox" name="evidence" value="5-axis sample">Proven 3+2 / simultaneous program</label>
+        <label class="check probing-evidence-option"><input type="checkbox" name="evidence" value="Probing cycle manual">Probing cycle / macro documentation</label>
+        <label class="check probing-evidence-option"><input type="checkbox" name="evidence" value="Proven probing program">Proven probing NC program</label>
+        <label class="check probing-evidence-option"><input type="checkbox" name="evidence" value="Probe setup/calibration">Probe setup / calibration information</label>
       </div>
 
       <div class="section">
@@ -1082,6 +1163,9 @@
       </div>
       <div class="conditional" id="fiveAxisEvidence">
         <div class="notice warning"><strong>Recommended evidence:</strong> please provide a proven 3+2 or simultaneous rotary program and, where available, a machine/control description of TCP or tilted workplane behaviour.</div>
+      </div>
+      <div class="conditional" id="probingEvidence">
+        <div class="notice warning"><strong>Required for probing development:</strong> please provide a proven probing NC program and the relevant machine/control probing-cycle or macro documentation. Probe setup/calibration information is also useful where available.</div>
       </div>
     </section>
 
@@ -1364,6 +1448,13 @@ function updateConditionals(){
   toggle("multiEvidence", hasTransfer || hasChannels || isSwiss);
   toggle("fiveAxisEvidence", indexed || simultaneous);
 
+  const probingFeature=document.querySelector('[name="features"][value="Probing"]');
+  const probingRequested=hasProbing && !!probingFeature?.checked;
+  toggle("probingBlock", hasProbing);
+  toggle("probingDetails", probingRequested && value("probing_required")==="Yes");
+  toggle("probingEvidence", probingRequested && value("probing_required")==="Yes");
+  setFeatureVisibility('.probing-evidence-option', probingRequested && value("probing_required")==="Yes");
+
   // Required machining features: show only what is relevant to the machine selected.
   setFeatureVisibility('.feature-turning', hasTurning);
   setFeatureVisibility('.feature-milling', isMill || hasDriven || hasBHead || isSwiss);
@@ -1372,6 +1463,12 @@ function updateConditionals(){
   setFeatureVisibility('.feature-polar', hasTurning && (hasDriven || capabilities.includes("C-axis") || millTurning));
   setFeatureVisibility('.feature-backwork', hasSub || isSwiss);
   setFeatureVisibility('.feature-probing', hasProbing);
+
+  const currentProbeFeature=document.querySelector('[name="features"][value="Probing"]');
+  const currentProbeRequired=hasProbing && !!currentProbeFeature?.checked && value("probing_required")==="Yes";
+  toggle("probingDetails", currentProbeRequired);
+  toggle("probingEvidence", currentProbeRequired);
+  setFeatureVisibility('.probing-evidence-option', currentProbeRequired);
 
   const ctrl = value("control_manufacturer");
   toggle("siemensBlock", ctrl === "Siemens");
@@ -1528,7 +1625,7 @@ function formDataObject(){
 
   obj._meta={
     generated:new Date().toISOString(),
-    form_version:"CPS Customer Portal v5"
+    form_version:"CPS Customer Portal v5.1"
   };
   return obj;
 }
