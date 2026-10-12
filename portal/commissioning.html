@@ -739,7 +739,28 @@ function buildAllTests(){
   ]]);
   if(caps.includes('Parts catcher'))groups.push(['Parts catcher',[{text:'Parts catcher deploy/retract commands and clearance',critical:true}]]);
   if(caps.includes('Tailstock / steady'))groups.push(['Tailstock / steady',[{text:'Tailstock/steady commands and clearance',critical:true}]]);
-  if(caps.includes('Probing')||features.includes('Probing'))groups.push(['Probing',[{text:'Probe on/off and protected positioning'},{text:'Probe cycle output / result handling where in scope'}]]);
+  const probingInScope=stage1.probing_required!==undefined
+    ? stage1.probing_required==='Yes'
+    : (caps.includes('Probing')||features.includes('Probing'));
+  if(probingInScope){
+    const probeFns=arr(stage1.probe_functions);
+    const probeTests=[
+      {text:'Probe activation, protected positioning and retract behaviour',critical:true},
+      {text:'Probe cycle output matches the installed machine/control probing package',critical:true}
+    ];
+    if(probeFns.includes('Set/update work offset'))probeTests.push({text:'Probing sets/updates the intended work offset correctly',critical:true});
+    if(probeFns.includes('Part/stock position'))probeTests.push({text:'Part / stock position probing returns and applies the expected result'});
+    if(probeFns.includes('Feature measurement'))probeTests.push({text:'Feature measurement output and measured values are correct'});
+    if(probeFns.includes('Angular/rotation setting'))probeTests.push({text:'Angular / rotation probing applies the intended alignment',critical:true});
+    if(probeFns.includes('Probe Geometry'))probeTests.push({text:'Probe Geometry output and tolerance handling are correct'});
+    if(probeFns.includes('Inspect Surface'))probeTests.push({text:'Inspect Surface output and result handling are correct'});
+    if(probeFns.includes('Tool wear update'))probeTests.push({text:'Tool wear / offset update affects the intended tool register only',critical:true});
+    if(probeFns.includes('Part alignment'))probeTests.push({text:'Part alignment produces the intended coordinate transformation',critical:true});
+    if(stage1.probe_indexed==='Yes')probeTests.push({text:'3+2 / indexed probing orientation and protected motion are correct',critical:true});
+    if(stage1.probe_failure_action && !String(stage1.probe_failure_action).startsWith('Unknown'))probeTests.push({text:'Out-of-tolerance / probe failure produces the agreed stop, alarm or message behaviour',critical:true});
+    if(stage1.probe_results && !['Not required','Unknown / please confirm'].includes(stage1.probe_results))probeTests.push({text:'Inspection results are stored / returned using the agreed method'});
+    groups.push(['Probing',probeTests]);
+  }
   if((stage1.project_scope||'').toLowerCase().includes('simulation'))groups.push(['Machine simulation',[
     {text:'Machine model is aligned to machine zero / rotary centres'},
     {text:'Axis directions and limits match the physical machine'},
